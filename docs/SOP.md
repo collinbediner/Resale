@@ -24,11 +24,12 @@ Use short branches for changes:
 git switch -c feature/name-of-change
 ```
 
-Every push should produce a Git-hosted preview:
+Every push response must include both URLs:
 
-- Pull requests deploy to a preview path on GitHub Pages.
-- `main` deploys to production at `https://shopresalelane.com/` once DNS and Pages custom domain are active.
-- Until DNS is live, production is visible at `https://collinbediner.github.io/Resale/`.
+- Preview: the GitHub Pages URL for the pushed revision, with a cache-busting commit query when useful.
+- Production: `https://shopresalelane.com/`.
+
+Pull requests deploy to a preview path on GitHub Pages. `main` deploys to production at `https://shopresalelane.com/`.
 
 ## Approval Rule
 
