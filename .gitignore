@@ -1,0 +1,14 @@
+.wrangler/
+Supplier Delivery Data - Private/
+node_modules/
+.env
+.env.*
+!.env.example
+dist/
+build/
+coverage/
+.DS_Store
+Thumbs.db
+*.gdoc
+*.gsheet
+*.gslides
