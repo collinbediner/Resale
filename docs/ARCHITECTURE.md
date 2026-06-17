@@ -4,8 +4,8 @@
 
 - Frontend: Vite + React + TypeScript
 - Hosting: GitHub Pages
-- Production URL now: `https://collinbediner.github.io/Resale/`
-- Custom domain target: `https://shopresalelane.com/` after DNS and GitHub Pages custom domain setup
+- Production URL: `https://shopresalelane.com/`
+- GitHub Pages fallback: `https://collinbediner.github.io/Resale/`
 - Preview URL: GitHub Pages PR preview path from CI
 
 ## Future Backend
@@ -23,4 +23,4 @@ Expected production backend responsibilities:
 
 ## Domain
 
-DNS still needs to point the apex domain to GitHub Pages and optionally `www` to `collinbediner.github.io`. Do not add `site/CNAME` until DNS resolves, because GitHub Pages will redirect the working GitHub URL to the custom domain.
+DNS points the apex domain to GitHub Pages and `www` to `collinbediner.github.io`.
