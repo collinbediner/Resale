@@ -1,0 +1,92 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <meta name="description" content="Legitimate sourcing resources for reseller research." />
+    <title>ResaleLane</title>
+    <link rel="stylesheet" href="./styles.css" />
+  </head>
+  <body>
+    <header>
+      <a class="brand" href="#home">ResaleLane</a>
+      <nav>
+        <a href="#packages">Shop</a>
+        <a href="#reviews">Reviews</a>
+        <a href="#faq">FAQ</a>
+        <a href="#contact">Contact</a>
+      </nav>
+      <button id="cartButton" class="cart">Cart <span id="cartCount">0</span></button>
+    </header>
+
+    <main id="home">
+      <section class="hero">
+        <div>
+          <p class="eyebrow">Instant digital delivery after checkout</p>
+          <h1>Premium Sourcing Resources for Resellers</h1>
+          <p>Get supplier contacts, marketplace links, and sourcing resources for shoes, clothing, fragrances, and electronics accessories.</p>
+          <div class="actions">
+            <a class="primary" href="#packages">Shop Packages</a>
+            <a class="secondary" href="#bundle">View Bundle Deal</a>
+          </div>
+          <p class="trust">Secure Stripe checkout will be enabled after Stripe setup.</p>
+        </div>
+        <div class="visual">
+          <div class="chips"><span>Shoes</span><span>Apparel</span><span>Fragrance</span><span>Electronics</span></div>
+          <div class="bundle-card"><p>All Sourcing Bundle</p><strong>$12</strong><span>Best Value</span></div>
+        </div>
+      </section>
+
+      <section id="bundle" class="bundle">
+        <div><p class="eyebrow">Featured Bundle</p><h2>Every launch package in one download.</h2></div>
+        <button data-add="all-sourcing-bundle">Add Bundle</button>
+      </section>
+
+      <section id="packages" class="section">
+        <p class="eyebrow">Shop Packages</p>
+        <h2>Launch sourcing packages</h2>
+        <div id="productGrid" class="grid"></div>
+      </section>
+
+      <section class="section split">
+        <div><p class="eyebrow">How It Works</p><h2>Simple digital delivery flow</h2></div>
+        <ol>
+          <li>Choose a package.</li>
+          <li>Checkout with Stripe after setup.</li>
+          <li>Receive verified email delivery.</li>
+        </ol>
+      </section>
+
+      <section class="section trust-block">
+        <h2>Built around safe, legitimate sourcing language.</h2>
+        <ul>
+          <li>No guaranteed profit claims.</li>
+          <li>Buyers verify supplier pricing, authenticity, and availability directly.</li>
+          <li>Supplier details are never exposed before purchase.</li>
+        </ul>
+      </section>
+
+      <section id="reviews" class="section"><h2>Reviews</h2><p>Reviews will be submitted through a form and manually approved before display.</p></section>
+      <section id="faq" class="section"><h2>FAQ</h2><p>ResaleLane provides digital sourcing information only. Buyers verify all supplier details directly.</p></section>
+      <section id="contact" class="section"><h2>Contact</h2><p>Email <a href="mailto:collin.bediner+support@gmail.com">collin.bediner+support@gmail.com</a> for order, delivery, or pre-purchase questions.</p></section>
+    </main>
+
+    <footer>
+      <strong>ResaleLane</strong>
+      <p>Sourcing information for reseller research. No guaranteed results.</p>
+      <nav><a href="#faq">FAQ</a><a href="#contact">Contact</a></nav>
+    </footer>
+
+    <aside id="cartDrawer" class="drawer" hidden>
+      <div class="panel">
+        <button id="closeCart" class="close">Close</button>
+        <h2>Cart</h2>
+        <div id="cartItems"></div>
+        <p class="total">Total: <strong id="cartTotal">$0</strong></p>
+        <button disabled class="checkout">Stripe checkout pending</button>
+        <p>Checkout activates after Stripe products, sessions, and webhook secrets exist.</p>
+      </div>
+    </aside>
+    <script src="./app.js"></script>
+  </body>
+</html>
