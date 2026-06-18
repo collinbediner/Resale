@@ -45,13 +45,27 @@ The build creates `dist/` with release-specific asset filenames. `dist/` is gene
 
 ## Deployment
 
-1. A push or pull request starts GitHub Actions.
-2. The `Test Website` workflow runs the automated checks.
-3. A failed test blocks that deployment.
-4. A successful push to `main` publishes `site/` to the `gh-pages` branch.
-5. GitHub Pages serves the site through the Cloudflare-managed custom domain.
+The release model intentionally uses two source branches:
+
+- `staging` is the stable preview source and deploys under `/staging/` without changing the production root.
+- `main` is the production source and deploys to `https://shopresalelane.com/`.
+- `gh-pages` is an automated deployment artifact branch. Do not edit it manually.
+
+The normal path is feature branch → pull request preview → tests → `staging` verification → `main` production release. A failed automated test blocks deployment. Preview, staging, and production workflows share one deployment queue so they cannot write to GitHub Pages simultaneously.
 
 The `staging` branch deploys to `https://shopresalelane.com/staging/index.html?release=<commit>&fresh=<unique-value>`. Pull requests receive separate preview paths. A daily GitHub Actions job checks production uptime; daily email delivery activates after the Resend secrets are configured.
+
+### Rollback
+
+Rollback remains available without force-pushing or renaming branches:
+
+1. Identify whether the requested rollback is for `staging` or production (`main`).
+2. Find the last known-good commit from Git history and the deployed `release.json` file.
+3. Create a normal Git revert commit for the problematic change.
+4. Push the revert to `staging`, or merge it into `main`, depending on the requested environment.
+5. Wait for tests and deployment to pass, then verify the new `release.json` and fingerprinted asset names.
+
+This preserves the full history and limits the rollback to the environment the user requested.
 
 GitHub is the source of truth for all public-safe project material collaborators need. Google Drive may be used for drafting or private operations, but decisions and usable files must be copied into this repository before they are treated as current.
 
