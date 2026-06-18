@@ -4,12 +4,12 @@
 
 Customer delivery artifacts will live in a private Cloudflare R2 bucket. They will never be committed to either Git repository, placed in Google Drive links sent to customers, or copied into frontend files.
 
-The fulfillment Worker is the only service allowed to read production artifacts. Customers receive either:
+The fulfillment Worker is the only service allowed to read production package data. After a verified purchase, the customer receives the contact details directly in the Resend fulfillment email and may additionally receive either:
 
 1. A short-lived, single-order download URL generated after a verified Stripe webhook, or
 2. A small email attachment when the final artifact size and email-provider limits make that safer.
 
-Short-lived delivery URLs are preferred because they support revocation, expiration, delivery logging, and artifact updates without resending permanent public links.
+Direct email content is the default for concise contact packages. Short-lived delivery URLs are preferred for larger or updateable files because they support revocation, expiration, delivery logging, and artifact updates without resending permanent public links.
 
 ## Storage Layout
 
@@ -41,7 +41,7 @@ The manifest contains public-safe operational metadata only:
 }
 ```
 
-Supplier contacts remain inside the encrypted-at-rest object, not in the manifest, logs, database, or ticket system.
+Supplier contacts remain inside the encrypted-at-rest object or Worker-only configuration until a verified order is fulfilled. The Worker may copy the purchased contacts into that buyer's transactional email, but never into the manifest, logs, database, ticket system, or public files.
 
 ## Environment Isolation
 
