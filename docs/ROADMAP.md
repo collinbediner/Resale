@@ -3,7 +3,9 @@
 The detailed backlog is private because it includes operations and future fulfillment design:
 
 - Private planning repository: `collinbediner/Resale-Planning`
-- Private GitHub Project: ResaleLane Delivery
+- Private GitHub Project: [ResaleLane Delivery Kanban](https://github.com/users/collinbediner/projects/1)
+
+Every roadmap item must be represented by one canonical issue in the planning repository and that same issue must appear on the Project board. Board flow is `Backlog` -> `To Do` -> `In Progress` -> `UAT` -> `Done`.
 
 ## Launch Blockers
 
