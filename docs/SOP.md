@@ -45,7 +45,7 @@ git switch -c feature/name-of-change
 
 Every push response must include both URLs:
 
-- Preview/staging: the PR preview URL or `https://shopresalelane.com/staging/?release=<full-commit-sha>`.
+- Preview/staging: the PR preview URL or `https://shopresalelane.com/staging/index.html?release=<full-commit-sha>`.
 - Production: `https://shopresalelane.com/?release=<full-commit-sha>`.
 
 Never reuse an older release query. The exact pushed commit SHA is the cache key.
