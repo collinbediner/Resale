@@ -5,6 +5,8 @@ import { resolveCartAdd } from "../site/cart-logic.js";
 
 const html = readFileSync(new URL("../site/index.html", import.meta.url), "utf8");
 const app = readFileSync(new URL("../site/app.js", import.meta.url), "utf8");
+const success = readFileSync(new URL("../site/success.html", import.meta.url), "utf8");
+const canceled = readFileSync(new URL("../site/canceled.html", import.meta.url), "utf8");
 const bundleId = "all-vendor-bundle";
 
 test("production page includes required public content and safety controls", () => {
@@ -54,4 +56,14 @@ test("source HTML uses build-managed asset references", () => {
   assert.match(html, /src="\.\/app\.js"/);
   assert.doesNotMatch(html, /styles\.css\?v=/);
   assert.doesNotMatch(html, /app\.js\?v=/);
+});
+
+test("checkout result pages are safe, private, and support-focused", () => {
+  assert.match(success, /We're confirming your order/);
+  assert.match(success, /server-side payment verification/);
+  assert.match(success, /after 15 minutes/);
+  assert.doesNotMatch(success, /supplier contact|marketplace link/i);
+  assert.match(canceled, /No order was placed/);
+  assert.match(canceled, /generally final after successful delivery/);
+  assert.match(success + canceled, /noindex/);
 });

@@ -16,14 +16,16 @@ await mkdir(output, { recursive: true });
 await cp(new URL("assets/", source), new URL("assets/", output), { recursive: true });
 await cp(new URL("CNAME", source), new URL("CNAME", output));
 
-const html = (await readFile(new URL("index.html", source), "utf8"))
-  .replace('data-release="source"', `data-release="${release}"`)
-  .replace("./styles.css", `./${names.css}`)
-  .replace("./app.js", `./${names.app}`);
 const app = (await readFile(new URL("app.js", source), "utf8"))
   .replace("./cart-logic.js", `./${names.cart}`);
 
-await writeFile(new URL("index.html", output), html);
+for (const page of ["index.html", "success.html", "canceled.html"]) {
+  const html = (await readFile(new URL(page, source), "utf8"))
+    .replace('data-release="source"', `data-release="${release}"`)
+    .replace("./styles.css", `./${names.css}`)
+    .replace("./app.js", `./${names.app}`);
+  await writeFile(new URL(page, output), html);
+}
 await writeFile(new URL(names.css, output), await readFile(new URL("styles.css", source)));
 await writeFile(new URL(names.app, output), app);
 await writeFile(new URL(names.cart, output), await readFile(new URL("cart-logic.js", source)));
