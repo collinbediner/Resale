@@ -37,6 +37,7 @@ flowchart LR
 - `site/cart-logic.js`: pure cart decision logic shared by the app and tests.
 - `site/assets/`: public brand assets only.
 - `scripts/build.mjs`: creates the fingerprinted release in ignored `dist/`.
+- `docs/ARTIFACT-SECURITY.md`: private-artifact storage and secure-delivery design.
 - `test/site.test.js`: automated regression and safety checks.
 - `.github/workflows/ci.yml`: standalone/reusable test workflow.
 - `.github/workflows/deploy.yml`: production deployment after tests.
