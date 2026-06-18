@@ -19,16 +19,19 @@ Snapshot date: 2026-06-17
 - Payment target: Stripe Checkout with server-side Price ID mapping and signed webhook verification
 - Email target: Resend from `orders@shopresalelane.com`
 - Staging target: existing `/staging/` path; no dedicated staging hostname is required for the current architecture
+- Account isolation: separate ResaleLane Stripe and Resend accounts/projects; do not reuse PasteFlow commerce or sender configuration
+- Phase 1: payment, verified fulfillment, private contact delivery, support/resend, and basic SEO/social-preview hygiene
+- Phase 2: GA4/GTM, ecommerce analytics, attribution, Search Console, cookie/banner review if needed, and SEO/content expansion
 
 ## Products
 
 | Product | Sale Price | Compare Price | Badge |
 | --- | ---: | ---: | --- |
-| Shoe Sourcing Package | $7 | $15 | Launch Sale |
-| Clothing Sourcing Package | $7 | $15 | Launch Sale |
-| Electronics Accessories Sourcing Package | $7 | $15 | Launch Sale |
-| Fragrance Sourcing Package | $7 | $15 | Launch Sale |
-| All Sourcing Bundle | $12 | $15 | Best Value |
+| Shoe Vendor (`shoe-vendor`) | $7 | $15 | Launch Sale |
+| Clothes Vendor (`clothes-vendor`) | $7 | $15 | Launch Sale |
+| AirPods / Headphones Vendor (`airpods-headphones-vendor`) | $7 | $15 | Launch Sale |
+| Cologne Vendor (`cologne-vendor`) | $7 | $15 | Launch Sale |
+| All Vendor Bundle (`all-vendor-bundle`) | $12 | $15 | Best Value |
 
 ## Required Pages
 

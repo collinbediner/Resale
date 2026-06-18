@@ -16,6 +16,9 @@ This tracked file is authoritative for collaborators. It describes the safe-laun
 - Payment target: Stripe Checkout
 - Delivery target: automated email after successful payment
 - Private supplier details: server-side only
+- Current state: public pre-commerce storefront preview with checkout intentionally disabled
+- Production host: GitHub Pages; Cloudflare Pages migration is not planned
+- Staging: existing branch and `/staging/` path; no staging subdomain required
 
 ## Public Pages and Views
 
@@ -32,6 +35,8 @@ This tracked file is authoritative for collaborators. It describes the safe-laun
 - Privacy policy
 
 The current static MVP presents most content on one page with overlays. Separate routes may be added when the backend and checkout are implemented.
+
+Phase 1 public work is limited to basic SEO/social-preview hygiene: title, description, Open Graph/Twitter metadata, favicon/social assets, semantic headings, clear product copy, disclaimer, and optional lightweight `robots.txt`/`sitemap.xml`. GA4, GTM, ecommerce events, attribution, Search Console, cookie/banner review if needed, and broader SEO/content work belong to Phase 2 and do not block checkout launch.
 
 ## Homepage Order
 
@@ -71,6 +76,8 @@ The browser sends only product IDs to a Cloudflare Worker. The Worker validates 
 
 After verification, the Worker writes the order to D1, resolves the purchased package from private R2 or server-side configuration, and sends fulfillment through Resend from `orders@shopresalelane.com`. The email includes the purchased contact details directly and may also include a PDF or secure delivery link. Every email attempt and provider result is recorded in D1 without logging private package contents.
 
+ResaleLane sells informational vendor-contact sourcing cards/resources. It does not sell the shoes, clothing, headphones, cologne, branded products, or inventory referenced by package categories. The primary delivery is usable text—company, contact, phone, email, and optional notes—not an image-only virtual business card.
+
 Private delivery content must never appear in HTML, browser JavaScript, public assets, GitHub, or a public deployment artifact.
 
 ## Trust and Support Copy
@@ -81,6 +88,16 @@ Private delivery content must never appear in HTML, browser JavaScript, public a
 - Digital sales are final after delivery, subject to the documented limited exceptions.
 - Buyers should save the confirmation email and check spam, junk, and promotions.
 - Contact includes delivery problems, package resend, order issues, and pre-purchase questions.
+
+Full disclaimer:
+
+> ResaleLane sells informational sourcing resources only. The contact details, vendor names, marketplace links, and notes provided are intended to help buyers begin their own sourcing research.
+>
+> ResaleLane does not sell physical products, does not control third-party suppliers, and is not affiliated with, endorsed by, or sponsored by any brand, marketplace, manufacturer, vendor, or supplier referenced in these materials.
+>
+> Buyers are responsible for independently verifying all supplier details before making any purchase from a third party, including product authenticity, pricing, availability, quality, shipping terms, return policies, and business legitimacy.
+>
+> ResaleLane does not guarantee supplier response, inventory availability, product authenticity, resale profit, delivery speed from third-party suppliers, or any specific business outcome.
 
 ## Reviews
 

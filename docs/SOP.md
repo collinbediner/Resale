@@ -12,6 +12,7 @@ Tracked source material includes:
 - `server/` for backend-safe modules.
 - `Design System/design_handoff_resalelane/` for original public-safe brand and design files.
 - `docs/PRD.md` and `docs/WEBSITE-SPEC.md` for readable repository copies of the source specifications.
+- `docs/IMPLEMENTATION-PLAN.md` for the master phase, dependency, launch-gate, and ticket tracker.
 - `docs/` for architecture, security, roadmap, and operating decisions.
 - `CONTRIBUTING.md` for collaborator setup and workflow.
 
@@ -116,6 +117,7 @@ For every meaningful change:
 8. Move completed engineering work to `UAT` for Collin's acceptance.
 9. Move it to `Done` and close the issue only after UAT approval.
 10. During every PRD review, add unrefined gaps to `Backlog` and refined actionable work to `To Do`.
+11. Keep `docs/IMPLEMENTATION-PLAN.md` synchronized when a milestone, dependency, launch gate, or phase changes.
 
 At the beginning and end of every implementation pass, audit all planning issues against the Project, add missing issues, remove duplicate draft cards, and reconcile status mismatches.
 
@@ -171,6 +173,8 @@ Do not merge visual or copy changes to `main` until the preview URL has been rev
 ## Payment State
 
 Stripe is not set up yet. Checkout buttons must stay disabled or point to a placeholder state until Stripe products, checkout sessions, webhook secrets, and delivery email flows are configured.
+
+Use separate ResaleLane Stripe and Resend accounts/projects. Do not reuse PasteFlow account configuration, products, customers, sender identities, webhooks, support details, or reporting. The existing Cloudflare account may host ResaleLane DNS and backend resources, but names, bindings, data stores, variables, and secrets must remain project-specific.
 
 ## Deployment Safety
 
