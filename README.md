@@ -6,6 +6,7 @@ GitHub source of truth for the ResaleLane storefront, public-safe product docume
 - GitHub Pages: https://collinbediner.github.io/Resale/
 - Repository: https://github.com/collinbediner/Resale
 - Operating procedure: [docs/SOP.md](docs/SOP.md)
+- Current cross-agent handoff: [HANDOFF.md](HANDOFF.md)
 - Architecture: [docs/ARCHITECTURE.md](docs/ARCHITECTURE.md)
 - Product/spec snapshot: [docs/SPEC-SNAPSHOT.md](docs/SPEC-SNAPSHOT.md)
 - Full product requirements: [docs/PRD.md](docs/PRD.md)
@@ -14,6 +15,10 @@ GitHub source of truth for the ResaleLane storefront, public-safe product docume
 - Master implementation tracker: [docs/IMPLEMENTATION-PLAN.md](docs/IMPLEMENTATION-PLAN.md)
 - Collaborator setup: [CONTRIBUTING.md](CONTRIBUTING.md)
 - Brand/design source files: [Design System/design_handoff_resalelane/README.md](Design%20System/design_handoff_resalelane/README.md)
+
+## Starting Any Work Session
+
+Whether the contributor is using Codex, Claude, another AI agent, or working manually, begin with [HANDOFF.md](HANDOFF.md). Then verify it against Git, the canonical planning issue, and the [ResaleLane Delivery Kanban](https://github.com/users/collinbediner/projects/1) before making changes. The full mandatory start, work-claiming, collision-avoidance, and session-end process is in [docs/SOP.md](docs/SOP.md#agent-and-multi-machine-handoff-protocol).
 
 ## How It Is Built
 

@@ -13,6 +13,7 @@ Tracked source material includes:
 - `Design System/design_handoff_resalelane/` for original public-safe brand and design files.
 - `docs/PRD.md` and `docs/WEBSITE-SPEC.md` for readable repository copies of the source specifications.
 - `docs/IMPLEMENTATION-PLAN.md` for the master phase, dependency, launch-gate, and ticket tracker.
+- `HANDOFF.md` for the current cross-agent working state and next exact action.
 - `docs/` for architecture, security, roadmap, and operating decisions.
 - `CONTRIBUTING.md` for collaborator setup and workflow.
 
@@ -26,6 +27,45 @@ Before every implementation pass:
 4. Read the tracked repository specs first. Re-read a linked Google Doc only when the repository says the draft has changed.
 5. Update tracked docs, assets, or app files with every decision being implemented.
 6. Keep private supplier data out of Git. Supplier delivery content belongs in protected storage, never this public repository.
+
+## Agent And Multi-Machine Handoff Protocol
+
+This protocol applies to Codex, Claude, every other AI tool, and human contributors. The repository workflow must not depend on one vendor's private memory or chat history.
+
+### Required session start
+
+Before reasoning about or implementing the next task:
+
+1. Run `git status --short --branch`, `git remote -v`, `git fetch origin --prune`, and `git log -1 --oneline`.
+2. If starting from a clean `main`, run `git pull --ff-only origin main`. Never pull blindly over local changes.
+3. Read, in order: `HANDOFF.md`, `docs/IMPLEMENTATION-PLAN.md`, `docs/ARCHITECTURE.md`, `docs/ARTIFACT-SECURITY.md`, `docs/PRD.md`, and this SOP.
+4. Open the canonical planning issue and the Project board. Check status, dependencies, comments, assignee, linked branches, and open pull requests.
+5. Verify the handoff against Git and GitHub. If the handoff disagrees with the branch, issue, PR, or board, current GitHub state wins and the handoff must be corrected before implementation.
+6. State which ticket and branch the session will own. Do not begin untracked implementation.
+
+### Claiming work without collisions
+
+- One canonical issue has one active writer branch. Use a purpose-based name such as `work/issue-25-worker-foundation`; the branch name must not depend on the agent product.
+- Move the issue label and Project card to `In Progress`, then comment with the working branch, PR if available, scope, and expected files.
+- Before editing, search open pull requests and issue comments for overlapping work.
+- Different machines may work in parallel only on separate tickets/branches with non-overlapping ownership, or after the issue explicitly records how the work is split.
+- Do not have two agents push independently to the same branch. If another machine must continue that branch, the first agent must stop writing, push everything, and update `HANDOFF.md` plus the ticket.
+- Do not use chat history, local memory, or an unpushed local folder as the only record of a decision.
+- If local work is dirty or divergent, preserve it on a named branch or stash before syncing. Never overwrite unexplained changes.
+
+### Required session end
+
+Before stopping, even when work is incomplete:
+
+1. Run relevant automated and manual QA.
+2. Commit and push all intended public-safe work so another machine can fetch it.
+3. Update the canonical issue with completed work, remaining work, tests, blockers, branch, PR, and the next exact action.
+4. Synchronize the issue `status:*` label and Project status. Use `UAT` only when implementation and checks are complete and owner acceptance is next.
+5. Update root `HANDOFF.md` with the same current state and authoritative links.
+6. Verify the handoff contains no secrets, real vendor contacts, buyer data, private support data, or paid artifact contents.
+7. Re-fetch and compare local/remote branch state. Clearly disclose any uncommitted or unpushed work.
+
+The handoff is a navigation and continuation aid. GitHub code, the canonical issue, the Project board, and current pull-request checks remain authoritative.
 
 ## Required Testing
 
@@ -48,10 +88,10 @@ The automated suite currently checks:
 
 ## Branch And Preview Flow
 
-Use short feature branches for changes:
+Use short, purpose-based branches tied to the canonical issue:
 
 ```powershell
-git switch -c feature/name-of-change
+git switch -c work/issue-25-worker-foundation
 ```
 
 Every push response must include both URLs:
