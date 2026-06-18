@@ -2,19 +2,29 @@
 
 ## Source Of Truth
 
-GitHub is the source of truth for buildable website code, configuration, deployment workflows, and public-safe documentation.
+GitHub is the source of truth for buildable website code, configuration, deployment workflows, public-safe documentation, brand assets, design tokens, and design references.
 
-Google Drive is a reference/source-material system only. When a Google Doc changes, copy the relevant decisions into tracked repo files before implementation. Do not treat local Google Drive placeholder files such as `.gdoc`, `.gsheet`, or `.gslides` as source files.
+Google Drive is a drafting and private-operations system only. When a Google Doc changes, copy the relevant decisions into tracked repo files before implementation. Do not treat local Google Drive placeholder files such as `.gdoc`, `.gsheet`, or `.gslides` as source files because they are only links and collaborators cannot read their contents from GitHub.
+
+Tracked source material includes:
+
+- `site/` for the production storefront source.
+- `server/` for backend-safe modules.
+- `Design System/design_handoff_resalelane/` for original public-safe brand and design files.
+- `docs/PRD.md` and `docs/WEBSITE-SPEC.md` for readable repository copies of the source specifications.
+- `docs/` for architecture, security, roadmap, and operating decisions.
+- `CONTRIBUTING.md` for collaborator setup and workflow.
 
 ## Drift Control
 
 Before every implementation pass:
 
 1. Run `git status --short --branch`.
-2. Pull latest `main` with `git pull --ff-only`.
-3. Re-read any linked Google Doc/spec through the connector if the task depends on it.
-4. Update tracked docs or app files with the decisions being implemented.
-5. Keep private supplier data out of Git. Supplier delivery content belongs server-side only.
+2. Fetch the latest GitHub state with `git fetch origin`.
+3. If starting new work, switch to `main`, pull it with `git pull --ff-only`, and create a new branch.
+4. Read the tracked repository specs first. Re-read a linked Google Doc only when the repository says the draft has changed.
+5. Update tracked docs, assets, or app files with every decision being implemented.
+6. Keep private supplier data out of Git. Supplier delivery content belongs in protected storage, never this public repository.
 
 ## Required Testing
 
@@ -39,7 +49,7 @@ The automated suite currently checks:
 
 Use short feature branches for changes:
 
-```bash
+```powershell
 git switch -c feature/name-of-change
 ```
 
@@ -141,3 +151,6 @@ Do not commit:
 - supplier/private delivery data
 - Stripe, Resend, Cloudflare, or GitHub tokens
 - Google Drive placeholder files
+- generated `dist/`, dependency `node_modules/`, or local tool-state folders
+
+Everything else that collaborators need to understand, build, test, or reproduce the public project should be committed.

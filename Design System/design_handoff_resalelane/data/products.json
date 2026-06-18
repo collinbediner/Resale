@@ -1,0 +1,65 @@
+{
+  "$description": "ResaleLane product catalog — single source of truth. Mirror this in your DB/CMS or Stripe product metadata.",
+  "currency": "USD",
+  "bundleId": "all-vendor-bundle",
+  "products": [
+    {
+      "id": "shoe-vendor",
+      "slug": "shoe-vendor",
+      "name": "Shoe Vendor",
+      "icon": "👟",
+      "price": 7,
+      "compareAt": 15,
+      "badge": "Launch Sale",
+      "isBundle": false,
+      "description": "Supplier contacts and marketplace links for the best quality designer shoes."
+    },
+    {
+      "id": "clothes-vendor",
+      "slug": "clothes-vendor",
+      "name": "Clothes Vendor",
+      "icon": "🧥",
+      "price": 7,
+      "compareAt": 15,
+      "badge": "Launch Sale",
+      "isBundle": false,
+      "description": "Vendor contacts and sourcing links for designer hoodies, shorts, tee shirts, pants, and more."
+    },
+    {
+      "id": "airpods-headphones-vendor",
+      "slug": "airpods-headphones-vendor",
+      "name": "AirPods / Headphones Vendor",
+      "icon": "🎧",
+      "price": 7,
+      "compareAt": 15,
+      "badge": "Launch Sale",
+      "isBundle": false,
+      "description": "Supplier contacts and marketplace links for AirPods/headphones sourcing. Includes vendor info and direct buying links when available."
+    },
+    {
+      "id": "cologne-vendor",
+      "slug": "cologne-vendor",
+      "name": "Cologne Vendor",
+      "icon": "🧴",
+      "price": 7,
+      "compareAt": 15,
+      "badge": "Launch Sale",
+      "isBundle": false,
+      "description": "Vendor contacts and marketplace links for cologne sourcing. Includes contact info and notes about what each source provides."
+    },
+    {
+      "id": "all-vendor-bundle",
+      "slug": "all-vendor-bundle",
+      "name": "All Vendor Bundle",
+      "icon": "📦",
+      "price": 12,
+      "compareAt": 15,
+      "value": 28,
+      "savings": 16,
+      "badge": "Best Value",
+      "isBundle": true,
+      "includes": ["shoe-vendor", "clothes-vendor", "airpods-headphones-vendor", "cologne-vendor"],
+      "description": "Get every vendor category in one package: shoes, clothes, AirPods/headphones, and cologne."
+    }
+  ]
+}

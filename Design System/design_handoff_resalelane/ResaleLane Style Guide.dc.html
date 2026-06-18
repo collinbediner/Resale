@@ -1,0 +1,126 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Geist:wght@400;500;600;700;800;900&display=swap" rel="stylesheet">
+<style>
+  *{box-sizing:border-box;margin:0;padding:0}
+  body{background:#0a0a0a;font-family:'Geist',system-ui,sans-serif;-webkit-font-smoothing:antialiased;color:#fafafa}
+</style>
+</helmet>
+
+<div style="min-width:100%;min-height:100vh;background:#0a0a0a;padding:64px 56px;box-sizing:border-box">
+  <div style="max-width:1080px;margin:0 auto">
+
+    <!-- header -->
+    <div style="margin-bottom:56px">
+      <div style="display:flex;align-items:center;gap:10px;margin-bottom:18px">
+        <span style="display:inline-block;width:7px;height:7px;border-radius:50%;background:#cfcfcf"></span>
+        <span style="font-size:12px;letter-spacing:0.18em;text-transform:uppercase;color:#737373;font-weight:600">Brand · Style Guide</span>
+      </div>
+      <h1 style="font-size:40px;font-weight:800;letter-spacing:-0.03em">ResaleLane design system</h1>
+      <p style="margin-top:14px;font-size:16px;line-height:1.6;color:#9a9a9a;max-width:540px">Dark-first, clean, no-nonsense. Geist type, a monochrome black/white/gray palette, generous space.</p>
+    </div>
+
+    <!-- COLORS -->
+    <div style="font-size:11px;letter-spacing:0.16em;text-transform:uppercase;color:#8a8a8a;font-weight:700;margin-bottom:18px">Color</div>
+    <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(150px,1fr));gap:14px;margin-bottom:56px">
+      <div style="border:1px solid #262626;border-radius:14px;overflow:hidden">
+        <div style="height:88px;background:#0a0a0a;border-bottom:1px solid #262626"></div>
+        <div style="padding:14px"><div style="font-size:14px;font-weight:600">Base</div><div style="font-size:12px;color:#737373;margin-top:2px">#0a0a0a</div></div>
+      </div>
+      <div style="border:1px solid #262626;border-radius:14px;overflow:hidden">
+        <div style="height:88px;background:#141414;border-bottom:1px solid #262626"></div>
+        <div style="padding:14px"><div style="font-size:14px;font-weight:600">Charcoal card</div><div style="font-size:12px;color:#737373;margin-top:2px">#141414</div></div>
+      </div>
+      <div style="border:1px solid #262626;border-radius:14px;overflow:hidden">
+        <div style="height:88px;background:#262626;border-bottom:1px solid #333"></div>
+        <div style="padding:14px"><div style="font-size:14px;font-weight:600">Border</div><div style="font-size:12px;color:#737373;margin-top:2px">#262626</div></div>
+      </div>
+      <div style="border:1px solid #262626;border-radius:14px;overflow:hidden">
+        <div style="height:88px;background:#fafafa"></div>
+        <div style="padding:14px"><div style="font-size:14px;font-weight:600">White / Primary</div><div style="font-size:12px;color:#737373;margin-top:2px">#fafafa</div></div>
+      </div>
+      <div style="border:1px solid #262626;border-radius:14px;overflow:hidden">
+        <div style="height:88px;background:#cfcfcf"></div>
+        <div style="padding:14px"><div style="font-size:14px;font-weight:600">Light gray</div><div style="font-size:12px;color:#737373;margin-top:2px">#cfcfcf</div></div>
+      </div>
+      <div style="border:1px solid #262626;border-radius:14px;overflow:hidden">
+        <div style="height:88px;background:#9a9a9a"></div>
+        <div style="padding:14px"><div style="font-size:14px;font-weight:600">Secondary text</div><div style="font-size:12px;color:#737373;margin-top:2px">#9a9a9a</div></div>
+      </div>
+    </div>
+    <p style="font-size:13px;color:#737373;line-height:1.6;margin:-40px 0 56px;max-width:660px">No brand color. Emphasis comes from <strong style="color:#cfcfcf">white and light gray</strong> on near-black. Body text uses #9a9a9a; reserve #5a5a5a/#525252 for legal fine print only.</p>
+
+    <!-- TYPE -->
+    <div style="font-size:11px;letter-spacing:0.16em;text-transform:uppercase;color:#8a8a8a;font-weight:700;margin-bottom:18px">Type — Geist</div>
+    <div style="border:1px solid #262626;border-radius:16px;padding:36px;margin-bottom:56px;display:flex;flex-direction:column;gap:22px">
+      <div style="display:flex;align-items:baseline;gap:20px;border-bottom:1px solid #1c1c1c;padding-bottom:22px;flex-wrap:wrap">
+        <span style="font-size:12px;color:#737373;width:120px;flex:none">Display · 800</span>
+        <span style="font-size:48px;font-weight:800;letter-spacing:-0.04em">Premium Vendors</span>
+      </div>
+      <div style="display:flex;align-items:baseline;gap:20px;border-bottom:1px solid #1c1c1c;padding-bottom:22px;flex-wrap:wrap">
+        <span style="font-size:12px;color:#737373;width:120px;flex:none">Heading · 700</span>
+        <span style="font-size:30px;font-weight:700;letter-spacing:-0.03em">Pick a category</span>
+      </div>
+      <div style="display:flex;align-items:baseline;gap:20px;border-bottom:1px solid #1c1c1c;padding-bottom:22px;flex-wrap:wrap">
+        <span style="font-size:12px;color:#737373;width:120px;flex:none">Body · 400</span>
+        <span style="font-size:17px;font-weight:400;color:#9a9a9a;line-height:1.6">Direct vendor contacts and marketplace links, delivered to your inbox in minutes.</span>
+      </div>
+      <div style="display:flex;align-items:baseline;gap:20px;flex-wrap:wrap">
+        <span style="font-size:12px;color:#737373;width:120px;flex:none">Eyebrow · 700</span>
+        <span style="font-size:12px;font-weight:700;letter-spacing:0.16em;text-transform:uppercase;color:#8a8a8a">The vendors</span>
+      </div>
+    </div>
+
+    <!-- COMPONENTS -->
+    <div style="font-size:11px;letter-spacing:0.16em;text-transform:uppercase;color:#8a8a8a;font-weight:700;margin-bottom:18px">Components</div>
+    <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(280px,1fr));gap:14px;margin-bottom:24px">
+      <!-- buttons -->
+      <div style="border:1px solid #262626;border-radius:16px;padding:28px;background:#141414">
+        <div style="font-size:12px;color:#737373;margin-bottom:18px;font-weight:600">Buttons</div>
+        <div style="display:flex;flex-direction:column;gap:12px;align-items:flex-start">
+          <button style="font-family:inherit;font-size:15px;font-weight:600;color:#0a0a0a;background:#fafafa;border:none;padding:13px 24px;border-radius:10px;cursor:pointer">Primary action →</button>
+          <button style="font-family:inherit;font-size:15px;font-weight:600;color:#fafafa;background:#1a1a1a;border:1px solid #2c2c2c;padding:13px 24px;border-radius:10px;cursor:pointer">Secondary</button>
+        </div>
+      </div>
+      <!-- badges -->
+      <div style="border:1px solid #262626;border-radius:16px;padding:28px;background:#141414">
+        <div style="font-size:12px;color:#737373;margin-bottom:18px;font-weight:600">Badges</div>
+        <div style="display:flex;gap:10px;flex-wrap:wrap">
+          <span style="background:#fafafa;color:#0a0a0a;font-size:11px;font-weight:800;letter-spacing:0.06em;padding:6px 11px;border-radius:99px">BEST VALUE</span>
+          <span style="display:inline-flex;align-items:center;gap:7px;background:#1c1c1c;border:1px solid #2c2c2c;color:#b5b5b5;font-size:11px;font-weight:700;letter-spacing:0.05em;text-transform:uppercase;padding:6px 12px;border-radius:99px">Launch Sale</span>
+        </div>
+      </div>
+      <!-- price -->
+      <div style="border:1px solid #262626;border-radius:16px;padding:28px;background:#141414">
+        <div style="font-size:12px;color:#737373;margin-bottom:18px;font-weight:600">Pricing</div>
+        <div style="font-size:40px;font-weight:800;letter-spacing:-0.03em;line-height:1">$12 <span style="font-size:14px;font-weight:600;color:#cfcfcf">save $16</span></div>
+        <div style="font-size:13px;color:#525252;text-decoration:line-through;margin-top:4px">$28 value</div>
+      </div>
+    </div>
+
+    <!-- voice -->
+    <div style="border:1px solid #262626;border-radius:16px;padding:32px;background:#141414">
+      <div style="font-size:12px;color:#737373;margin-bottom:16px;font-weight:600">Voice & compliance</div>
+      <ul style="list-style:none;display:flex;flex-direction:column;gap:12px">
+        <li style="display:flex;gap:10px;font-size:14.5px;color:#cfcfcf;line-height:1.55"><span style="color:#fafafa;font-weight:700">✓</span> Direct, confident, reseller-native. Short sentences. No hype words.</li>
+        <li style="display:flex;gap:10px;font-size:14.5px;color:#cfcfcf;line-height:1.55"><span style="color:#fafafa;font-weight:700">✓</span> Always describe products as <strong>informational vendor resources</strong>.</li>
+        <li style="display:flex;gap:10px;font-size:14.5px;color:#cfcfcf;line-height:1.55"><span style="color:#fafafa;font-weight:700">✓</span> State clearly: not affiliated with or sponsored by any third-party brands or suppliers.</li>
+        <li style="display:flex;gap:10px;font-size:14.5px;color:#cfcfcf;line-height:1.55"><span style="color:#e5484d;font-weight:700">✕</span> Never promise income or authenticity guarantees, or use brand logos.</li>
+      </ul>
+    </div>
+
+  </div>
+</div>
+</x-dc>
+</body>
+</html>
