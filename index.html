@@ -1,5 +1,5 @@
 <!doctype html>
-<html lang="en" data-release="8d433332d7edbf757628b8a17b52a7b22719461a">
+<html lang="en" data-release="d069cabf64bd3f2d0e9b2f2dfb627d8315d5d405">
   <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
@@ -15,8 +15,8 @@
     <link rel="preconnect" href="https://fonts.googleapis.com" />
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
     <link href="https://fonts.googleapis.com/css2?family=Geist:wght@400;500;600;700;800&display=swap" rel="stylesheet" />
-    <link rel="stylesheet" href="./styles.8d433332d7edbf757628b8a17b52a7b22719461a.css" />
-    <script src="./app.8d433332d7edbf757628b8a17b52a7b22719461a.js" type="module"></script>
+    <link rel="stylesheet" href="./styles.d069cabf64bd3f2d0e9b2f2dfb627d8315d5d405.css" />
+    <script src="./app.d069cabf64bd3f2d0e9b2f2dfb627d8315d5d405.js" type="module"></script>
   </head>
   <body>
     <header class="header">
@@ -82,6 +82,19 @@
         </div>
       </section>
 
+      <!-- Keep this secondary shopping path after the main offer so it supports the storefront without competing with checkout. -->
+      <aside class="ebay-feature shell" aria-labelledby="ebay-feature-title">
+        <a class="ebay-card" href="https://www.ebay.com/usr/collinresale" target="_blank" rel="noopener noreferrer" aria-label="Visit Colin Resale on eBay (opens in a new tab)">
+          <img class="ebay-store-image" src="./assets/collin-ebay-store.webp" alt="CB Resale Great Finds logo" />
+          <div class="ebay-card-copy">
+            <div class="ebay-kicker"><span>More from Colin</span><img src="./assets/ebay-logo.svg" alt="eBay" /></div>
+            <h2 id="ebay-feature-title">The latest finds, one more lane.</h2>
+            <p>See the items Colin is listing directly on eBay.</p>
+          </div>
+          <span class="ebay-card-action">Visit eBay Store <span aria-hidden="true">↗</span></span>
+        </a>
+      </aside>
+
       <section class="section shell">
         <div class="section-heading"><p>How it works</p><h2>From checkout to inbox in minutes</h2></div>
         <div class="steps">
@@ -125,8 +138,11 @@
     <footer>
       <div class="footer-grid shell">
         <div class="footer-brand"><a class="brand" href="#top"><img src="./assets/logo-mark-tile.svg" alt="" /><span>ResaleLane</span></a><p>ResaleLane sells informational vendor resources only. ResaleLane is not affiliated with, endorsed by, or sponsored by any third-party brands, marketplaces, manufacturers, or suppliers. Buyers should verify pricing, product details, quality, shipping, and availability directly before purchasing from any third party.</p></div>
-        <div><strong>Shop</strong><a href="#products">Vendors</a><a href="#bundle">Bundle</a></div>
-        <div><strong>Help</strong><a href="#faq">FAQ</a><a href="#contact">Contact</a><a href="#policies">Policies</a></div>
+        <!-- One balanced navigation panel keeps the Shop and Help groups visually connected. -->
+        <nav class="footer-nav" aria-label="Footer navigation">
+          <div class="footer-link-group"><strong>Shop</strong><a href="#products">Vendors</a><a href="#bundle">Bundle</a></div>
+          <div class="footer-link-group"><strong>Help</strong><a href="#faq">FAQ</a><a href="#contact">Contact</a><a href="#policies">Policies</a></div>
+        </nav>
       </div>
       <div class="footer-bottom shell"><span>© 2026 ResaleLane</span><a href="mailto:collin.bediner+support@gmail.com">collin.bediner+support@gmail.com</a></div>
     </footer>
