@@ -72,6 +72,21 @@ Release flow:
 
 Only `main` deploys the production root. Pages-writing workflows share one concurrency group so staging, preview, and production cannot modify the deployment branch simultaneously.
 
+## Rollback Procedure
+
+Rollback is performed only when the user requests it and names the target environment.
+
+1. Confirm whether the target is `staging` or production (`main`).
+2. Read the target environment's current `release.json` and identify the last known-good commit in Git history.
+3. Create a normal revert commit for the problematic change. Do not reset, rewrite history, or force-push.
+4. For staging, apply the revert to `staging` and push it through the existing staging workflow.
+5. For production, open or merge the revert into `main` and use the existing production workflow.
+6. Wait for tests, the deployment workflow, and GitHub Pages publishing to finish.
+7. Verify the deployed `release.json`, fingerprinted CSS/JavaScript assets, HTTPS response, and affected user flow.
+8. Report the restored commit and a fresh environment URL.
+
+The `gh-pages` branch is generated deployment output and must never be used as the source of a rollback.
+
 ## Ticket Management
 
 The private planning repository is [collinbediner/Resale-Planning](https://github.com/collinbediner/Resale-Planning).
