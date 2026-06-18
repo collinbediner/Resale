@@ -8,6 +8,7 @@ Public source of truth for the ResaleLane storefront.
 - Operating procedure: [docs/SOP.md](docs/SOP.md)
 - Architecture: [docs/ARCHITECTURE.md](docs/ARCHITECTURE.md)
 - Product/spec snapshot: [docs/SPEC-SNAPSHOT.md](docs/SPEC-SNAPSHOT.md)
+- Delivery roadmap: [docs/ROADMAP.md](docs/ROADMAP.md)
 
 ## How It Is Built
 
@@ -40,5 +41,7 @@ This checks JavaScript syntax and tests prices, cart rules, safety copy, disable
 3. A failed test blocks that deployment.
 4. A successful push to `main` publishes `site/` to the `gh-pages` branch.
 5. GitHub Pages serves the site through the Cloudflare-managed custom domain.
+
+The `staging` branch deploys to `https://shopresalelane.com/staging/`. Pull requests receive separate preview paths. A daily GitHub Actions job checks production uptime; daily email delivery activates after the Resend secrets are configured.
 
 Google Drive contains design/source material. GitHub remains the source of truth for anything deployed.

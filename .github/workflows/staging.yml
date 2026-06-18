@@ -1,8 +1,8 @@
-name: Deploy GitHub Pages
+name: Deploy Staging
 
 on:
   push:
-    branches: [main]
+    branches: [staging]
   workflow_dispatch:
 
 permissions:
@@ -20,16 +20,16 @@ jobs:
     needs: test
     runs-on: ubuntu-latest
     environment:
-      name: production
-      url: https://shopresalelane.com/
+      name: staging
+      url: https://shopresalelane.com/staging/
     steps:
       - name: Checkout
         uses: actions/checkout@v5
 
-      - name: Deploy
+      - name: Deploy staging path
         uses: peaceiris/actions-gh-pages@v4
         with:
           github_token: ${{ secrets.GITHUB_TOKEN }}
           publish_dir: ./site
-          cname: shopresalelane.com
+          destination_dir: staging
           keep_files: true

@@ -9,8 +9,8 @@ permissions:
   pull-requests: write
 
 concurrency:
-  group: preview-${{ github.event.pull_request.number }}
-  cancel-in-progress: true
+  group: pages-deploy
+  cancel-in-progress: false
 
 jobs:
   test:
@@ -19,6 +19,9 @@ jobs:
   preview:
     needs: test
     runs-on: ubuntu-latest
+    environment:
+      name: staging
+      url: https://shopresalelane.com/pr-preview/pr-${{ github.event.pull_request.number }}/
     steps:
       - name: Checkout
         uses: actions/checkout@v5

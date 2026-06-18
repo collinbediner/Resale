@@ -1,0 +1,78 @@
+name: Daily Production Check
+
+on:
+  schedule:
+    - cron: "15 13 * * *"
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  check:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Check production
+        id: uptime
+        shell: bash
+        run: |
+          set +e
+          result=$(curl --location --silent --show-error \
+            --output response.html \
+            --write-out "%{http_code} %{time_total}" \
+            "https://shopresalelane.com/?monitor=${GITHUB_RUN_ID}")
+          curl_exit=$?
+          http_code=$(echo "$result" | awk '{print $1}')
+          duration=$(echo "$result" | awk '{print $2}')
+
+          if [[ "$curl_exit" -eq 0 && "$http_code" == "200" ]] &&
+             grep -q "Premium Vendors for Resellers" response.html; then
+            status="PASS"
+          else
+            status="FAIL"
+          fi
+
+          echo "status=$status" >> "$GITHUB_OUTPUT"
+          echo "http_code=${http_code:-none}" >> "$GITHUB_OUTPUT"
+          echo "duration=${duration:-unknown}" >> "$GITHUB_OUTPUT"
+
+          {
+            echo "## ResaleLane daily production check"
+            echo "- Result: **$status**"
+            echo "- HTTP status: ${http_code:-none}"
+            echo "- Response time: ${duration:-unknown}s"
+            echo "- URL: https://shopresalelane.com/"
+          } >> "$GITHUB_STEP_SUMMARY"
+
+      - name: Email daily checkpoint through Resend
+        env:
+          RESEND_API_KEY: ${{ secrets.RESEND_API_KEY }}
+          UPTIME_EMAIL_FROM: ${{ secrets.UPTIME_EMAIL_FROM }}
+          UPTIME_EMAIL_TO: ${{ secrets.UPTIME_EMAIL_TO }}
+          CHECK_STATUS: ${{ steps.uptime.outputs.status }}
+          HTTP_CODE: ${{ steps.uptime.outputs.http_code }}
+          DURATION: ${{ steps.uptime.outputs.duration }}
+        shell: bash
+        run: |
+          if [[ -z "$RESEND_API_KEY" || -z "$UPTIME_EMAIL_FROM" || -z "$UPTIME_EMAIL_TO" ]]; then
+            echo "Resend secrets are not configured yet; email was skipped."
+            exit 0
+          fi
+
+          payload=$(jq -n \
+            --arg from "$UPTIME_EMAIL_FROM" \
+            --arg to "$UPTIME_EMAIL_TO" \
+            --arg subject "ResaleLane daily check: $CHECK_STATUS" \
+            --arg text "Production: $CHECK_STATUS\nHTTP: $HTTP_CODE\nResponse time: ${DURATION}s\nURL: https://shopresalelane.com/" \
+            '{from:$from,to:[$to],subject:$subject,text:$text}')
+
+          curl --fail --silent --show-error \
+            --request POST \
+            --url https://api.resend.com/emails \
+            --header "Authorization: Bearer $RESEND_API_KEY" \
+            --header "Content-Type: application/json" \
+            --data "$payload"
+
+      - name: Fail on outage
+        if: steps.uptime.outputs.status != 'PASS'
+        run: exit 1

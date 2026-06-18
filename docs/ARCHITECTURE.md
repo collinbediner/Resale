@@ -10,7 +10,8 @@ ResaleLane is currently a static storefront built with HTML, CSS, and browser Ja
 | Cart state | Browser `localStorage` |
 | Tests | Node.js built-in test runner |
 | CI | GitHub Actions |
-| Preview | GitHub Pages PR preview workflow |
+| Preview | GitHub Pages PR preview paths |
+| Stable staging | `staging` branch at `/staging/` |
 | Production | GitHub Pages `gh-pages` branch |
 | Domain/DNS | Cloudflare |
 | Payments | Disabled placeholder until Stripe is configured |
@@ -39,6 +40,8 @@ flowchart LR
 - `.github/workflows/ci.yml`: standalone/reusable test workflow.
 - `.github/workflows/deploy.yml`: production deployment after tests.
 - `.github/workflows/preview.yml`: pull-request preview after tests.
+- `.github/workflows/staging.yml`: stable staging-path deployment after tests.
+- `.github/workflows/uptime.yml`: daily production availability and content check.
 
 ## Security Boundary
 
@@ -58,3 +61,43 @@ When Stripe is available, a server-side service should:
 6. Save order and delivery status.
 
 Cloudflare Workers plus D1 and an email provider are suitable options, but they are not active yet.
+
+## Target Transaction Architecture
+
+```mermaid
+sequenceDiagram
+  participant B as Buyer
+  participant S as Storefront
+  participant W as Cloudflare Worker
+  participant P as Stripe
+  participant D as D1
+  participant E as Resend
+  participant A as Private Artifact Storage
+  B->>S: Select package
+  S->>W: Send product IDs
+  W->>P: Create Checkout Session from server prices
+  P-->>B: Hosted checkout
+  P->>W: Signed completion webhook
+  W->>D: Create/idempotently update order
+  W->>A: Resolve purchased artifact version
+  W->>E: Send confirmation and delivery
+  E-->>B: Receipt context and purchased artifact
+  W->>D: Record delivery result
+```
+
+Stripe remains the payment receipt authority. ResaleLane sends a separate order confirmation and fulfillment email containing the order ID, purchased items, support details, policy summary, and the secured delivery artifact.
+
+## Environment Strategy
+
+Current interim separation:
+
+- Feature/PR preview: per-PR Pages path
+- Stable staging: `/staging/`
+- Production: domain root
+
+Target separation:
+
+- Dedicated staging project and hostname, ideally `staging.shopresalelane.com`
+- Separate test/live Stripe keys and webhook endpoints
+- Separate D1 databases and Resend test/production configuration
+- Production deployment only after staging approval

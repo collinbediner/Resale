@@ -37,7 +37,7 @@ The automated suite currently checks:
 
 ## Branch And Preview Flow
 
-Use short branches for changes:
+Use short feature branches for changes:
 
 ```bash
 git switch -c feature/name-of-change
@@ -45,10 +45,36 @@ git switch -c feature/name-of-change
 
 Every push response must include both URLs:
 
-- Preview: the GitHub Pages URL for the pushed revision, with a cache-busting commit query when useful.
+- Preview/staging: the PR preview URL or `https://shopresalelane.com/staging/`.
 - Production: `https://shopresalelane.com/`.
 
-Pull requests deploy to a preview path on GitHub Pages. `main` deploys to production at `https://shopresalelane.com/`.
+Release flow:
+
+1. Feature branch and pull request.
+2. Automated tests.
+3. PR preview review.
+4. Merge approved work into `staging`.
+5. Verify the stable staging URL.
+6. Merge/release to `main`.
+7. Verify production and preserve rollback information.
+
+Only `main` deploys the production root. Pages-writing workflows share one concurrency group so staging, preview, and production cannot modify the deployment branch simultaneously.
+
+## Ticket Management
+
+The private planning repository is `collinbediner/Resale-Planning`.
+
+For every meaningful change:
+
+1. Create or select a ticket before implementation.
+2. Put clear acceptance criteria and security/privacy notes in the ticket.
+3. Move the ticket from `Todo` to `In Progress` when work starts.
+4. Link commits and pull requests to the ticket.
+5. Add test, staging, and production evidence after deployment.
+6. Move it to `Done` only after acceptance criteria pass in the correct environment.
+7. During every PRD review, add newly discovered gaps to `Todo`.
+
+Ticket updates are part of the definition of done, not optional administration.
 
 ## CI/CD Monitoring
 
@@ -63,6 +89,22 @@ After every push:
 7. Report the commit ID, test result, deployment result, preview URL, and production URL.
 
 The deployment workflows depend on the test workflow, so failed tests block publishing.
+
+## Operations Monitoring
+
+The `Daily Production Check` GitHub Actions workflow runs each day and verifies:
+
+- HTTPS returns `200`
+- The expected storefront headline is present
+- Response time is recorded
+
+After Resend is configured, set these GitHub Actions secrets:
+
+- `RESEND_API_KEY`
+- `UPTIME_EMAIL_FROM`
+- `UPTIME_EMAIL_TO`
+
+The job will then email Collin a daily pass/fail checkpoint. Failed checks also fail visibly in GitHub Actions.
 
 ## Approval Rule
 
