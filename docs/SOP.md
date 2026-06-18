@@ -74,20 +74,35 @@ Only `main` deploys the production root. Pages-writing workflows share one concu
 
 ## Ticket Management
 
-The private planning repository is `collinbediner/Resale-Planning`.
-Every ticket must also be added to the private `ResaleLane Delivery` GitHub Project.
+The private planning repository is [collinbediner/Resale-Planning](https://github.com/collinbediner/Resale-Planning).
+Every ticket must also be added to the private [ResaleLane Delivery GitHub Project](https://github.com/users/collinbediner/projects/1).
+
+The planning issue is the canonical ticket record. The Project is the Kanban view of that same issue. Never create a duplicate Project draft card when a repository issue exists.
+
+Required Project columns and matching issue labels:
+
+| Project status | Issue label |
+| --- | --- |
+| Backlog | `status:backlog` |
+| To Do | `status:todo` |
+| In Progress | `status:in-progress` |
+| UAT | `status:uat` |
+| Done | `status:done` |
 
 For every meaningful change:
 
 1. Create or select a ticket before implementation.
 2. Put clear acceptance criteria and security/privacy notes in the ticket.
-3. Confirm the ticket is linked to both the planning repository and the GitHub Project.
-4. Move the Project status from `Todo` to `In Progress` when work starts.
-5. Link commits and pull requests to the ticket.
-6. Add test, staging, and production evidence after deployment.
-7. Move completed engineering work to `UAT` for Collin's acceptance.
-8. Move it to `Done` only after UAT approval.
-9. During every PRD review, add newly discovered gaps to `Todo`.
+3. Confirm the canonical issue is linked to the GitHub Project and is not duplicated as a draft card.
+4. Keep the Project status and the issue's `status:*` label synchronized.
+5. Move both from `To Do` to `In Progress` when work starts.
+6. Link commits and pull requests to the ticket.
+7. Add test, staging, and production evidence after deployment.
+8. Move completed engineering work to `UAT` for Collin's acceptance.
+9. Move it to `Done` and close the issue only after UAT approval.
+10. During every PRD review, add unrefined gaps to `Backlog` and refined actionable work to `To Do`.
+
+At the beginning and end of every implementation pass, audit all planning issues against the Project, add missing issues, remove duplicate draft cards, and reconcile status mismatches.
 
 Ticket updates are part of the definition of done, not optional administration.
 
