@@ -1,0 +1,718 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<script src="./support.js"></script>
+</head>
+<body>
+<template id="__bundler_thumbnail" data-bg-color="#080808">
+  <svg viewBox="0 0 1200 800" xmlns="http://www.w3.org/2000/svg">
+    <rect width="1200" height="800" fill="#080808"/>
+    <rect x="500" y="300" width="200" height="200" rx="44" fill="#151515" stroke="#2c2c2c" stroke-width="3"/>
+    <path d="M548 350 L608 400 L548 450" stroke="#8a8a8a" stroke-width="20" fill="none" stroke-linecap="round" stroke-linejoin="round"/>
+    <path d="M588 350 L648 400 L588 450" stroke="#ffffff" stroke-width="20" fill="none" stroke-linecap="round" stroke-linejoin="round"/>
+  </svg>
+</template>
+<x-dc>
+<helmet>
+<title>ResaleLane — Premium Vendors for Resellers</title>
+<meta name="description" content="Shop digital vendor packages with supplier contacts, marketplace links, and email delivery after secure checkout.">
+<meta property="og:title" content="ResaleLane — Premium Vendors for Resellers">
+<meta property="og:description" content="Digital vendor packages delivered by email after secure checkout.">
+<meta property="og:image" content="https://shopresalelane.com/og-image.png">
+<meta property="og:url" content="https://shopresalelane.com">
+<meta property="og:type" content="website">
+<meta name="twitter:card" content="summary_large_image">
+<meta name="twitter:title" content="ResaleLane — Premium Vendors for Resellers">
+<meta name="twitter:description" content="Digital vendor packages delivered by email after secure checkout.">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Geist:wght@400;500;600;700;800;900&display=swap" rel="stylesheet">
+<style>
+  *{box-sizing:border-box;margin:0;padding:0}
+  html{scroll-behavior:smooth}
+  body{background:#080808;font-family:'Geist',system-ui,-apple-system,sans-serif;-webkit-font-smoothing:antialiased;color:#ffffff}
+  a{color:inherit;text-decoration:none}
+  ::selection{background:#ffffff;color:#080808}
+  details summary::-webkit-details-marker{display:none}
+  input,select,textarea,button{font-family:inherit}
+  :focus-visible{outline:2px solid #ffffff;outline-offset:2px}
+  @keyframes rl-fade{from{opacity:0}to{opacity:1}}
+  @keyframes rl-slide-in{from{transform:translateX(100%)}to{transform:translateX(0)}}
+  @keyframes rl-pop{from{opacity:0;transform:translateY(8px)}to{opacity:1;transform:translateY(0)}}
+  @keyframes rl-menu{from{opacity:0;transform:translateY(-8px)}to{opacity:1;transform:translateY(0)}}
+  @keyframes rl-pulse{0%{box-shadow:0 0 0 0 rgba(255,255,255,0.5)}100%{box-shadow:0 0 0 14px rgba(255,255,255,0)}}
+</style>
+</helmet>
+
+<div style="min-height:100vh;background:#080808;color:#ffffff">
+
+  <!-- ===================== HEADER ===================== -->
+  <header style="position:sticky;top:0;z-index:60;background:rgba(8,8,8,0.85);backdrop-filter:blur(14px);border-bottom:1px solid #1c1c1c">
+    <div style="max-width:1200px;margin:0 auto;display:flex;align-items:center;justify-content:space-between;padding:14px 24px;height:64px">
+      <a onClick="{{ goTop }}" style="display:flex;align-items:center;gap:11px;cursor:pointer" aria-label="ResaleLane home">
+        <svg width="30" height="30" viewBox="0 0 100 100" fill="none" xmlns="http://www.w3.org/2000/svg" style="border-radius:8px;background:#151515;border:1px solid #2c2c2c;flex:none">
+          <path d="M30 28 L52 50 L30 72" stroke="#8a8a8a" stroke-width="9" stroke-linecap="round" stroke-linejoin="round"/>
+          <path d="M50 28 L72 50 L50 72" stroke="#ffffff" stroke-width="9" stroke-linecap="round" stroke-linejoin="round"/>
+        </svg>
+        <span style="font-size:19px;font-weight:700;letter-spacing:-0.03em">ResaleLane</span>
+      </a>
+
+      <!-- Desktop nav -->
+      <sc-if value="{{ isDesktop }}" hint-placeholder-val="{{ true }}">
+      <nav style="display:flex;align-items:center;gap:4px">
+        <a onClick="{{ goVendors }}" style="font-size:14.5px;font-weight:500;color:#a3a3a3;padding:9px 14px;border-radius:8px;cursor:pointer" style-hover="{{ linkHover }}">Vendors</a>
+        <a onClick="{{ goFaq }}" style="font-size:14.5px;font-weight:500;color:#a3a3a3;padding:9px 14px;border-radius:8px;cursor:pointer" style-hover="{{ linkHover }}">FAQ</a>
+        <a onClick="{{ goPolicies }}" style="font-size:14.5px;font-weight:500;color:#a3a3a3;padding:9px 14px;border-radius:8px;cursor:pointer" style-hover="{{ linkHover }}">Policies</a>
+        <a onClick="{{ goContact }}" style="font-size:14.5px;font-weight:500;color:#a3a3a3;padding:9px 14px;border-radius:8px;cursor:pointer" style-hover="{{ linkHover }}">Contact</a>
+        <button onClick="{{ openCart }}" aria-label="Open cart" style="margin-left:8px;display:flex;align-items:center;gap:9px;font-family:inherit;font-size:14px;font-weight:600;color:#ffffff;background:#111111;border:1px solid #3a3a3a;padding:9px 16px;border-radius:9px;cursor:pointer" style-hover="{{ ghostHover }}">
+          <span aria-hidden="true">🛒</span> Cart
+          <sc-if value="{{ hasItems }}" hint-placeholder-val="{{ true }}"><span style="background:#ffffff;color:#080808;font-size:12px;font-weight:800;min-width:20px;height:20px;display:inline-flex;align-items:center;justify-content:center;border-radius:99px;padding:0 6px">{{ cartCount }}</span></sc-if>
+        </button>
+      </nav>
+      </sc-if>
+
+      <!-- Mobile nav -->
+      <sc-if value="{{ isMobile }}" hint-placeholder-val="{{ true }}">
+      <div style="display:flex;align-items:center;gap:8px">
+        <button onClick="{{ openCart }}" aria-label="Open cart" style="position:relative;display:flex;align-items:center;justify-content:center;width:44px;height:44px;font-size:18px;color:#ffffff;background:#111111;border:1px solid #3a3a3a;border-radius:10px;cursor:pointer">
+          🛒
+          <sc-if value="{{ hasItems }}" hint-placeholder-val="{{ true }}"><span style="position:absolute;top:-6px;right:-6px;background:#ffffff;color:#080808;font-size:11px;font-weight:800;min-width:19px;height:19px;display:inline-flex;align-items:center;justify-content:center;border-radius:99px;padding:0 5px">{{ cartCount }}</span></sc-if>
+        </button>
+        <button onClick="{{ openMenu }}" aria-label="Open menu" style="display:flex;flex-direction:column;gap:4px;align-items:center;justify-content:center;width:44px;height:44px;background:#111111;border:1px solid #3a3a3a;border-radius:10px;cursor:pointer">
+          <span style="display:block;width:18px;height:2px;background:#fff;border-radius:2px"></span>
+          <span style="display:block;width:18px;height:2px;background:#fff;border-radius:2px"></span>
+          <span style="display:block;width:18px;height:2px;background:#fff;border-radius:2px"></span>
+        </button>
+      </div>
+      </sc-if>
+    </div>
+  </header>
+
+  <!-- Mobile menu overlay -->
+  <sc-if value="{{ isMenuOpen }}" hint-placeholder-val="{{ false }}">
+  <div style="position:fixed;inset:0;z-index:70;background:rgba(8,8,8,0.6);animation:rl-fade .2s ease" onClick="{{ closeMenu }}">
+    <div style="background:#0e0e0e;border-bottom:1px solid #262626;padding:14px 24px 22px;animation:rl-menu .22s ease" onClick="{{ stop }}">
+      <div style="display:flex;align-items:center;justify-content:space-between;height:50px">
+        <span style="font-size:17px;font-weight:700;letter-spacing:-0.03em">Menu</span>
+        <button onClick="{{ closeMenu }}" aria-label="Close menu" style="width:40px;height:40px;font-size:20px;color:#a3a3a3;background:transparent;border:1px solid #2c2c2c;border-radius:9px;cursor:pointer">✕</button>
+      </div>
+      <div style="display:flex;flex-direction:column;gap:2px;margin-top:10px">
+        <a onClick="{{ goVendors }}" style="font-size:17px;font-weight:500;color:#d4d4d4;padding:14px 6px;border-bottom:1px solid #1a1a1a;cursor:pointer">Vendors</a>
+        <a onClick="{{ goBundle }}" style="font-size:17px;font-weight:500;color:#d4d4d4;padding:14px 6px;border-bottom:1px solid #1a1a1a;cursor:pointer">All Vendor Bundle</a>
+        <a onClick="{{ goFaq }}" style="font-size:17px;font-weight:500;color:#d4d4d4;padding:14px 6px;border-bottom:1px solid #1a1a1a;cursor:pointer">FAQ</a>
+        <a onClick="{{ goPolicies }}" style="font-size:17px;font-weight:500;color:#d4d4d4;padding:14px 6px;border-bottom:1px solid #1a1a1a;cursor:pointer">Policies</a>
+        <a onClick="{{ goContact }}" style="font-size:17px;font-weight:500;color:#d4d4d4;padding:14px 6px;cursor:pointer">Contact</a>
+      </div>
+    </div>
+  </div>
+  </sc-if>
+
+  <!-- ===================== HERO ===================== -->
+  <section style="display:flex;gap:56px;align-items:center;padding:72px 24px 64px;max-width:1200px;margin:0 auto;flex-wrap:wrap">
+    <div style="flex:1;min-width:300px">
+      <div style="display:inline-flex;align-items:center;gap:8px;background:#111111;border:1px solid #2c2c2c;color:#d4d4d4;font-size:13px;font-weight:600;padding:7px 14px;border-radius:99px;margin-bottom:26px">
+        <span style="display:inline-block;width:6px;height:6px;border-radius:50%;background:#d4d4d4"></span>
+        Digital vendor packages · Instant email delivery
+      </div>
+      <h1 style="font-size:clamp(38px,6vw,64px);font-weight:800;letter-spacing:-0.04em;line-height:1.04;text-wrap:balance">Premium Vendors for Resellers</h1>
+      <p style="margin-top:22px;font-size:18px;line-height:1.6;color:#a3a3a3;max-width:500px;text-wrap:pretty">Get direct vendor contacts, marketplace links, and sourcing resources for shoes, clothes, cologne, and AirPods/headphones.</p>
+      <div style="display:flex;gap:12px;margin-top:34px;flex-wrap:wrap">
+        <button onClick="{{ goVendors }}" style="display:flex;align-items:center;gap:9px;font-family:inherit;font-size:16px;font-weight:600;color:#080808;background:#ffffff;border:none;padding:15px 26px;border-radius:11px;cursor:pointer" style-hover="{{ ctaHover }}">Shop Vendors <span style="opacity:0.5">→</span></button>
+        <button onClick="{{ goBundle }}" style="font-family:inherit;font-size:16px;font-weight:600;color:#ffffff;background:#111111;border:1px solid #3a3a3a;padding:15px 26px;border-radius:11px;cursor:pointer" style-hover="{{ ghostHover }}">View Bundle Deal</button>
+      </div>
+      <div style="display:flex;align-items:center;gap:10px;margin-top:34px;flex-wrap:wrap;color:#737373;font-size:13px;font-weight:500">
+        <span>Instant email delivery after checkout</span><span style="color:#333">·</span><span>Secure Stripe checkout</span><span style="color:#333">·</span><span>No account required</span>
+      </div>
+    </div>
+
+    <!-- Hero bundle preview card -->
+    <div style="flex:1;min-width:300px">
+      <div style="background:#121212;border:1px solid #2c2c2c;border-radius:18px;padding:26px;box-shadow:0 40px 90px -50px rgba(0,0,0,0.9)">
+        <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:18px">
+          <span style="font-size:12px;color:#a3a3a3;font-weight:700;letter-spacing:0.08em">ALL VENDOR BUNDLE</span>
+          <span style="font-size:11px;font-weight:800;letter-spacing:0.05em;color:#080808;background:#ffffff;padding:5px 10px;border-radius:99px">BEST VALUE</span>
+        </div>
+        <sc-for list="{{ productList }}" as="p" hint-placeholder-count="4">
+          <div style="display:flex;align-items:center;gap:14px;padding:13px 0;border-bottom:1px solid #1f1f1f">
+            <div style="width:38px;height:38px;border-radius:10px;background:#1a1a1a;border:1px solid #2c2c2c;display:flex;align-items:center;justify-content:center;font-size:18px;flex:none">{{ p.icon }}</div>
+            <div style="flex:1;font-size:14.5px;font-weight:600">{{ p.name }}</div>
+            <div style="font-size:13px;color:#525252;text-decoration:line-through">$15</div>
+          </div>
+        </sc-for>
+        <div style="display:flex;align-items:baseline;justify-content:space-between;padding-top:18px">
+          <span style="font-size:14px;color:#a3a3a3">$28 value — $12 today</span>
+          <span style="font-size:30px;font-weight:800;letter-spacing:-0.02em">$12</span>
+        </div>
+        <button onClick="{{ bundleAdd }}" style="width:100%;margin-top:18px;font-family:inherit;font-size:15px;font-weight:600;color:#080808;background:#ffffff;border:none;padding:13px;border-radius:10px;cursor:pointer" style-hover="{{ ctaHover }}">Add Bundle to Cart</button>
+      </div>
+    </div>
+  </section>
+
+  <!-- trust strip -->
+  <div style="border-top:1px solid #1a1a1a;border-bottom:1px solid #1a1a1a;padding:18px 24px;display:flex;gap:14px 36px;justify-content:center;flex-wrap:wrap;color:#737373;font-size:13px;font-weight:500">
+    <span>Direct vendor contacts</span><span style="color:#333">·</span><span>Marketplace links</span><span style="color:#333">·</span><span>Instant email delivery</span><span style="color:#333">·</span><span>No account required</span>
+  </div>
+
+  <!-- ===================== PRODUCTS ===================== -->
+  <section id="products" style="padding:80px 24px 40px;max-width:1200px;margin:0 auto;scroll-margin-top:80px">
+    <div style="text-align:center;margin-bottom:48px">
+      <div style="font-size:12px;letter-spacing:0.16em;text-transform:uppercase;color:#a3a3a3;font-weight:700;margin-bottom:12px">Shop Vendors</div>
+      <h2 style="font-size:clamp(28px,4vw,42px);font-weight:800;letter-spacing:-0.035em">Pick one vendor category or grab the full bundle.</h2>
+    </div>
+    <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(248px,1fr));gap:18px">
+      <sc-for list="{{ productList }}" as="p" hint-placeholder-count="4">
+        <div style="background:#111111;border:1px solid #262626;border-radius:16px;padding:24px;display:flex;flex-direction:column;transition:border-color .18s,transform .18s,box-shadow .18s" style-hover="{{ cardHover }}">
+          <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:20px">
+            <div style="width:48px;height:48px;border-radius:12px;background:#161616;border:1px solid #2c2c2c;display:flex;align-items:center;justify-content:center;font-size:23px">{{ p.icon }}</div>
+            <span style="font-size:10.5px;font-weight:700;letter-spacing:0.06em;text-transform:uppercase;color:#d4d4d4;background:#1a1a1a;border:1px solid #2c2c2c;padding:5px 10px;border-radius:99px">{{ p.badge }}</span>
+          </div>
+          <h3 style="font-size:18px;font-weight:700;letter-spacing:-0.02em;line-height:1.25">{{ p.name }}</h3>
+          <p style="margin-top:9px;font-size:13.5px;line-height:1.55;color:#a3a3a3;flex:1">{{ p.description }}</p>
+          <div style="display:flex;align-items:baseline;gap:9px;margin-top:18px">
+            <span style="font-size:26px;font-weight:800;letter-spacing:-0.02em">{{ p.priceLabel }}</span>
+            <span style="font-size:15px;color:#525252;text-decoration:line-through">{{ p.compareLabel }}</span>
+          </div>
+          <button onClick="{{ p.add }}" style="width:100%;margin-top:16px;font-family:inherit;font-size:14.5px;font-weight:600;color:#080808;background:#ffffff;border:none;padding:12px;border-radius:10px;cursor:pointer" style-hover="{{ ctaHover }}">Add to Cart</button>
+          <a onClick="{{ p.view }}" style="text-align:center;margin-top:11px;font-size:13px;font-weight:500;color:#a3a3a3;cursor:pointer" style-hover="{{ linkHover }}">View Details</a>
+        </div>
+      </sc-for>
+    </div>
+  </section>
+
+  <!-- ===================== BUNDLE ===================== -->
+  <section id="bundle" style="padding:24px 24px 72px;max-width:1200px;margin:0 auto;scroll-margin-top:80px">
+    <div style="position:relative;background:#151515;border:1px solid #3a3a3a;border-radius:20px;padding:40px;box-shadow:0 0 60px -30px rgba(255,255,255,0.18)">
+      <sc-if value="{{ isBundleHighlighted }}" hint-placeholder-val="{{ false }}">
+        <div style="position:absolute;inset:-2px;border-radius:22px;border:2px solid #ffffff;pointer-events:none;animation:rl-pulse 1.1s ease 2"></div>
+      </sc-if>
+      <div style="display:flex;align-items:center;justify-content:space-between;gap:32px;flex-wrap:wrap">
+        <div style="flex:1;min-width:280px">
+          <span style="display:inline-block;font-size:11px;font-weight:800;letter-spacing:0.06em;color:#080808;background:#ffffff;padding:5px 11px;border-radius:99px;margin-bottom:18px">BEST VALUE</span>
+          <h2 style="font-size:clamp(26px,4vw,36px);font-weight:800;letter-spacing:-0.03em">All Vendor Bundle</h2>
+          <p style="margin-top:12px;color:#a3a3a3;font-size:15.5px;line-height:1.6;max-width:480px">Get every vendor category in one package: shoes, clothes, AirPods/headphones, and cologne.</p>
+          <div style="display:flex;align-items:center;gap:14px;margin-top:20px;flex-wrap:wrap">
+            <span style="font-size:40px;font-weight:800;letter-spacing:-0.03em;line-height:1">$12</span>
+            <div style="display:flex;flex-direction:column">
+              <span style="font-size:14px;color:#525252;text-decoration:line-through">$28 value</span>
+              <span style="font-size:14px;font-weight:700;color:#d4d4d4">Save $16</span>
+            </div>
+          </div>
+        </div>
+        <div style="display:flex;flex-direction:column;gap:12px;min-width:230px">
+          <button onClick="{{ bundleAdd }}" style="font-family:inherit;font-size:15px;font-weight:600;color:#080808;background:#ffffff;border:none;padding:15px 28px;border-radius:11px;cursor:pointer" style-hover="{{ ctaHover }}">Add Bundle to Cart</button>
+          <a onClick="{{ bundleView }}" style="text-align:center;font-size:13px;font-weight:500;color:#a3a3a3;cursor:pointer" style-hover="{{ linkHover }}">View Details</a>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ===================== HOW IT WORKS ===================== -->
+  <section style="padding:40px 24px 64px;max-width:1200px;margin:0 auto">
+    <div style="text-align:center;margin-bottom:44px">
+      <div style="font-size:12px;letter-spacing:0.16em;text-transform:uppercase;color:#a3a3a3;font-weight:700;margin-bottom:12px">How it works</div>
+      <h2 style="font-size:clamp(26px,4vw,38px);font-weight:800;letter-spacing:-0.035em">From checkout to inbox in minutes</h2>
+    </div>
+    <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(230px,1fr));gap:18px">
+      <sc-for list="{{ steps }}" as="s" hint-placeholder-count="3">
+        <div style="background:#111111;border:1px solid #262626;border-radius:16px;padding:28px">
+          <div style="font-size:13px;font-weight:800;color:#d4d4d4;margin-bottom:16px">{{ s.num }}</div>
+          <h3 style="font-size:17px;font-weight:700;letter-spacing:-0.02em">{{ s.title }}</h3>
+          <p style="margin-top:9px;font-size:14px;line-height:1.55;color:#a3a3a3">{{ s.body }}</p>
+        </div>
+      </sc-for>
+    </div>
+    <!-- delivery details -->
+    <div style="margin-top:18px;background:#0e0e0e;border:1px solid #262626;border-radius:16px;padding:28px;display:flex;gap:18px;align-items:flex-start;flex-wrap:wrap">
+      <div style="width:44px;height:44px;border-radius:11px;background:#161616;border:1px solid #2c2c2c;display:flex;align-items:center;justify-content:center;font-size:20px;flex:none">✉️</div>
+      <div style="flex:1;min-width:260px">
+        <h3 style="font-size:17px;font-weight:700;letter-spacing:-0.02em">Delivery Details</h3>
+        <p style="margin-top:8px;font-size:14px;line-height:1.65;color:#a3a3a3">Your vendor package is sent to the email used at checkout. Most orders arrive within a few minutes. Check spam, junk, and promotions folders if you do not see it right away. Since there are no accounts in v1, save your confirmation email as your order record.</p>
+      </div>
+    </div>
+  </section>
+
+  <!-- ===================== REVIEWS ===================== -->
+  <section style="padding:0 24px 64px;max-width:760px;margin:0 auto">
+    <div style="background:#0e0e0e;border:1px dashed #2c2c2c;border-radius:16px;padding:44px;text-align:center">
+      <div style="font-size:28px;margin-bottom:12px;color:#d4d4d4">✦</div>
+      <h3 style="font-size:20px;font-weight:700;letter-spacing:-0.02em">Reviews are opening soon</h3>
+      <p style="margin-top:10px;color:#a3a3a3;font-size:15px;line-height:1.6;max-width:440px;margin-left:auto;margin-right:auto">Verified buyer reviews will appear here as the first orders come in — no fake testimonials.</p>
+    </div>
+  </section>
+
+  <!-- ===================== FAQ ===================== -->
+  <section id="faq" style="padding:24px 24px 72px;max-width:760px;margin:0 auto;scroll-margin-top:80px">
+    <h2 style="font-size:clamp(26px,4vw,36px);font-weight:800;letter-spacing:-0.03em;text-align:center;margin-bottom:32px">Frequently asked</h2>
+    <sc-for list="{{ faqs }}" as="f" hint-placeholder-count="5">
+      <details style="background:#111111;border:1px solid #262626;border-radius:12px;padding:18px 22px;margin-bottom:10px">
+        <summary style="display:flex;align-items:center;justify-content:space-between;gap:16px;font-size:16px;font-weight:600;cursor:pointer;list-style:none">{{ f.q }}<span style="color:#a3a3a3;font-size:20px;font-weight:400;flex:none">+</span></summary>
+        <p style="margin-top:13px;font-size:14.5px;line-height:1.65;color:#a3a3a3">{{ f.a }}</p>
+      </details>
+    </sc-for>
+  </section>
+
+  <!-- ===================== CONTACT ===================== -->
+  <section id="contact" style="padding:24px 24px 72px;max-width:760px;margin:0 auto;scroll-margin-top:80px">
+    <div style="background:#111111;border:1px solid #262626;border-radius:18px;padding:36px">
+      <div style="font-size:12px;letter-spacing:0.16em;text-transform:uppercase;color:#a3a3a3;font-weight:700;margin-bottom:10px">Support</div>
+      <h2 style="font-size:clamp(24px,4vw,32px);font-weight:800;letter-spacing:-0.03em">Need help with an order?</h2>
+      <p style="margin-top:10px;color:#a3a3a3;font-size:14.5px;line-height:1.6">Email <a href="mailto:collin.bediner+support@gmail.com" style="color:#ffffff;border-bottom:1px solid #3a3a3a">collin.bediner+support@gmail.com</a> or use the form below. We typically reply by email.</p>
+      <div style="margin-top:26px;display:flex;flex-direction:column;gap:16px">
+        <div style="display:flex;gap:14px;flex-wrap:wrap">
+          <div style="flex:1;min-width:200px">
+            <label for="c-name" style="display:block;font-size:13px;font-weight:600;color:#d4d4d4;margin-bottom:7px">Name</label>
+            <input id="c-name" type="text" placeholder="Your name" style="width:100%;font-size:15px;color:#fff;background:#0a0a0a;border:1px solid #2c2c2c;border-radius:10px;padding:12px 14px;outline:none" style-focus="{{ inputFocus }}"/>
+          </div>
+          <div style="flex:1;min-width:200px">
+            <label for="c-email" style="display:block;font-size:13px;font-weight:600;color:#d4d4d4;margin-bottom:7px">Email</label>
+            <input id="c-email" type="email" placeholder="you@email.com" style="width:100%;font-size:15px;color:#fff;background:#0a0a0a;border:1px solid #2c2c2c;border-radius:10px;padding:12px 14px;outline:none" style-focus="{{ inputFocus }}"/>
+          </div>
+        </div>
+        <div>
+          <label for="c-order" style="display:block;font-size:13px;font-weight:600;color:#d4d4d4;margin-bottom:7px">Order ID <span style="color:#737373;font-weight:400">(optional)</span></label>
+          <input id="c-order" type="text" placeholder="e.g. RL-10293" style="width:100%;font-size:15px;color:#fff;background:#0a0a0a;border:1px solid #2c2c2c;border-radius:10px;padding:12px 14px;outline:none" style-focus="{{ inputFocus }}"/>
+        </div>
+        <div>
+          <label for="c-reason" style="display:block;font-size:13px;font-weight:600;color:#d4d4d4;margin-bottom:7px">Reason</label>
+          <select id="c-reason" style="width:100%;font-size:15px;color:#fff;background:#0a0a0a;border:1px solid #2c2c2c;border-radius:10px;padding:12px 14px;outline:none" style-focus="{{ inputFocus }}">
+            <option>I did not receive my email</option>
+            <option>I need my package resent</option>
+            <option>A supplier contact or link is not working</option>
+            <option>I have a question before buying</option>
+            <option>I need help with an order</option>
+            <option>Other</option>
+          </select>
+        </div>
+        <div>
+          <label for="c-msg" style="display:block;font-size:13px;font-weight:600;color:#d4d4d4;margin-bottom:7px">Message</label>
+          <textarea id="c-msg" rows="4" placeholder="How can we help?" style="width:100%;font-size:15px;color:#fff;background:#0a0a0a;border:1px solid #2c2c2c;border-radius:10px;padding:12px 14px;outline:none;resize:vertical" style-focus="{{ inputFocus }}"></textarea>
+        </div>
+        <button onClick="{{ submitContact }}" style="font-family:inherit;font-size:15px;font-weight:600;color:#080808;background:#ffffff;border:none;padding:14px;border-radius:11px;cursor:pointer;align-self:flex-start;padding-left:32px;padding-right:32px" style-hover="{{ ctaHover }}">Send message</button>
+      </div>
+    </div>
+  </section>
+
+  <!-- ===================== POLICIES ===================== -->
+  <section id="policies" style="padding:24px 24px 72px;max-width:760px;margin:0 auto;scroll-margin-top:80px">
+    <h2 style="font-size:clamp(26px,4vw,36px);font-weight:800;letter-spacing:-0.03em">Policies</h2>
+    <p style="margin-top:10px;color:#a3a3a3;font-size:15px">Plain-language terms for digital, instantly-delivered products.</p>
+    <div style="margin-top:32px;display:flex;flex-direction:column;gap:14px">
+      <sc-for list="{{ policies }}" as="l" hint-placeholder-count="3">
+        <div style="background:#111111;border:1px solid #262626;border-radius:14px;padding:28px">
+          <h3 style="font-size:18px;font-weight:700;letter-spacing:-0.02em">{{ l.title }}</h3>
+          <p style="margin-top:11px;font-size:14.5px;line-height:1.7;color:#a3a3a3">{{ l.body }}</p>
+        </div>
+      </sc-for>
+    </div>
+  </section>
+
+  <!-- ===================== FOOTER ===================== -->
+  <footer style="border-top:1px solid #1a1a1a;padding:48px 24px 40px">
+    <div style="max-width:1200px;margin:0 auto;display:flex;justify-content:space-between;gap:40px;flex-wrap:wrap">
+      <div style="max-width:380px">
+        <div style="display:flex;align-items:center;gap:10px;margin-bottom:14px">
+          <svg width="26" height="26" viewBox="0 0 100 100" fill="none" xmlns="http://www.w3.org/2000/svg" style="border-radius:7px;background:#151515;border:1px solid #2c2c2c;flex:none">
+            <path d="M30 28 L52 50 L30 72" stroke="#8a8a8a" stroke-width="9" stroke-linecap="round" stroke-linejoin="round"/>
+            <path d="M50 28 L72 50 L50 72" stroke="#ffffff" stroke-width="9" stroke-linecap="round" stroke-linejoin="round"/>
+          </svg>
+          <span style="font-size:17px;font-weight:700;letter-spacing:-0.03em">ResaleLane</span>
+        </div>
+        <p style="font-size:12.5px;line-height:1.7;color:#737373">ResaleLane sells informational vendor resources only. ResaleLane is not affiliated with, endorsed by, or sponsored by any third-party brands, marketplaces, manufacturers, or suppliers. Buyers should verify pricing, product details, quality, shipping, and availability directly before purchasing from any third party.</p>
+      </div>
+      <div style="display:flex;gap:48px;flex-wrap:wrap">
+        <div style="display:flex;flex-direction:column;gap:11px">
+          <span style="font-size:12px;letter-spacing:0.12em;text-transform:uppercase;color:#525252;font-weight:600;margin-bottom:3px">Shop</span>
+          <a onClick="{{ goVendors }}" style="font-size:14px;color:#a3a3a3;cursor:pointer">Vendors</a>
+          <a onClick="{{ goBundle }}" style="font-size:14px;color:#a3a3a3;cursor:pointer">All Vendor Bundle</a>
+        </div>
+        <div style="display:flex;flex-direction:column;gap:11px">
+          <span style="font-size:12px;letter-spacing:0.12em;text-transform:uppercase;color:#525252;font-weight:600;margin-bottom:3px">Help</span>
+          <a onClick="{{ goFaq }}" style="font-size:14px;color:#a3a3a3;cursor:pointer">FAQ</a>
+          <a onClick="{{ goPolicies }}" style="font-size:14px;color:#a3a3a3;cursor:pointer">Policies</a>
+          <a onClick="{{ goContact }}" style="font-size:14px;color:#a3a3a3;cursor:pointer">Contact</a>
+          <a href="mailto:collin.bediner+support@gmail.com" style="font-size:14px;color:#a3a3a3">collin.bediner+support@gmail.com</a>
+        </div>
+      </div>
+    </div>
+    <div style="max-width:1200px;margin:36px auto 0;padding-top:24px;border-top:1px solid #1a1a1a;font-size:12.5px;color:#737373">© 2026 ResaleLane. All rights reserved. All sales final after digital delivery · Secure Stripe checkout</div>
+  </footer>
+
+  <!-- ===================== CART DRAWER ===================== -->
+  <sc-if value="{{ isCartOpen }}" hint-placeholder-val="{{ false }}">
+  <div style="position:fixed;inset:0;z-index:80;background:rgba(8,8,8,0.62);animation:rl-fade .2s ease" onClick="{{ closeCart }}">
+    <div style="position:absolute;top:0;right:0;height:100%;width:min(430px,100vw);background:#111111;border-left:1px solid #262626;display:flex;flex-direction:column;animation:rl-slide-in .28s cubic-bezier(.2,.7,.2,1)" onClick="{{ stop }}">
+      <div style="display:flex;align-items:center;justify-content:space-between;padding:20px 24px;border-bottom:1px solid #262626">
+        <span style="font-size:18px;font-weight:700;letter-spacing:-0.02em">Your Cart</span>
+        <button onClick="{{ closeCart }}" aria-label="Close cart" style="width:38px;height:38px;font-size:18px;color:#a3a3a3;background:transparent;border:1px solid #2c2c2c;border-radius:9px;cursor:pointer">✕</button>
+      </div>
+
+      <div style="flex:1;overflow-y:auto;padding:20px 24px">
+        <!-- conflict: bundle added with individuals present -->
+        <sc-if value="{{ isConflictBundle }}" hint-placeholder-val="{{ false }}">
+          <div style="background:#171717;border:1px solid #3a3a3a;border-radius:12px;padding:16px;margin-bottom:18px">
+            <p style="font-size:13.5px;line-height:1.55;color:#d4d4d4">The All Vendor Bundle already includes every vendor category. You may want to keep the bundle only.</p>
+            <div style="display:flex;gap:10px;margin-top:14px;flex-wrap:wrap">
+              <button onClick="{{ keepBundleOnly }}" style="flex:1;min-width:130px;font-family:inherit;font-size:13.5px;font-weight:600;color:#080808;background:#ffffff;border:none;padding:10px;border-radius:9px;cursor:pointer">Keep Bundle Only</button>
+              <button onClick="{{ keepEverything }}" style="flex:1;min-width:130px;font-family:inherit;font-size:13.5px;font-weight:600;color:#fff;background:#111;border:1px solid #3a3a3a;padding:10px;border-radius:9px;cursor:pointer">Keep Everything</button>
+            </div>
+          </div>
+        </sc-if>
+        <!-- conflict: adding individual while bundle present -->
+        <sc-if value="{{ isConflictIndividual }}" hint-placeholder-val="{{ false }}">
+          <div style="background:#171717;border:1px solid #3a3a3a;border-radius:12px;padding:16px;margin-bottom:18px">
+            <p style="font-size:13.5px;line-height:1.55;color:#d4d4d4">The All Vendor Bundle already includes this vendor category.</p>
+            <div style="display:flex;gap:10px;margin-top:14px;flex-wrap:wrap">
+              <button onClick="{{ keepBundleOnly }}" style="flex:1;min-width:130px;font-family:inherit;font-size:13.5px;font-weight:600;color:#080808;background:#ffffff;border:none;padding:10px;border-radius:9px;cursor:pointer">Keep Bundle Only</button>
+              <button onClick="{{ addAnyway }}" style="flex:1;min-width:130px;font-family:inherit;font-size:13.5px;font-weight:600;color:#fff;background:#111;border:1px solid #3a3a3a;padding:10px;border-radius:9px;cursor:pointer">Add Anyway</button>
+            </div>
+          </div>
+        </sc-if>
+
+        <sc-if value="{{ hasItems }}" hint-placeholder-val="{{ false }}">
+          <sc-for list="{{ cartItems }}" as="c" hint-placeholder-count="2">
+            <div style="display:flex;align-items:center;gap:14px;padding:14px 0;border-bottom:1px solid #1f1f1f">
+              <div style="width:44px;height:44px;border-radius:11px;background:#1a1a1a;border:1px solid #2c2c2c;display:flex;align-items:center;justify-content:center;font-size:20px;flex:none">{{ c.icon }}</div>
+              <div style="flex:1">
+                <div style="font-size:14.5px;font-weight:600;line-height:1.3">{{ c.name }}</div>
+                <div style="font-size:13px;color:#a3a3a3;margin-top:2px">{{ c.priceLabel }}</div>
+              </div>
+              <button onClick="{{ c.remove }}" aria-label="Remove item" style="font-size:12.5px;font-weight:500;color:#a3a3a3;background:transparent;border:1px solid #2c2c2c;border-radius:8px;padding:7px 11px;cursor:pointer" style-hover="{{ removeHover }}">Remove</button>
+            </div>
+          </sc-for>
+        </sc-if>
+        <sc-if value="{{ isEmpty }}" hint-placeholder-val="{{ true }}">
+          <div style="text-align:center;padding:56px 16px">
+            <div style="font-size:30px;color:#3a3a3a;margin-bottom:14px">🛒</div>
+            <p style="font-size:15px;font-weight:600">Your cart is empty</p>
+            <p style="margin-top:6px;font-size:13.5px;color:#a3a3a3">Add a vendor package to get started.</p>
+            <button onClick="{{ closeCart }}" style="margin-top:18px;font-family:inherit;font-size:14px;font-weight:600;color:#fff;background:#111;border:1px solid #3a3a3a;padding:11px 20px;border-radius:10px;cursor:pointer" style-hover="{{ ghostHover }}">Continue Shopping</button>
+          </div>
+        </sc-if>
+      </div>
+
+      <sc-if value="{{ hasItems }}" hint-placeholder-val="{{ false }}">
+      <div style="border-top:1px solid #262626;padding:20px 24px">
+        <div style="display:flex;align-items:baseline;justify-content:space-between;margin-bottom:14px">
+          <span style="font-size:14px;color:#a3a3a3">Subtotal</span>
+          <span style="font-size:24px;font-weight:800;letter-spacing:-0.02em">{{ subtotalLabel }}</span>
+        </div>
+        <div style="display:flex;flex-direction:column;gap:6px;margin-bottom:16px">
+          <div style="display:flex;gap:8px;font-size:12.5px;color:#a3a3a3"><span aria-hidden="true">✉️</span>Digital delivery by email after checkout.</div>
+          <div style="display:flex;gap:8px;font-size:12.5px;color:#a3a3a3"><span aria-hidden="true">🔒</span>Secure checkout powered by Stripe.</div>
+        </div>
+        <button onClick="{{ openCheckout }}" style="width:100%;font-family:inherit;font-size:16px;font-weight:700;color:#080808;background:#ffffff;border:none;padding:15px;border-radius:11px;cursor:pointer" style-hover="{{ ctaHover }}">Checkout Securely</button>
+        <a onClick="{{ closeCart }}" style="display:block;text-align:center;margin-top:12px;font-size:13.5px;font-weight:500;color:#a3a3a3;cursor:pointer" style-hover="{{ linkHover }}">Continue Shopping</a>
+      </div>
+      </sc-if>
+    </div>
+  </div>
+  </sc-if>
+
+  <!-- ===================== PRODUCT DETAIL MODAL ===================== -->
+  <sc-if value="{{ hasDetail }}" hint-placeholder-val="{{ false }}">
+  <div style="position:fixed;inset:0;z-index:90;background:rgba(8,8,8,0.7);display:flex;align-items:flex-start;justify-content:center;padding:24px;overflow-y:auto;animation:rl-fade .2s ease" onClick="{{ closeDetail }}">
+    <div style="width:100%;max-width:520px;margin:auto;background:#111111;border:1px solid #2c2c2c;border-radius:18px;padding:32px;animation:rl-pop .24s ease" onClick="{{ stop }}">
+      <div style="display:flex;align-items:flex-start;justify-content:space-between;gap:16px">
+        <div style="display:flex;align-items:center;gap:14px">
+          <div style="width:52px;height:52px;border-radius:13px;background:#161616;border:1px solid #2c2c2c;display:flex;align-items:center;justify-content:center;font-size:26px;flex:none">{{ detail.icon }}</div>
+          <div>
+            <span style="font-size:10.5px;font-weight:700;letter-spacing:0.06em;text-transform:uppercase;color:#d4d4d4;background:#1a1a1a;border:1px solid #2c2c2c;padding:4px 9px;border-radius:99px">{{ detail.badge }}</span>
+            <h3 style="font-size:21px;font-weight:800;letter-spacing:-0.025em;margin-top:9px">{{ detail.name }}</h3>
+          </div>
+        </div>
+        <button onClick="{{ closeDetail }}" aria-label="Close" style="width:38px;height:38px;font-size:18px;color:#a3a3a3;background:transparent;border:1px solid #2c2c2c;border-radius:9px;cursor:pointer;flex:none">✕</button>
+      </div>
+
+      <div style="display:flex;align-items:baseline;gap:10px;margin-top:20px">
+        <span style="font-size:30px;font-weight:800;letter-spacing:-0.02em">{{ detail.priceLabel }}</span>
+        <span style="font-size:16px;color:#525252;text-decoration:line-through">{{ detail.compareLabel }}</span>
+      </div>
+      <p style="margin-top:14px;font-size:14.5px;line-height:1.6;color:#d4d4d4">{{ detail.description }}</p>
+
+      <div style="margin-top:22px;font-size:12px;letter-spacing:0.1em;text-transform:uppercase;color:#a3a3a3;font-weight:700">What You Get</div>
+      <ul style="list-style:none;margin-top:12px;display:flex;flex-direction:column;gap:9px">
+        <li style="display:flex;gap:10px;font-size:14px;color:#d4d4d4;line-height:1.45"><span style="color:#fff">✓</span>Supplier contact details when available</li>
+        <li style="display:flex;gap:10px;font-size:14px;color:#d4d4d4;line-height:1.45"><span style="color:#fff">✓</span>Marketplace links when available</li>
+        <li style="display:flex;gap:10px;font-size:14px;color:#d4d4d4;line-height:1.45"><span style="color:#fff">✓</span>Notes about what each vendor or source is best for</li>
+        <li style="display:flex;gap:10px;font-size:14px;color:#d4d4d4;line-height:1.45"><span style="color:#fff">✓</span>Email delivery after checkout</li>
+      </ul>
+
+      <div style="margin-top:22px;font-size:12px;letter-spacing:0.1em;text-transform:uppercase;color:#a3a3a3;font-weight:700">How Delivery Works</div>
+      <p style="margin-top:10px;font-size:13.5px;line-height:1.6;color:#a3a3a3">Your vendor package is delivered to the email used at checkout, usually within a few minutes. No account required — save your confirmation email as your order record.</p>
+
+      <div style="margin-top:22px;font-size:12px;letter-spacing:0.1em;text-transform:uppercase;color:#a3a3a3;font-weight:700">Before You Buy</div>
+      <p style="margin-top:10px;font-size:12.5px;line-height:1.6;color:#737373">ResaleLane sells informational vendor resources only and is not affiliated with any brand or supplier. Verify pricing, quality, shipping, and availability directly before purchasing from any third party. All sales are final once delivered.</p>
+
+      <button onClick="{{ detail.add }}" style="width:100%;margin-top:26px;font-family:inherit;font-size:16px;font-weight:700;color:#080808;background:#ffffff;border:none;padding:15px;border-radius:11px;cursor:pointer" style-hover="{{ ctaHover }}">{{ detail.addLabel }}</button>
+    </div>
+  </div>
+  </sc-if>
+
+  <!-- ===================== CHECKOUT PREVIEW ===================== -->
+  <sc-if value="{{ isCheckoutOpen }}" hint-placeholder-val="{{ false }}">
+  <div style="position:fixed;inset:0;z-index:95;background:rgba(8,8,8,0.72);display:flex;align-items:flex-start;justify-content:center;padding:24px;overflow-y:auto;animation:rl-fade .2s ease" onClick="{{ closeCheckout }}">
+    <div style="width:100%;max-width:540px;margin:auto;background:#111111;border:1px solid #2c2c2c;border-radius:18px;padding:32px;animation:rl-pop .24s ease" onClick="{{ stop }}">
+      <div style="display:flex;align-items:center;justify-content:space-between">
+        <h3 style="font-size:22px;font-weight:800;letter-spacing:-0.025em">Checkout</h3>
+        <button onClick="{{ closeCheckout }}" aria-label="Close" style="width:38px;height:38px;font-size:18px;color:#a3a3a3;background:transparent;border:1px solid #2c2c2c;border-radius:9px;cursor:pointer">✕</button>
+      </div>
+
+      <div style="margin-top:22px;font-size:12px;letter-spacing:0.1em;text-transform:uppercase;color:#a3a3a3;font-weight:700">Order Summary</div>
+      <div style="margin-top:12px;background:#0a0a0a;border:1px solid #262626;border-radius:12px;padding:16px 18px">
+        <sc-for list="{{ cartItems }}" as="c" hint-placeholder-count="2">
+          <div style="display:flex;align-items:center;justify-content:space-between;padding:8px 0;border-bottom:1px solid #1a1a1a">
+            <span style="font-size:14px;color:#d4d4d4">{{ c.name }}</span>
+            <span style="font-size:14px;font-weight:600">{{ c.priceLabel }}</span>
+          </div>
+        </sc-for>
+        <div style="display:flex;align-items:baseline;justify-content:space-between;padding-top:14px">
+          <span style="font-size:15px;font-weight:600">Subtotal</span>
+          <span style="font-size:22px;font-weight:800;letter-spacing:-0.02em">{{ subtotalLabel }}</span>
+        </div>
+      </div>
+
+      <div style="margin-top:20px">
+        <label for="co-email" style="display:block;font-size:13px;font-weight:600;color:#d4d4d4;margin-bottom:7px">Delivery email</label>
+        <input id="co-email" type="email" placeholder="you@email.com" style="width:100%;font-size:15px;color:#fff;background:#0a0a0a;border:1px solid #2c2c2c;border-radius:10px;padding:13px 15px;outline:none" style-focus="{{ inputFocus }}"/>
+        <p style="margin-top:8px;font-size:12px;color:#737373;line-height:1.5">Your vendor package will be delivered to this email after checkout.</p>
+      </div>
+
+      <button disabled="disabled" style="width:100%;margin-top:22px;font-family:inherit;font-size:15px;font-weight:700;color:#737373;background:#1a1a1a;border:1px solid #2c2c2c;padding:15px;border-radius:11px;cursor:not-allowed">Continue to Stripe (Setup Pending)</button>
+      <p style="margin-top:13px;font-size:12.5px;color:#737373;line-height:1.6;text-align:center">Stripe checkout is being connected. In production, this button will open secure Stripe Checkout for the exact items shown above.</p>
+    </div>
+  </div>
+  </sc-if>
+
+  <!-- ===================== TOAST ===================== -->
+  <sc-if value="{{ hasToast }}" hint-placeholder-val="{{ false }}">
+    <div style="position:fixed;bottom:26px;left:50%;transform:translateX(-50%);z-index:100;background:#ffffff;color:#080808;font-size:14px;font-weight:600;padding:12px 22px;border-radius:99px;box-shadow:0 16px 40px -12px rgba(0,0,0,0.6);animation:rl-pop .22s ease">{{ toast }}</div>
+  </sc-if>
+
+</div>
+</x-dc>
+<script type="text/x-dc" data-dc-script>
+class Component extends DCLogic {
+  /* =========================================================
+     DESIGN TOKENS (reference for engineering handoff)
+     bg #080808 · surface #111111 · surfaceAlt #151515
+     border #262626 · borderStrong #3A3A3A
+     text #FFFFFF · text2 #D4D4D4 · text3 #A3A3A3 · legal #737373
+     primary button: #FFFFFF bg / #080808 text
+     secondary button: #111111 bg / #3A3A3A border / #FFFFFF text
+     ========================================================= */
+
+  // Single source of truth for products
+  products = [
+    { id:'shoe-vendor', slug:'shoe-vendor', name:'Shoe Vendor', icon:'👟', price:7, compareAt:15, badge:'Launch Sale',
+      description:'Supplier contacts and marketplace links for the best quality designer shoes.' },
+    { id:'clothes-vendor', slug:'clothes-vendor', name:'Clothes Vendor', icon:'🧥', price:7, compareAt:15, badge:'Launch Sale',
+      description:'Vendor contacts and sourcing links for designer hoodies, shorts, tee shirts, pants, and more.' },
+    { id:'airpods-headphones-vendor', slug:'airpods-headphones-vendor', name:'AirPods / Headphones Vendor', icon:'🎧', price:7, compareAt:15, badge:'Launch Sale',
+      description:'Supplier contacts and marketplace links for AirPods/headphones sourcing. Includes vendor info and direct buying links when available.' },
+    { id:'cologne-vendor', slug:'cologne-vendor', name:'Cologne Vendor', icon:'🧴', price:7, compareAt:15, badge:'Launch Sale',
+      description:'Vendor contacts and marketplace links for cologne sourcing. Includes contact info and notes about what each source provides.' },
+    { id:'all-vendor-bundle', slug:'all-vendor-bundle', name:'All Vendor Bundle', icon:'📦', price:12, compareAt:15, value:28, savings:16, badge:'Best Value', isBundle:true,
+      description:'Get every vendor category in one package: shoes, clothes, AirPods/headphones, and cologne.' },
+  ];
+
+  BUNDLE_ID = 'all-vendor-bundle';
+
+  state = {
+    cart: [],              // array of product ids
+    cartOpen: false,
+    menuOpen: false,
+    detailId: null,
+    checkoutOpen: false,
+    conflict: null,        // {type:'bundle'} | {type:'individual', pendingId}
+    highlightBundle: false,
+    toast: null,
+    isMobile: false,
+  };
+
+  componentDidMount(){
+    this._onResize = () => {
+      const m = window.innerWidth < 820;
+      if (m !== this.state.isMobile) this.setState({ isMobile: m });
+    };
+    window.addEventListener('resize', this._onResize);
+    this._onResize();
+  }
+  componentWillUnmount(){
+    window.removeEventListener('resize', this._onResize);
+    clearTimeout(this._toastT); clearTimeout(this._hlT);
+  }
+
+  showToast(msg){
+    clearTimeout(this._toastT);
+    this.setState({ toast: msg });
+    this._toastT = setTimeout(() => this.setState({ toast: null }), 1800);
+  }
+
+  // ---- cart actions ----
+  openCart(){ this.setState({ cartOpen: true, menuOpen: false }); }
+  closeCart(){ this.setState({ cartOpen: false, conflict: null }); }
+
+  addToCart(id){
+    const cart = this.state.cart;
+    if (cart.includes(id)) { this.setState({ cartOpen: true }); this.showToast('Already in cart'); return; }
+    const isBundle = id === this.BUNDLE_ID;
+    const hasBundle = cart.includes(this.BUNDLE_ID);
+    const individuals = cart.filter(x => x !== this.BUNDLE_ID);
+
+    if (isBundle) {
+      const next = [...cart, id];
+      if (individuals.length > 0) this.setState({ cart: next, cartOpen: true, conflict: { type: 'bundle' } });
+      else { this.setState({ cart: next, cartOpen: true }); this.showToast('Added to cart'); }
+      return;
+    }
+    // individual product
+    if (hasBundle) { this.setState({ cartOpen: true, conflict: { type: 'individual', pendingId: id } }); return; }
+    this.setState({ cart: [...cart, id], cartOpen: true });
+    this.showToast('Added to cart');
+  }
+
+  removeFromCart(id){ this.setState(s => ({ cart: s.cart.filter(x => x !== id) })); }
+
+  keepBundleOnly(){ this.setState({ cart: [this.BUNDLE_ID], conflict: null }); }
+  keepEverything(){ this.setState({ conflict: null }); }
+  addAnyway(){
+    const id = this.state.conflict && this.state.conflict.pendingId;
+    if (id) this.setState(s => ({ cart: [...s.cart, id], conflict: null }));
+    else this.setState({ conflict: null });
+  }
+
+  calculateSubtotal(){
+    return this.state.cart.reduce((sum, id) => {
+      const p = this.products.find(x => x.id === id);
+      return sum + (p ? p.price : 0);
+    }, 0);
+  }
+
+  // ---- navigation / scroll ----
+  scrollToId(id, highlight){
+    this.setState({ menuOpen: false });
+    const el = document.getElementById(id);
+    if (el) window.scrollTo({ top: el.getBoundingClientRect().top + window.scrollY - 72, behavior: 'smooth' });
+    if (highlight) {
+      this.setState({ highlightBundle: true });
+      clearTimeout(this._hlT);
+      this._hlT = setTimeout(() => this.setState({ highlightBundle: false }), 2400);
+    }
+  }
+
+  openCheckout(){ if (this.state.cart.length === 0) return; this.setState({ checkoutOpen: true, cartOpen: false }); }
+  closeCheckout(){ this.setState({ checkoutOpen: false }); }
+
+  renderVals(){
+    const ctaHover = { background:'#e6e6e6' };
+    const ghostHover = { background:'#1a1a1a', borderColor:'#4a4a4a' };
+    const linkHover = { color:'#ffffff' };
+    const cardHover = { borderColor:'#3a3a3a', transform:'translateY(-3px)', boxShadow:'0 22px 48px -28px rgba(0,0,0,0.95)' };
+    const removeHover = { color:'#ffffff', borderColor:'#4a4a4a' };
+    const inputFocus = { borderColor:'#ffffff' };
+
+    const decorate = (p) => ({
+      ...p,
+      priceLabel: '$' + p.price,
+      compareLabel: '$' + p.compareAt,
+      add: () => this.addToCart(p.id),
+      view: () => this.setState({ detailId: p.id }),
+    });
+
+    const all = this.products.map(decorate);
+    const productList = all.filter(p => !p.isBundle);
+
+    const cartItems = this.state.cart.map(id => {
+      const p = this.products.find(x => x.id === id);
+      return { ...p, priceLabel: '$' + p.price, remove: () => this.removeFromCart(id) };
+    });
+
+    const subtotal = this.calculateSubtotal();
+
+    const detailRaw = this.products.find(x => x.id === this.state.detailId);
+    const detail = detailRaw ? {
+      ...detailRaw,
+      priceLabel: '$' + detailRaw.price,
+      compareLabel: '$' + detailRaw.compareAt,
+      addLabel: detailRaw.isBundle ? 'Add Bundle to Cart' : 'Add to Cart',
+      add: () => { this.addToCart(detailRaw.id); this.setState({ detailId: null }); },
+    } : {};
+
+    const conflict = this.state.conflict;
+
+    const steps = [
+      { num:'01', title:'Choose Your Vendor', body:'Pick one category or grab the All Vendor Bundle.' },
+      { num:'02', title:'Checkout Securely', body:'Pay through Stripe with no account required.' },
+      { num:'03', title:'Check Your Email', body:'Your vendor package is delivered to the email used at checkout. Save the email as your order record.' },
+    ];
+
+    const faqs = [
+      { q:'How fast is delivery?', a:'Your vendor package is emailed automatically within a few minutes of payment. Check spam, junk, and promotions folders if you do not see it right away.' },
+      { q:'Do I need an account?', a:'No. Checkout is account-free. Use the email where you want your vendor package delivered and save your confirmation email.' },
+      { q:'Does the bundle include everything?', a:'Yes. The All Vendor Bundle includes shoes, clothes, AirPods/headphones, and cologne vendor categories.' },
+      { q:'Can I get a refund?', a:'Because vendor packages are digital products delivered instantly by email, all sales are final once delivered. If you do not receive your package or receive the wrong package, contact support.' },
+      { q:'Are you affiliated with any brands or suppliers?', a:'No. ResaleLane sells informational vendor resources only and is not affiliated with, endorsed by, or sponsored by any third-party brands, marketplaces, manufacturers, or suppliers.' },
+    ];
+
+    const policies = [
+      { title:'Refund Policy', body:'All sales are final once the digital vendor package has been delivered by email. Refunds may be reviewed only for duplicate charges, wrong package delivery that cannot be corrected, or unresolved delivery failure.' },
+      { title:'Terms', body:'ResaleLane sells informational vendor resources only. Buyers are responsible for verifying all third-party supplier details before purchasing from any external party.' },
+      { title:'Privacy Policy', body:'ResaleLane collects checkout email, order details, support submissions, and review submissions. Payments are processed by Stripe. ResaleLane does not store raw card details.' },
+    ];
+
+    return {
+      isMobile: this.state.isMobile,
+      isDesktop: !this.state.isMobile,
+      isMenuOpen: this.state.menuOpen,
+      isCartOpen: this.state.cartOpen,
+      isCheckoutOpen: this.state.checkoutOpen,
+      hasDetail: !!this.state.detailId,
+      isBundleHighlighted: this.state.highlightBundle,
+
+      productList,
+      cartItems,
+      cartCount: this.state.cart.length,
+      hasItems: this.state.cart.length > 0,
+      isEmpty: this.state.cart.length === 0,
+      subtotalLabel: '$' + subtotal,
+      detail,
+
+      isConflictBundle: !!(conflict && conflict.type === 'bundle'),
+      isConflictIndividual: !!(conflict && conflict.type === 'individual'),
+
+      toast: this.state.toast,
+      hasToast: !!this.state.toast,
+
+      steps, faqs, policies,
+
+      // handlers
+      goTop: () => window.scrollTo({ top: 0, behavior: 'smooth' }),
+      goVendors: () => this.scrollToId('products', false),
+      goBundle: () => this.scrollToId('bundle', true),
+      goFaq: () => this.scrollToId('faq', false),
+      goPolicies: () => this.scrollToId('policies', false),
+      goContact: () => this.scrollToId('contact', false),
+      openMenu: () => this.setState({ menuOpen: true }),
+      closeMenu: () => this.setState({ menuOpen: false }),
+      openCart: () => this.openCart(),
+      closeCart: () => this.closeCart(),
+      closeDetail: () => this.setState({ detailId: null }),
+      openCheckout: () => this.openCheckout(),
+      closeCheckout: () => this.closeCheckout(),
+      keepBundleOnly: () => this.keepBundleOnly(),
+      keepEverything: () => this.keepEverything(),
+      addAnyway: () => this.addAnyway(),
+      bundleAdd: () => this.addToCart(this.BUNDLE_ID),
+      bundleView: () => this.setState({ detailId: this.BUNDLE_ID }),
+      submitContact: () => this.showToast('Thanks — we’ll reply by email.'),
+      stop: (e) => { if (e && e.stopPropagation) e.stopPropagation(); },
+
+      ctaHover, ghostHover, linkHover, cardHover, removeHover, inputFocus,
+    };
+  }
+}
+</script>
+</body>
+</html>

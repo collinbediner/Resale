@@ -5,6 +5,6 @@
   "scripts": {
     "build": "node scripts/build.mjs",
     "test": "node --test",
-    "check": "node --check site/app.js && node --check site/cart-logic.js && node --test && npm run build"
+    "check": "node --check site/app.js && node --check site/cart-logic.js && node --check server/email-templates.js && node --test && npm run build"
   }
 }

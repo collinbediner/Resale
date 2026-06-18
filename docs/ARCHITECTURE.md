@@ -36,8 +36,11 @@ flowchart LR
 - `site/app.js`: browser interactions and rendering.
 - `site/cart-logic.js`: pure cart decision logic shared by the app and tests.
 - `site/assets/`: public brand assets only.
+- `Design System/design_handoff_resalelane/`: original public-safe design handoff, tokens, catalog model, prototypes, and brand exports.
 - `scripts/build.mjs`: creates the fingerprinted release in ignored `dist/`.
 - `docs/ARTIFACT-SECURITY.md`: private-artifact storage and secure-delivery design.
+- `docs/PRD.md` and `docs/WEBSITE-SPEC.md`: tracked requirements that replace unreadable local Google Drive shortcuts.
+- `server/email-templates.js`: provider-independent transactional email templates for the future Worker.
 - `test/site.test.js`: automated regression and safety checks.
 - `.github/workflows/ci.yml`: standalone/reusable test workflow.
 - `.github/workflows/deploy.yml`: production deployment after tests.
@@ -61,6 +64,8 @@ This means:
 The public repository and GitHub Pages can only contain information safe for anyone to download.
 
 Private supplier data, Stripe secret keys, webhook secrets, email-service keys, and order records must live in a future server-side backend. They must never be placed in `site/`, Git history, or browser JavaScript.
+
+The repository is the collaboration source of truth. Google Drive may hold drafts and private operational files, but code, public-safe assets, and approved decisions are not considered current until they are represented in Git.
 
 ## Future Backend
 
