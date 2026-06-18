@@ -67,18 +67,20 @@ Private supplier data, Stripe secret keys, webhook secrets, email-service keys, 
 
 The repository is the collaboration source of truth. Google Drive may hold drafts and private operational files, but code, public-safe assets, and approved decisions are not considered current until they are represented in Git.
 
-## Future Backend
+## Approved Backend Target
 
-When Stripe is available, a server-side service should:
+The target backend is a Cloudflare Worker. It is not active yet, and checkout remains disabled until its Stripe, D1, R2, and Resend dependencies are configured and tested.
 
-1. Accept product IDs, never client-provided prices.
-2. Map IDs to authoritative Stripe Price IDs.
-3. Create Stripe Checkout sessions.
-4. Verify signed Stripe webhooks.
-5. Send the purchased package by email.
-6. Save order and delivery status.
+| Responsibility | Approved service |
+| --- | --- |
+| Public storefront | GitHub Pages |
+| Checkout API and webhook | Cloudflare Worker |
+| Hosted payment page and receipt | Stripe Checkout |
+| Order and delivery-attempt records | Cloudflare D1 |
+| Private package contact data and optional files | Cloudflare R2 or Worker-only configuration |
+| Fulfillment email | Resend from `orders@shopresalelane.com` |
 
-Cloudflare Workers plus D1 and an email provider are suitable options, but they are not active yet.
+The Worker accepts product IDs only, maps them to server-controlled Stripe Price IDs, and owns every privileged action. Cloudflare bindings grant the Worker access to D1 and R2 without exposing storage credentials or object identifiers to the browser.
 
 ## Target Transaction Architecture
 
@@ -89,33 +91,49 @@ sequenceDiagram
   participant W as Cloudflare Worker
   participant P as Stripe
   participant D as D1
+  participant R as Private R2/config
   participant E as Resend
-  participant A as Private Artifact Storage
-  B->>S: Select package
-  S->>W: Send product IDs
-  W->>P: Create Checkout Session from server prices
-  P-->>B: Hosted checkout
-  P->>W: Signed completion webhook
+  B->>S: Add package to cart and start checkout
+  S->>W: Send product IDs only
+  W->>W: Validate IDs and map Stripe Price IDs
+  W->>P: Create Checkout Session
+  P-->>B: Redirect to Stripe-hosted payment
+  B->>P: Complete payment
+  P->>W: Send signed checkout webhook
+  W->>W: Verify signature against raw body
   W->>D: Create/idempotently update order
-  W->>A: Resolve purchased artifact version
-  W->>E: Send confirmation and delivery
-  E-->>B: Receipt context and purchased artifact
-  W->>D: Record delivery result
+  W->>R: Read purchased contact data/artifact
+  W->>E: Send fulfillment from orders@shopresalelane.com
+  E-->>B: Contact details plus optional PDF/link
+  W->>D: Record email attempt and provider result
 ```
 
-Stripe remains the payment receipt authority. ResaleLane sends a separate order confirmation and fulfillment email containing the order ID, purchased items, support details, policy summary, and the secured delivery artifact.
+Stripe remains the payment receipt authority. ResaleLane sends a separate order confirmation and fulfillment email containing the order ID, purchased items, support details, policy summary, contact details, and any optional PDF or secure link.
+
+## Transaction Safety Rules
+
+- Never accept a browser-supplied price, Stripe Price ID, R2 key, or fulfillment content.
+- Verify the Stripe signature before parsing or acting on a webhook.
+- Use Stripe event and Checkout Session IDs to make order creation and fulfillment idempotent.
+- Keep R2 private and expose package data only after a verified purchase.
+- Store order state, artifact version, email attempt, provider message ID, and failure category in D1.
+- Do not store private contact data, raw delivery tokens, or secrets in routine logs.
+- Authenticate `shopresalelane.com` with Resend before enabling `orders@shopresalelane.com`.
+- Retry failed email delivery without creating a second order or duplicate successful fulfillment.
 
 ## Environment Strategy
 
-Current interim separation:
+Approved frontend separation:
 
 - Feature/PR preview: per-PR Pages path
 - Stable staging: `/staging/`
 - Production: domain root
 
-Target separation:
+Backend environment separation:
 
-- Dedicated staging project and hostname, ideally `staging.shopresalelane.com`
-- Separate test/live Stripe keys and webhook endpoints
-- Separate D1 databases and Resend test/production configuration
-- Production deployment only after staging approval
+- The existing `/staging/` path is sufficient; a dedicated staging hostname is not required.
+- Staging uses Stripe test-mode keys and a test webhook secret.
+- Staging and production use separate D1 databases and R2 buckets/bindings.
+- Staging contains synthetic package data and cannot access production contacts.
+- Resend testing must not send fulfillment to real customers.
+- Production deployment occurs only after staging verification.

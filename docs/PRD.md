@@ -17,6 +17,27 @@ ResaleLane is a dark, mobile-first ecommerce-style storefront that sells low-cos
 
 The experience should be fast, clear, and trustworthy. ResaleLane sells informational sourcing resources only. It does not sell branded physical products, control third-party suppliers, or guarantee authenticity, pricing, inventory, shipping, quality, or resale results.
 
+## Approved Target Architecture
+
+This is the authoritative target architecture as of June 18, 2026:
+
+1. GitHub Pages hosts the public storefront.
+2. The buyer adds one or more packages to the browser cart.
+3. The buyer starts checkout.
+4. The frontend sends only internal product IDs to a Cloudflare Worker.
+5. The Worker validates the product IDs and maps them to authoritative Stripe Price IDs.
+6. The Worker creates a Stripe Checkout Session and returns its hosted URL.
+7. The buyer completes payment on Stripe.
+8. Stripe sends a signed completion webhook to the Worker.
+9. The Worker verifies the webhook signature using the unmodified request body.
+10. The Worker creates or idempotently updates the order in D1.
+11. The Worker resolves the purchased package contact data from private R2 or server-side configuration.
+12. The Worker sends fulfillment through Resend from `orders@shopresalelane.com`.
+13. The email includes the purchased contact details directly and may also include a PDF or secure link.
+14. The Worker records each email-delivery attempt and provider result in D1.
+
+GitHub Pages remains intentionally static. Stripe secrets, webhook secrets, Resend credentials, order records, and private package data exist only in the Worker environment and its private bindings. The current `/staging/` deployment is sufficient for frontend testing; backend staging must use Stripe test mode, synthetic package data, and separate D1/R2 resources.
+
 ## MVP Goals
 
 - Sell four individual sourcing packages and one all-category bundle.

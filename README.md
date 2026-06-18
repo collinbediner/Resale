@@ -31,6 +31,19 @@ The current storefront is a dependency-free static website:
 
 There is no public backend yet. Stripe payments and private supplier delivery must not be added to the static frontend.
 
+## Approved Target Architecture
+
+GitHub Pages remains the public storefront host. Checkout and fulfillment will be added as a private Cloudflare Worker backend:
+
+1. The browser sends selected product IDs—not prices—to the Worker.
+2. The Worker validates those IDs and maps them to authoritative Stripe Price IDs.
+3. Stripe hosts Checkout and sends its signed completion webhook to the Worker.
+4. The Worker verifies the webhook, records the order in D1, and resolves purchased contact data from private R2 or server-side configuration.
+5. Resend sends the fulfillment email from `orders@shopresalelane.com` with the contact details and, when useful, a PDF or secure link.
+6. The Worker records each email-delivery attempt in D1.
+
+The storefront, Git repository, and GitHub Pages deployment must never contain Stripe secrets, buyer records, or private package contact data. See [docs/ARCHITECTURE.md](docs/ARCHITECTURE.md) for the complete request sequence and environment boundaries.
+
 ## Tests
 
 Run this in PowerShell from the project folder:

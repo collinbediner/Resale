@@ -9,14 +9,14 @@ Every roadmap item must be represented by one canonical issue in the planning re
 
 ## Launch Blockers
 
-1. Decide whether production moves from GitHub Pages to the PRD's Cloudflare Pages architecture.
-2. Establish a truly isolated staging hostname and approval gate.
-3. Configure Stripe products, authoritative prices, Checkout, and signed webhooks.
-4. Define and secure the exact digital artifact delivered for every product.
-5. Configure Resend, domain authentication, confirmation, receipt, and delivery emails.
-6. Store orders and delivery attempts in Cloudflare D1.
+1. Implement the Cloudflare Worker checkout and signed-webhook endpoints.
+2. Configure Stripe products, authoritative Price IDs, Checkout, and test/live secrets.
+3. Define and secure the exact package contact data and optional files delivered for every product.
+4. Configure private staging/production R2 bindings or equivalent Worker-only configuration.
+5. Configure Resend domain authentication and delivery from `orders@shopresalelane.com`.
+6. Store orders and delivery attempts in separate staging/production D1 databases.
 7. Build success, cancel, resend-help, and support flows.
-8. Complete end-to-end test-mode launch verification.
+8. Complete end-to-end Stripe test-mode launch verification before enabling live checkout.
 
 ## After Checkout Is Working
 
@@ -26,10 +26,10 @@ Every roadmap item must be represented by one canonical issue in the planning re
 - Google Analytics 4 and privacy-safe ecommerce events
 - Monitoring, alerting, retries, backups, and restoration drills
 
-## Current Interim Staging
+## Approved Staging
 
 The `staging` branch deploys to:
 
 `https://shopresalelane.com/staging/`
 
-Pull requests also receive their own preview path. These paths protect the production root from ordinary feature review, but the target architecture is a separate staging hostname/project for stronger isolation.
+Pull requests also receive their own preview path. This path-based frontend staging model is approved for the current architecture; a dedicated staging hostname is not required. Backend testing still requires Stripe test mode, synthetic package data, and separate D1/R2 resources so staging cannot access live orders or production contacts.

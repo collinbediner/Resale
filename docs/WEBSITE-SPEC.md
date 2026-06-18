@@ -67,7 +67,9 @@ The current static MVP presents most content on one page with overlays. Separate
 
 ## Checkout and Delivery
 
-The browser sends only product IDs. A server validates those IDs, maps them to Stripe prices, and creates the Checkout Session. The server verifies Stripe's signed webhook before recording the order or sending anything.
+The browser sends only product IDs to a Cloudflare Worker. The Worker validates those IDs, maps them to authoritative Stripe Price IDs, and creates the Stripe Checkout Session. Stripe hosts payment entry and sends a signed completion webhook to the Worker. The Worker must verify the webhook against the raw request body before recording an order or fulfilling anything.
+
+After verification, the Worker writes the order to D1, resolves the purchased package from private R2 or server-side configuration, and sends fulfillment through Resend from `orders@shopresalelane.com`. The email includes the purchased contact details directly and may also include a PDF or secure delivery link. Every email attempt and provider result is recorded in D1 without logging private package contents.
 
 Private delivery content must never appear in HTML, browser JavaScript, public assets, GitHub, or a public deployment artifact.
 
@@ -102,4 +104,4 @@ Production source lives in `site/`. The design HTML files are references and mus
 
 ## Current Implementation Note
 
-The current production system is a dependency-free static site on GitHub Pages, not the source draft's proposed React/Next.js and Cloudflare Pages stack. Stripe and the private backend are not active, so checkout remains disabled. See `docs/ARCHITECTURE.md` and `docs/ROADMAP.md` for the current and target systems.
+The current production system is a dependency-free static site on GitHub Pages. GitHub Pages remains the approved storefront host; the target private backend is a Cloudflare Worker using Stripe Checkout, D1, private R2/server-side configuration, and Resend. These services are not active yet, so checkout remains disabled. See `docs/ARCHITECTURE.md` and `docs/ROADMAP.md` for the current and target systems.

@@ -14,7 +14,11 @@ Snapshot date: 2026-06-17
 - Delivery: automatic email after successful payment
 - Supplier data: server-side only, never in frontend code
 - Public repo: `collinbediner/Resale`
-- Hosting target: GitHub Pages for current scaffold
+- Storefront hosting: GitHub Pages
+- Backend target: Cloudflare Worker with D1 and private R2/server-side configuration
+- Payment target: Stripe Checkout with server-side Price ID mapping and signed webhook verification
+- Email target: Resend from `orders@shopresalelane.com`
+- Staging target: existing `/staging/` path; no dedicated staging hostname is required for the current architecture
 
 ## Products
 
