@@ -3,7 +3,8 @@
   "private": true,
   "type": "module",
   "scripts": {
+    "build": "node scripts/build.mjs",
     "test": "node --test",
-    "check": "node --check site/app.js && node --check site/cart-logic.js && node --test"
+    "check": "node --check site/app.js && node --check site/cart-logic.js && node --test && npm run build"
   }
 }

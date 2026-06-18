@@ -36,12 +36,24 @@ flowchart LR
 - `site/app.js`: browser interactions and rendering.
 - `site/cart-logic.js`: pure cart decision logic shared by the app and tests.
 - `site/assets/`: public brand assets only.
+- `scripts/build.mjs`: creates the fingerprinted release in ignored `dist/`.
 - `test/site.test.js`: automated regression and safety checks.
 - `.github/workflows/ci.yml`: standalone/reusable test workflow.
 - `.github/workflows/deploy.yml`: production deployment after tests.
 - `.github/workflows/preview.yml`: pull-request preview after tests.
 - `.github/workflows/staging.yml`: stable staging-path deployment after tests.
 - `.github/workflows/uptime.yml`: daily production availability and content check.
+
+## Release And Cache Model
+
+Source files keep stable readable names under `site/`. CI creates deployment-only files whose names include the full Git commit SHA. The deployed HTML and `release.json` carry the same release ID.
+
+This means:
+
+- A new release cannot accidentally reuse an old CSS or JavaScript URL.
+- Staging and production can be verified against an exact commit.
+- URLs returned after a push always include `?release=<commit-sha>` to bypass cached HTML.
+- Old release assets may remain temporarily, but they cannot be mixed into new HTML.
 
 ## Security Boundary
 

@@ -26,7 +26,17 @@ jobs:
       - name: Checkout
         uses: actions/checkout@v5
 
+      - name: Set up Node.js
+        uses: actions/setup-node@v5
+        with:
+          node-version: 22
+
+      - name: Build fingerprinted release
+        env:
+          RELEASE_ID: ${{ github.event.pull_request.head.sha }}
+        run: npm run build
+
       - name: Deploy preview
         uses: rossjrw/pr-preview-action@v1
         with:
-          source-dir: ./site
+          source-dir: ./dist

@@ -47,3 +47,11 @@ test("bundle and individual conflicts follow the storefront rules", () => {
     cart: [bundleId], conflict: { type: "individual", pendingId: "shoe-vendor" }, status: "conflict"
   });
 });
+
+test("source HTML uses build-managed asset references", () => {
+  assert.match(html, /data-release="source"/);
+  assert.match(html, /href="\.\/styles\.css"/);
+  assert.match(html, /src="\.\/app\.js"/);
+  assert.doesNotMatch(html, /styles\.css\?v=/);
+  assert.doesNotMatch(html, /app\.js\?v=/);
+});

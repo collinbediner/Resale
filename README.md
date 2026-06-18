@@ -19,6 +19,7 @@ The current storefront is a dependency-free static website:
 - `site/app.js` controls the cart, menus, product details, checkout preview, and contact flow.
 - `site/cart-logic.js` contains cart rules that can be tested without a browser.
 - `site/assets/` contains the public logo and social assets.
+- `scripts/build.mjs` creates commit-fingerprinted deployment files.
 - `test/` contains automated Node.js tests.
 - `.github/workflows/` contains testing, preview, and production deployment automation.
 
@@ -33,6 +34,8 @@ npm run check
 ```
 
 This checks JavaScript syntax and tests prices, cart rules, safety copy, disabled checkout, and public asset references.
+
+The build creates `dist/` with release-specific asset filenames. `dist/` is generated and is not committed.
 
 ## Deployment
 

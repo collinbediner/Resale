@@ -23,4 +23,6 @@ jobs:
           node-version: 22
 
       - name: Run checks and tests
+        env:
+          RELEASE_ID: ${{ github.sha }}
         run: npm run check

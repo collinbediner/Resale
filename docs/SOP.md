@@ -45,8 +45,10 @@ git switch -c feature/name-of-change
 
 Every push response must include both URLs:
 
-- Preview/staging: the PR preview URL or `https://shopresalelane.com/staging/`.
-- Production: `https://shopresalelane.com/`.
+- Preview/staging: the PR preview URL or `https://shopresalelane.com/staging/?release=<full-commit-sha>`.
+- Production: `https://shopresalelane.com/?release=<full-commit-sha>`.
+
+Never reuse an older release query. The exact pushed commit SHA is the cache key.
 
 Release flow:
 
@@ -86,9 +88,21 @@ After every push:
 4. Do not report the deployment as successful while either workflow is pending.
 5. If CI fails, read the failed step, fix the issue, rerun local tests, and push again.
 6. Verify the resulting public URL loads the expected commit.
-7. Report the commit ID, test result, deployment result, preview URL, and production URL.
+7. Verify `/release.json?release=<full-commit-sha>` reports the same commit.
+8. Confirm the deployed HTML references `styles.<commit>.css`, `app.<commit>.js`, and `cart-logic.<commit>.js`.
+9. Report the commit ID, test result, deployment result, preview URL, and production URL.
 
 The deployment workflows depend on the test workflow, so failed tests block publishing.
+
+## Cache Busting
+
+CI builds deployable files into `dist/`. Each release uses the Git commit SHA in its asset filenames:
+
+- `styles.<commit>.css`
+- `app.<commit>.js`
+- `cart-logic.<commit>.js`
+
+The HTML also contains a `data-release` marker and `release.json` records the deployed commit. This prevents new HTML from loading old CSS or JavaScript, even when Cloudflare or the browser retains an earlier release.
 
 ## Operations Monitoring
 

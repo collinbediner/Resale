@@ -1,4 +1,4 @@
-import { resolveCartAdd } from "./cart-logic.js?v=20260617-2";
+import { resolveCartAdd } from "./cart-logic.js";
 
 const products = [
   { id: "shoe-vendor", name: "Shoe Vendor", icon: "👟", price: 7, compareAt: 15, badge: "Launch Sale", description: "Supplier contacts and marketplace links for quality designer shoe sourcing." },
