@@ -1,3 +1,5 @@
+import { resolveCartAdd } from "./cart-logic.js?v=20260617-2";
+
 const products = [
   { id: "shoe-vendor", name: "Shoe Vendor", icon: "👟", price: 7, compareAt: 15, badge: "Launch Sale", description: "Supplier contacts and marketplace links for quality designer shoe sourcing." },
   { id: "clothes-vendor", name: "Clothes Vendor", icon: "🧥", price: 7, compareAt: 15, badge: "Launch Sale", description: "Vendor contacts and sourcing links for hoodies, shorts, tee shirts, pants, and more." },
@@ -51,18 +53,12 @@ function handleClick(event) {
 }
 
 function addToCart(id) {
-  if (cart.includes(id)) { openCart(); toast("Already in cart"); return; }
-  const hasBundle = cart.includes(bundleId);
-  if (id === bundleId) {
-    cart.push(id);
-    if (cart.some(item => item !== bundleId)) conflict = { type: "bundle" };
-  } else if (hasBundle) {
-    conflict = { type: "individual", pendingId: id };
-  } else {
-    cart.push(id);
-  }
+  const result = resolveCartAdd(cart, id, bundleId);
+  cart = result.cart;
+  conflict = result.conflict;
   updateCart(); openCart();
-  if (!conflict) toast("Added to cart");
+  if (result.status === "duplicate") toast("Already in cart");
+  else if (!conflict) toast("Added to cart");
 }
 
 function removeItem(id) { cart = cart.filter(item => item !== id); conflict = null; updateCart(); }

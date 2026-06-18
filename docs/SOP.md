@@ -16,6 +16,25 @@ Before every implementation pass:
 4. Update tracked docs or app files with the decisions being implemented.
 5. Keep private supplier data out of Git. Supplier delivery content belongs server-side only.
 
+## Required Testing
+
+Before every commit:
+
+1. Run `npm run check` from the project folder.
+2. Fix every failure before committing.
+3. For visual changes, inspect both desktop and mobile layouts in the browser.
+4. Test the affected user flow, such as navigation, cart, product details, or checkout preview.
+
+The automated suite currently checks:
+
+- JavaScript syntax
+- Product and bundle prices
+- Duplicate cart prevention
+- Bundle/individual conflict rules
+- Disabled Stripe checkout
+- Required legal/support content
+- Missing local assets
+
 ## Branch And Preview Flow
 
 Use short branches for changes:
@@ -30,6 +49,20 @@ Every push response must include both URLs:
 - Production: `https://shopresalelane.com/`.
 
 Pull requests deploy to a preview path on GitHub Pages. `main` deploys to production at `https://shopresalelane.com/`.
+
+## CI/CD Monitoring
+
+After every push:
+
+1. Open or query the GitHub Actions runs for that commit.
+2. Watch the `Test Website` workflow until it finishes.
+3. Watch the preview or production deployment workflow until it finishes.
+4. Do not report the deployment as successful while either workflow is pending.
+5. If CI fails, read the failed step, fix the issue, rerun local tests, and push again.
+6. Verify the resulting public URL loads the expected commit.
+7. Report the commit ID, test result, deployment result, preview URL, and production URL.
+
+The deployment workflows depend on the test workflow, so failed tests block publishing.
 
 ## Approval Rule
 

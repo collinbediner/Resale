@@ -1,11 +1,44 @@
 # ResaleLane
 
-Public website source of truth for ResaleLane.
+Public source of truth for the ResaleLane storefront.
 
-- Production repo: https://github.com/collinbediner/Resale
-- Production Pages URL: https://collinbediner.github.io/Resale/
-- Custom domain target after DNS setup: https://shopresalelane.com/
-- Spec snapshot: [docs/SPEC-SNAPSHOT.md](docs/SPEC-SNAPSHOT.md)
-- Operating SOP: [docs/SOP.md](docs/SOP.md)
+- Production: https://shopresalelane.com/
+- GitHub Pages: https://collinbediner.github.io/Resale/
+- Repository: https://github.com/collinbediner/Resale
+- Operating procedure: [docs/SOP.md](docs/SOP.md)
+- Architecture: [docs/ARCHITECTURE.md](docs/ARCHITECTURE.md)
+- Product/spec snapshot: [docs/SPEC-SNAPSHOT.md](docs/SPEC-SNAPSHOT.md)
 
-Google Drive specs are treated as source material. Buildable code and deployment configuration live in GitHub.
+## How It Is Built
+
+The current storefront is a dependency-free static website:
+
+- `site/index.html` contains the page structure and content.
+- `site/styles.css` contains the responsive desktop/mobile design.
+- `site/app.js` controls the cart, menus, product details, checkout preview, and contact flow.
+- `site/cart-logic.js` contains cart rules that can be tested without a browser.
+- `site/assets/` contains the public logo and social assets.
+- `test/` contains automated Node.js tests.
+- `.github/workflows/` contains testing, preview, and production deployment automation.
+
+There is no public backend yet. Stripe payments and private supplier delivery must not be added to the static frontend.
+
+## Tests
+
+Run this in PowerShell from the project folder:
+
+```powershell
+npm run check
+```
+
+This checks JavaScript syntax and tests prices, cart rules, safety copy, disabled checkout, and public asset references.
+
+## Deployment
+
+1. A push or pull request starts GitHub Actions.
+2. The `Test Website` workflow runs the automated checks.
+3. A failed test blocks that deployment.
+4. A successful push to `main` publishes `site/` to the `gh-pages` branch.
+5. GitHub Pages serves the site through the Cloudflare-managed custom domain.
+
+Google Drive contains design/source material. GitHub remains the source of truth for anything deployed.
