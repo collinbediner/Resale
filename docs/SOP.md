@@ -65,16 +65,19 @@ Only `main` deploys the production root. Pages-writing workflows share one concu
 ## Ticket Management
 
 The private planning repository is `collinbediner/Resale-Planning`.
+Every ticket must also be added to the private `ResaleLane Delivery` GitHub Project.
 
 For every meaningful change:
 
 1. Create or select a ticket before implementation.
 2. Put clear acceptance criteria and security/privacy notes in the ticket.
-3. Move the ticket from `Todo` to `In Progress` when work starts.
-4. Link commits and pull requests to the ticket.
-5. Add test, staging, and production evidence after deployment.
-6. Move it to `Done` only after acceptance criteria pass in the correct environment.
-7. During every PRD review, add newly discovered gaps to `Todo`.
+3. Confirm the ticket is linked to both the planning repository and the GitHub Project.
+4. Move the Project status from `Todo` to `In Progress` when work starts.
+5. Link commits and pull requests to the ticket.
+6. Add test, staging, and production evidence after deployment.
+7. Move completed engineering work to `UAT` for Collin's acceptance.
+8. Move it to `Done` only after UAT approval.
+9. During every PRD review, add newly discovered gaps to `Todo`.
 
 Ticket updates are part of the definition of done, not optional administration.
 
