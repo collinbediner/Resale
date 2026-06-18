@@ -24,6 +24,22 @@ test("all referenced local assets exist", () => {
   }
 });
 
+test("eBay discovery card uses the verified store, local brand assets, and safe external-link behavior", () => {
+  // Protect the strategic placement: the secondary marketplace comes after the primary bundle offer.
+  assert.ok(html.indexOf('id="bundle"') < html.indexOf('class="ebay-feature shell"'));
+  assert.match(html, /href="https:\/\/www\.ebay\.com\/usr\/collinresale"/);
+  assert.match(html, /target="_blank" rel="noopener noreferrer"/);
+  assert.match(html, /src="\.\/assets\/collin-ebay-store\.webp"/);
+  assert.match(html, /src="\.\/assets\/ebay-logo\.svg"/);
+});
+
+test("footer presents Shop and Help as one balanced navigation landmark", () => {
+  // Keep related footer destinations grouped semantically and visually.
+  assert.match(html, /<nav class="footer-nav" aria-label="Footer navigation">/);
+  assert.equal((html.match(/class="footer-link-group"/g) || []).length, 2);
+  assert.match(html, /<strong>Shop<\/strong>[\s\S]*?<strong>Help<\/strong>/);
+});
+
 test("catalog keeps launch prices and bundle price authoritative in code", () => {
   assert.equal((app.match(/price: 7/g) || []).length, 4);
   assert.match(app, /id: "all-vendor-bundle"[\s\S]*?price: 12/);
