@@ -45,6 +45,6 @@ The build creates `dist/` with release-specific asset filenames. `dist/` is gene
 4. A successful push to `main` publishes `site/` to the `gh-pages` branch.
 5. GitHub Pages serves the site through the Cloudflare-managed custom domain.
 
-The `staging` branch deploys to `https://shopresalelane.com/staging/index.html?release=<commit>`. Pull requests receive separate preview paths. A daily GitHub Actions job checks production uptime; daily email delivery activates after the Resend secrets are configured.
+The `staging` branch deploys to `https://shopresalelane.com/staging/index.html?release=<commit>&fresh=<unique-value>`. Pull requests receive separate preview paths. A daily GitHub Actions job checks production uptime; daily email delivery activates after the Resend secrets are configured.
 
 Google Drive contains design/source material. GitHub remains the source of truth for anything deployed.

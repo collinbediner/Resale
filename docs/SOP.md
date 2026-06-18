@@ -45,10 +45,10 @@ git switch -c feature/name-of-change
 
 Every push response must include both URLs:
 
-- Preview/staging: the PR preview URL or `https://shopresalelane.com/staging/index.html?release=<full-commit-sha>`.
-- Production: `https://shopresalelane.com/?release=<full-commit-sha>`.
+- Preview/staging: the PR preview URL or `https://shopresalelane.com/staging/index.html?release=<full-commit-sha>&fresh=<unix-milliseconds>`.
+- Production: `https://shopresalelane.com/?release=<full-commit-sha>&fresh=<unix-milliseconds>`.
 
-Never reuse an older release query. The exact pushed commit SHA is the cache key.
+Never reuse an older `fresh` value. The commit identifies the release; the freshness value guarantees a new HTML request.
 
 Release flow:
 
@@ -87,10 +87,11 @@ After every push:
 3. Watch the preview or production deployment workflow until it finishes.
 4. Do not report the deployment as successful while either workflow is pending.
 5. If CI fails, read the failed step, fix the issue, rerun local tests, and push again.
-6. Verify the resulting public URL loads the expected commit.
-7. Verify `/release.json?release=<full-commit-sha>` reports the same commit.
+6. Poll with disposable freshness values until the resulting public URL loads the expected commit.
+7. Verify `/release.json?release=<full-commit-sha>&fresh=<disposable-value>` reports the same commit.
 8. Confirm the deployed HTML references `styles.<commit>.css`, `app.<commit>.js`, and `cart-logic.<commit>.js`.
-9. Report the commit ID, test result, deployment result, preview URL, and production URL.
+9. Generate new, previously unused `fresh` values for the user-facing preview and production URLs.
+10. Report the commit ID, test result, deployment result, preview URL, and production URL.
 
 The deployment workflows depend on the test workflow, so failed tests block publishing.
 
