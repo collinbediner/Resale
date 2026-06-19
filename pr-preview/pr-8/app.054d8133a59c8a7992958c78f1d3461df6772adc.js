@@ -1,4 +1,4 @@
-import { resolveCartAdd } from "./cart-logic.ffd12fd59600fd359ae0bd2f7e1092401e449fb6.js";
+import { resolveCartAdd } from "./cart-logic.054d8133a59c8a7992958c78f1d3461df6772adc.js";
 
 const products = [
   { id: "shoe-vendor", name: "Shoe Vendor", icon: "👟", price: 7, compareAt: 15, badge: "Launch Sale", description: "Digital supplier information and marketplace links for shoe sourcing research." },
