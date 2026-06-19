@@ -68,7 +68,7 @@ ResaleLane uses separate Stripe and Resend accounts/projects rather than PasteFl
 | Clothes Vendor | `clothes-vendor` | $7 | $15 | Launch Sale |
 | AirPods / Headphones Vendor | `airpods-headphones-vendor` | $7 | $15 | Launch Sale |
 | Cologne Vendor | `cologne-vendor` | $7 | $15 | Launch Sale |
-| All Vendor Bundle | `all-vendor-bundle` | $12 | $15 | Best Value |
+| All Vendor Bundle | `all-vendor-bundle` | $12 | $28 | Best Value |
 
 The bundle includes all four individual categories. Buying individually costs $28; the bundle costs $12 and saves $16.
 

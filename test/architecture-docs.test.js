@@ -9,6 +9,7 @@ const architecture = readDoc("ARCHITECTURE.md");
 const roadmap = readDoc("ROADMAP.md");
 const artifactSecurity = readDoc("ARTIFACT-SECURITY.md");
 const implementationPlan = readDoc("IMPLEMENTATION-PLAN.md");
+const specSnapshot = readDoc("SPEC-SNAPSHOT.md");
 
 test("approved architecture names every public and private service boundary", () => {
   for (const required of [
@@ -68,6 +69,14 @@ test("all approved product IDs and prices are tracked server-side", () => {
     assert.match(implementationPlan, new RegExp(`${productId}.*\\${price}`));
   }
   assert.match(implementationPlan, /browser never sends prices or Stripe Price IDs/i);
+});
+
+test("bundle comparison price stays synchronized across product documents", () => {
+  // Four $7 individual resources establish the bundle's honest $28 comparison value.
+  for (const document of [prd, roadmap, implementationPlan, specSnapshot]) {
+    assert.match(document, /\$28/);
+  }
+  assert.match(prd, /All Vendor Bundle.*`all-vendor-bundle`.*\$12.*\$28/);
 });
 
 test("private fulfillment boundaries remain explicit", () => {

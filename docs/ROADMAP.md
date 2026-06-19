@@ -42,7 +42,7 @@ Analytics and SEO expansion do not block Phase 1 launch.
 - Production remains on GitHub Pages; moving to Cloudflare Pages is resolved as **No**.
 - The staging branch and `/staging/` path are sufficient; `staging.shopresalelane.com` is out of scope.
 - Legal/policy review is complete for MVP by owner decision; conservative disclaimers remain mandatory.
-- The bundle compare-price mismatch is fixed at `$15` and must not be reintroduced.
+- The bundle compare-price mismatch is fixed at `$28`, matching the four $7 individual packages, and must not be reintroduced.
 - PasteFlow Stripe, Resend, sender identities, webhooks, support details, and reporting are not used by ResaleLane.
 - GA4, GTM, conversion analytics, attribution, Search Console, and SEO expansion are Phase 2.
 

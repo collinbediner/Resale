@@ -13,7 +13,7 @@ Completed decisions:
 - [x] Production remains on GitHub Pages; Cloudflare Pages is not part of the plan.
 - [x] The `staging` branch and `/staging/` deployment path are sufficient for the MVP; no staging subdomain is required.
 - [x] Legal/policy review is complete for MVP purposes. Conservative disclaimers remain required.
-- [x] The bundle compare price is `$15`; the old mismatch is resolved and must not be reintroduced.
+- [x] The bundle compare price is `$28`, matching the $7 total for each of the four individual packages; the old mismatch is resolved and must not be reintroduced.
 - [x] ResaleLane will use separate Stripe and Resend accounts/projects rather than PasteFlow accounts.
 - [x] The backend target is a Cloudflare Worker with D1, private R2, Stripe Checkout, and Resend.
 
