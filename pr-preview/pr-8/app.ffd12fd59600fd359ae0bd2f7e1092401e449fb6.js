@@ -1,18 +1,21 @@
-import { resolveCartAdd } from "./cart-logic.f9d82753b4fc1f88f45df57237ab1e5a068767f7.js";
+import { resolveCartAdd } from "./cart-logic.ffd12fd59600fd359ae0bd2f7e1092401e449fb6.js";
 
 const products = [
-  { id: "shoe-vendor", name: "Shoe Vendor", icon: "👟", price: 7, compareAt: 15, badge: "Launch Sale", description: "Supplier contacts and marketplace links for quality designer shoe sourcing." },
-  { id: "clothes-vendor", name: "Clothes Vendor", icon: "🧥", price: 7, compareAt: 15, badge: "Launch Sale", description: "Vendor contacts and sourcing links for hoodies, shorts, tee shirts, pants, and more." },
-  { id: "airpods-headphones-vendor", name: "AirPods / Headphones Vendor", icon: "🎧", price: 7, compareAt: 15, badge: "Launch Sale", description: "Supplier contacts and direct buying links for AirPods and headphones sourcing." },
-  { id: "cologne-vendor", name: "Cologne Vendor", icon: "🧴", price: 7, compareAt: 15, badge: "Launch Sale", description: "Vendor contacts and marketplace links for cologne sourcing, with notes on each source." },
-  { id: "all-vendor-bundle", name: "All Vendor Bundle", icon: "📦", price: 12, compareAt: 28, badge: "Best Value", isBundle: true, description: "Every vendor category in one package: shoes, clothes, AirPods/headphones, and cologne." }
+  { id: "shoe-vendor", name: "Shoe Vendor", icon: "👟", price: 7, compareAt: 15, badge: "Launch Sale", description: "Digital supplier information and marketplace links for shoe sourcing research." },
+  { id: "clothes-vendor", name: "Clothes Vendor", icon: "🧥", price: 7, compareAt: 15, badge: "Launch Sale", description: "Digital supplier information and sourcing links for apparel research." },
+  { id: "airpods-headphones-vendor", name: "AirPods / Headphones Vendor", icon: "🎧", price: 7, compareAt: 15, badge: "Launch Sale", description: "Digital supplier information and marketplace links for headphone and accessory research." },
+  { id: "cologne-vendor", name: "Cologne Vendor", icon: "🧴", price: 7, compareAt: 15, badge: "Launch Sale", description: "Digital supplier information and marketplace links for fragrance sourcing research." },
+  { id: "all-vendor-bundle", name: "All Vendor Bundle", icon: "📦", price: 12, compareAt: 28, badge: "Best Value", isBundle: true, description: "Digital sourcing information for every category: shoes, clothes, AirPods/headphones, and cologne." }
 ];
 const faqs = [
-  ["How fast is delivery?", "Your vendor package will be emailed automatically within a few minutes of payment. Check spam, junk, and promotions if it does not arrive right away."],
+  ["What does ResaleLane sell?", "ResaleLane sells digital sourcing information, such as supplier details and marketplace links. We do not sell or ship physical products."],
+  ["How fast is delivery?", "After checkout and fulfillment are activated, your digital resource will be emailed after verified payment. Check spam, junk, and promotions if it does not arrive."],
   ["Do I need an account?", "No. Checkout is account-free. Use the email where you want the package delivered and save your confirmation email."],
   ["Does the bundle include everything?", "Yes. It includes shoes, clothes, AirPods/headphones, and cologne vendor categories."],
-  ["Can I get a refund?", "Because these are digital products, all sales are final after delivery. Contact support for an unresolved delivery problem, duplicate charge, or incorrect package."],
-  ["Are you affiliated with brands or suppliers?", "No. ResaleLane sells informational resources and is not affiliated with or endorsed by any third-party brand, marketplace, manufacturer, or supplier."]
+  ["Do supplier details stay the same?", "Not always. Third-party contacts, links, prices, stock, shipping, and policies can change. Check the latest details directly with each supplier before buying."],
+  ["What does ResaleLane guarantee?", "ResaleLane does not guarantee authenticity, quality, pricing, inventory, shipping, supplier reliability, or resale profit. The information is a starting point for your own research."],
+  ["Can I get a refund?", "All sales are final after digital delivery. Support may review a duplicate charge, wrong package, or unresolved non-delivery. Changes made by a third-party supplier are not guaranteed refund reasons."],
+  ["Are you affiliated with brands or suppliers?", "No. ResaleLane is not affiliated with or endorsed by any third-party brand, marketplace, manufacturer, or supplier."]
 ];
 const bundleId = "all-vendor-bundle";
 let cart = JSON.parse(localStorage.getItem("resalelane-cart") || "[]").filter(id => products.some(p => p.id === id));
@@ -68,7 +71,7 @@ function updateCart() {
   const items = cart.map(product);
   $("[data-cart-content]").innerHTML = items.length ? items.map(p => `<div class="cart-item"><span class="cart-item-icon">${p.icon}</span><div><h3>${p.name}</h3><button data-remove="${p.id}">Remove</button></div><strong>${money(p.price)}</strong></div>`).join("") : `<div class="empty-cart"><h3>Your cart is empty</h3><p>Choose a vendor package to get started.</p></div>`;
   const subtotal = items.reduce((sum, p) => sum + p.price, 0);
-  $("[data-cart-footer]").innerHTML = items.length ? `<div class="subtotal"><span>Subtotal</span><strong>${money(subtotal)}</strong></div><p class="reassurance">Digital delivery by email<br>Secure Stripe checkout (setup pending)</p>${conflictMarkup()}<button class="button primary" data-checkout>Checkout Securely</button>` : `<button class="button secondary" data-close-cart>Continue Shopping</button>`;
+  $("[data-cart-footer]").innerHTML = items.length ? `<div class="subtotal"><span>Subtotal</span><strong>${money(subtotal)}</strong></div><p class="reassurance">Digital sourcing information only<br>Stripe checkout is not active yet</p>${conflictMarkup()}<button class="button primary" data-checkout>Checkout Securely</button>` : `<button class="button secondary" data-close-cart>Continue Shopping</button>`;
 }
 function conflictMarkup() {
   if (!conflict) return "";
@@ -81,13 +84,13 @@ function toggleMenu(open) { $("[data-mobile-menu]").hidden = !open; document.bod
 
 function openDetail(id) {
   const p = product(id);
-  $("[data-modal]").innerHTML = `<div class="modal-heading"><div class="modal-product"><span class="product-icon">${p.icon}</span><div><span class="badge">${p.badge}</span><h2>${p.name}</h2></div></div><button class="icon-button" data-close-modal aria-label="Close">×</button></div><div class="price"><strong>${money(p.price)}</strong><s>${money(p.compareAt)}</s></div><p class="description">${p.description}</p><p class="modal-label">WHAT YOU GET</p><ul class="check-list"><li>Supplier contact details when available</li><li>Marketplace links when available</li><li>Notes about what each source is best for</li><li>Email delivery after checkout</li></ul><p class="modal-label">HOW DELIVERY WORKS</p><p class="legal">Your package is delivered to your checkout email. No account is required. Save your confirmation email as your order record.</p><p class="modal-label">BEFORE YOU BUY</p><p class="legal">ResaleLane sells informational resources only and is not affiliated with any brand or supplier. Verify all third-party details before buying.</p><button class="button primary" data-add="${p.id}" data-close-modal>${p.isBundle ? "Add Bundle to Cart" : "Add to Cart"}</button>`;
+  $("[data-modal]").innerHTML = `<div class="modal-heading"><div class="modal-product"><span class="product-icon">${p.icon}</span><div><span class="badge">${p.badge}</span><h2>${p.name}</h2></div></div><button class="icon-button" data-close-modal aria-label="Close">×</button></div><div class="price"><strong>${money(p.price)}</strong><s>${money(p.compareAt)}</s></div><p class="description">${p.description}</p><p class="modal-label">WHAT YOU GET</p><ul class="check-list"><li>Digital supplier information when available</li><li>Third-party marketplace links when available</li><li>Notes to support your own sourcing research</li><li>Email delivery after verified payment</li></ul><p class="modal-label">HOW DELIVERY WORKS</p><p class="legal">Your digital resource will be delivered to your checkout email after payment and fulfillment are activated. No physical product is included.</p><p class="modal-label">BEFORE YOU BUY</p><p class="legal">Supplier details can change. ResaleLane does not control third parties or guarantee authenticity, pricing, stock, quality, shipping, reliability, or resale results. Verify everything yourself before purchasing.</p><button class="button primary" data-add="${p.id}" data-close-modal>${p.isBundle ? "Add Bundle to Cart" : "Add to Cart"}</button>`;
   openModal();
 }
 function openCheckout() {
   const items = cart.map(product), subtotal = items.reduce((sum, p) => sum + p.price, 0);
   closeCart();
-  $("[data-modal]").innerHTML = `<div class="modal-heading"><h2>Checkout</h2><button class="icon-button" data-close-modal aria-label="Close">×</button></div><p class="modal-label">ORDER SUMMARY</p><div class="checkout-summary">${items.map(p => `<div class="checkout-line"><span>${p.name}</span><strong>${money(p.price)}</strong></div>`).join("")}<div class="checkout-total"><span>Subtotal</span><strong>${money(subtotal)}</strong></div></div><label class="modal-label">DELIVERY EMAIL<input type="email" placeholder="you@email.com" /></label><button class="button disabled" disabled>Continue to Stripe (Setup Pending)</button><p class="legal">Payments are not active yet. This button will open secure Stripe Checkout after Collin connects a Stripe account.</p>`;
+  $("[data-modal]").innerHTML = `<div class="modal-heading"><h2>Checkout</h2><button class="icon-button" data-close-modal aria-label="Close">×</button></div><p class="modal-label">ORDER SUMMARY</p><div class="checkout-summary">${items.map(p => `<div class="checkout-line"><span>${p.name}</span><strong>${money(p.price)}</strong></div>`).join("")}<div class="checkout-total"><span>Subtotal</span><strong>${money(subtotal)}</strong></div></div><label class="modal-label">DELIVERY EMAIL<input type="email" placeholder="you@email.com" /></label><button class="button disabled" disabled>Continue to Stripe (Setup Pending)</button><p class="legal">Payments are not active. When checkout launches, you will be buying digital sourcing information, not a physical product. All sales will be final after delivery except reviewed duplicate-charge, wrong-delivery, or unresolved non-delivery cases.</p>`;
   openModal();
 }
 function openModal() { $("[data-modal-overlay]").hidden = false; document.body.classList.add("locked"); }
