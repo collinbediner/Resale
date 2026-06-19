@@ -1,6 +1,6 @@
 # ResaleLane Working Handoff
 
-Last updated: June 18, 2026, 6:50 PM Eastern
+Last updated: June 19, 2026, 7:10 AM Eastern
 
 This is the current, agent-agnostic continuation file for Codex, Claude, other AI agents, and human collaborators. Read it first, but never trust it blindly: verify its claims against the current Git branch, open pull requests, the canonical issue, and the Project board before changing anything.
 
@@ -34,7 +34,7 @@ Read these sources in order:
 | Canonical ticket | [Resale-Planning #28](https://github.com/collinbediner/Resale-Planning/issues/28) |
 | Working branch | `codex/align-commerce-implementation-plan` |
 | Pull request | [Resale #8](https://github.com/collinbediner/Resale/pull/8) |
-| State | Handoff protocol implemented and locally validated; awaiting owner review |
+| State | Latest `main` merged, documentation conflict resolved, and locally validated; awaiting refreshed PR checks and owner review |
 | Production impact | Documentation and tests only; checkout and live visuals remain unchanged |
 
 ## Completed On This Branch
@@ -44,10 +44,13 @@ Read these sources in order:
 - Reconciled Phase 1/Phase 2 work and relevant Kanban tickets.
 - Added this agent-agnostic handoff file and the multi-machine collaboration protocol.
 - Added automated documentation checks for architecture and handoff requirements.
+- Merged the latest `main` without changing the frontend relative to `main`.
+- Resolved the PRD conflict by preserving the approved internal product IDs and synchronizing the bundle's $28 comparison value across product documents.
+- Added a regression test that keeps the $28 bundle comparison synchronized across the PRD, roadmap, implementation plan, and specification snapshot.
 
 ## Next Exact Actions
 
-1. Review the current GitHub checks on PR #8 and issue #28 validation evidence.
+1. Confirm the refreshed GitHub checks on PR #8 pass after the merge-conflict resolution.
 2. Owner reviews and merges PR #8 when satisfied.
 3. After merge, select one ready Phase 1 ticket from the Kanban and claim it before implementation. Current independent owner tasks are #3, #8, and #24; engineering can begin with #25.
 
@@ -60,9 +63,10 @@ Read these sources in order:
 
 ## Validation Evidence
 
-- Implementation-plan commit before this handoff update: `ae67593`.
-- Current local validation: `npm run check` — 26 tests passed.
-- PR #8 checks for `ae67593`: Test Website and Preview GitHub Pages passed.
+- Merge-conflict resolution commit before this handoff update: `0a5c805`.
+- Current local validation: `npm run check` — 27 tests passed; `git diff --check` passed.
+- Scope verification against `origin/main`: documentation and documentation tests only; no `site/` or `server/` differences.
+- Earlier PR #8 checks passed; refreshed checks for the conflict-resolution push must be verified directly.
 - Issue #28 holds the latest validation result after each push; agents must check it and the PR directly.
 
 ## Session-End Handoff Checklist
