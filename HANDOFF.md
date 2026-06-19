@@ -34,7 +34,7 @@ Read these sources in order:
 | Canonical ticket | [Resale-Planning #28](https://github.com/collinbediner/Resale-Planning/issues/28) |
 | Working branch | `codex/align-commerce-implementation-plan` |
 | Pull request | [Resale #8](https://github.com/collinbediner/Resale/pull/8) |
-| State | Latest `main` merged, documentation conflict resolved, and locally validated; awaiting refreshed PR checks and owner review |
+| State | Latest `main` merged, documentation conflict resolved, and all refreshed PR checks passed; awaiting owner review |
 | Production impact | Documentation and tests only; checkout and live visuals remain unchanged |
 
 ## Completed On This Branch
@@ -50,9 +50,8 @@ Read these sources in order:
 
 ## Next Exact Actions
 
-1. Confirm the refreshed GitHub checks on PR #8 pass after the merge-conflict resolution.
-2. Owner reviews and merges PR #8 when satisfied.
-3. After merge, select one ready Phase 1 ticket from the Kanban and claim it before implementation. Current independent owner tasks are #3, #8, and #24; engineering can begin with #25.
+1. Owner reviews and merges PR #8 when satisfied.
+2. After merge, select one ready Phase 1 ticket from the Kanban and claim it before implementation. Current independent owner tasks are #3, #8, and #24; engineering can begin with #25.
 
 ## Known Blockers And Inputs
 
@@ -66,7 +65,7 @@ Read these sources in order:
 - Merge-conflict resolution commit before this handoff update: `0a5c805`.
 - Current local validation: `npm run check` — 27 tests passed; `git diff --check` passed.
 - Scope verification against `origin/main`: documentation and documentation tests only; no `site/` or `server/` differences.
-- Earlier PR #8 checks passed; refreshed checks for the conflict-resolution push must be verified directly.
+- PR #8 checks for conflict-resolution push `ffd12fd`: Test Website, PR test, and Preview GitHub Pages passed; the PR is mergeable with a clean merge state.
 - Issue #28 holds the latest validation result after each push; agents must check it and the PR directly.
 
 ## Session-End Handoff Checklist
