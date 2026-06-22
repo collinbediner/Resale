@@ -13,6 +13,14 @@ function clean(value, maximumLength) {
   return typeof value === "string" ? value.trim().slice(0, maximumLength) : "";
 }
 
+function cleanMessageHtml(value) {
+  if (typeof value !== "string") return "";
+  return value
+    .slice(0, 8000)
+    .replace(/<(?!\/?(?:b|strong|u|ul|ol|li|p|br)(?:\s*\/?)>)[^>]*>/gi, "")
+    .replace(/<(b|strong|u|ul|ol|li|p)\s+[^>]*>/gi, "<$1>");
+}
+
 export function validateContactSubmission(input) {
   if (!input || typeof input !== "object" || Array.isArray(input)) {
     return { ok: false, error: "Please complete the contact form and try again." };
@@ -24,6 +32,7 @@ export function validateContactSubmission(input) {
     order: clean(input.order, 50),
     reason: clean(input.reason, 50),
     message: clean(input.message, 4000),
+    messageHtml: cleanMessageHtml(input.messageHtml),
     company: clean(input.company, 200)
   };
 
@@ -71,7 +80,7 @@ export function buildSupportEmail(submission, requestId) {
       <strong>Reason:</strong> ${escapeHtml(submission.reason)}
     </p>
     <hr>
-    <p style="white-space:pre-wrap">${escapeHtml(submission.message)}</p>
+    <div>${submission.messageHtml || `<p style="white-space:pre-wrap">${escapeHtml(submission.message)}</p>`}</div>
   `.trim();
 
   return { subject, text, html };

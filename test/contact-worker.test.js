@@ -8,6 +8,7 @@ const validSubmission = {
   order: "RL-12345",
   reason: "Order delivery",
   message: "My delivery email has not arrived yet.",
+  messageHtml: "<p>My <strong>delivery</strong> email has not arrived yet.</p>",
   company: ""
 };
 
@@ -35,11 +36,13 @@ test("support email escapes visitor-provided HTML and includes the reply details
   const result = validateContactSubmission({
     ...validSubmission,
     name: "<script>alert(1)</script>",
-    message: "Please help with <b>this delivery</b>."
+    message: "Please help with this delivery.",
+    messageHtml: '<p onclick="bad()">Please <u>help</u><script>alert(1)</script></p>'
   });
   const email = buildSupportEmail(result.submission, "request-123");
   assert.match(email.subject, /Order delivery - RL-12345/);
   assert.match(email.text, /taylor@example\.com/);
   assert.doesNotMatch(email.html, /<script>/);
-  assert.match(email.html, /&lt;b&gt;this delivery&lt;\/b&gt;/);
+  assert.doesNotMatch(email.html, /onclick/);
+  assert.match(email.html, /<u>help<\/u>/);
 });

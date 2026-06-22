@@ -31,7 +31,16 @@ function init() {
   $("[data-faq-list]").innerHTML = faqs.map(([q, a]) => `<details class="faq"><summary>${q}</summary><p>${a}</p></details>`).join("");
   document.addEventListener("click", handleClick);
   $("[data-contact-form]").addEventListener("submit", sendContact);
+  $("[data-rich-editor]").addEventListener("click", handleEditorToolbar);
   updateCart();
+}
+
+function handleEditorToolbar(event) {
+  const button = event.target.closest("[data-format]");
+  if (!button) return;
+  event.preventDefault();
+  $("[data-editor-content]").focus();
+  document.execCommand(button.dataset.format, false);
 }
 
 function handleClick(event) {
@@ -101,6 +110,16 @@ async function sendContact(event) {
   const form = event.currentTarget;
   const button = form.querySelector('button[type="submit"]');
   const status = $("[data-contact-status]");
+  const editor = $("[data-editor-content]");
+  const message = editor.innerText.trim();
+  if (message.length < 10) {
+    status.className = "form-status error";
+    status.textContent = "Please enter at least 10 characters in your message.";
+    editor.focus();
+    return;
+  }
+  $("[data-message-input]").value = message;
+  $("[data-message-html-input]").value = editor.innerHTML;
   const data = Object.fromEntries(new FormData(form));
 
   button.disabled = true;
@@ -118,6 +137,7 @@ async function sendContact(event) {
     if (!response.ok || !result.ok) throw new Error(result.error || "Your message could not be sent.");
 
     form.reset();
+    editor.innerHTML = "";
     status.className = "form-status success";
     status.textContent = `Message sent. Your support reference is ${result.requestId}.`;
     toast("Message sent");
