@@ -1,5 +1,5 @@
 <!doctype html>
-<html lang="en" data-release="1521df86c61fde15c352d392ff2c20cae5dfeafe">
+<html lang="en" data-release="e21a37a72d65fbcb0db74c724f2afd8dca9b6cba">
   <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
@@ -15,8 +15,8 @@
     <link rel="preconnect" href="https://fonts.googleapis.com" />
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
     <link href="https://fonts.googleapis.com/css2?family=Geist:wght@400;500;600;700;800&display=swap" rel="stylesheet" />
-    <link rel="stylesheet" href="./styles.1521df86c61fde15c352d392ff2c20cae5dfeafe.css" />
-    <script src="./app.1521df86c61fde15c352d392ff2c20cae5dfeafe.js" type="module"></script>
+    <link rel="stylesheet" href="./styles.e21a37a72d65fbcb0db74c724f2afd8dca9b6cba.css" />
+    <script src="./app.e21a37a72d65fbcb0db74c724f2afd8dca9b6cba.js" type="module"></script>
   </head>
   <body>
     <header class="header">
@@ -115,12 +115,14 @@
       <section id="contact" class="narrow-section">
         <div class="contact-card">
           <p class="eyebrow">Support</p><h2>Need help with an order?</h2>
-          <p>Support can help with delivery problems, a wrong package, duplicate charges, or questions before purchase. We cannot guarantee or manage a third-party supplier's products, pricing, stock, shipping, or service. This form opens your email app.</p>
+          <p>Support can help with delivery problems, a wrong package, duplicate charges, or questions before purchase. We cannot guarantee or manage a third-party supplier's products, pricing, stock, shipping, or service. Submit the form and your message will be sent directly to ResaleLane support.</p>
           <form data-contact-form>
             <div class="form-grid"><label>Name<input name="name" required /></label><label>Email<input type="email" name="email" required /></label></div>
             <div class="form-grid"><label>Order ID <small>(optional)</small><input name="order" placeholder="RL-#####" /></label><label>Reason<select name="reason"><option>Order delivery</option><option>Wrong package</option><option>Duplicate charge</option><option>Product question</option><option>Partnership</option><option>Other</option></select></label></div>
             <label>Message<textarea name="message" rows="5" required></textarea></label>
+            <label class="form-trap" aria-hidden="true">Company<input name="company" tabindex="-1" autocomplete="off" /></label>
             <button class="button primary" type="submit">Send message</button>
+            <p class="form-status" data-contact-status role="status" aria-live="polite"></p>
           </form>
         </div>
       </section>
