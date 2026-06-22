@@ -66,6 +66,23 @@ export default {
     const requestId = crypto.randomUUID();
     const url = new URL(request.url);
 
+    if (url.pathname === "/health" && request.method === "GET") {
+      try {
+        const databaseCheck = await env.ORDERS_DB.prepare("SELECT 1 AS ok").first();
+        const storageCheck = await env.ARTIFACTS.head("__resalelane_healthcheck__");
+        return Response.json({
+          ok: databaseCheck?.ok === 1 && storageCheck === null,
+          environment: env.ENVIRONMENT,
+          services: { d1: "connected", r2: "connected" }
+        }, { headers: { "Cache-Control": "no-store", "X-Request-ID": requestId } });
+      } catch {
+        return Response.json(
+          { ok: false, environment: env.ENVIRONMENT, error: "Service check failed." },
+          { status: 503, headers: { "Cache-Control": "no-store", "X-Request-ID": requestId } }
+        );
+      }
+    }
+
     if (request.method === "OPTIONS") {
       return new Response(null, { status: 204, headers: corsHeaders(origin) });
     }

@@ -11,9 +11,23 @@
     }
   ],
   "vars": {
+    "ENVIRONMENT": "production",
     "SUPPORT_EMAIL_FROM": "ResaleLane Support <support@shopresalelane.com>",
     "SUPPORT_EMAIL_TO": "collin.bediner+support@gmail.com"
   },
+  "d1_databases": [
+    {
+      "binding": "ORDERS_DB",
+      "database_name": "resalelane-orders-production",
+      "database_id": "ac364727-82c6-458f-8395-6711904ca516"
+    }
+  ],
+  "r2_buckets": [
+    {
+      "binding": "ARTIFACTS",
+      "bucket_name": "resalelane-artifacts-production"
+    }
+  ],
   "ratelimits": [
     {
       "name": "CONTACT_RATE_LIMITER",
@@ -27,5 +41,48 @@
   "observability": {
     "enabled": true,
     "head_sampling_rate": 1
+  },
+  "env": {
+    "staging": {
+      "name": "resalelane-api-staging",
+      "routes": [
+        {
+          "pattern": "api-staging.shopresalelane.com",
+          "custom_domain": true
+        }
+      ],
+      "vars": {
+        "ENVIRONMENT": "staging",
+        "SUPPORT_EMAIL_FROM": "ResaleLane Staging <support@shopresalelane.com>",
+        "SUPPORT_EMAIL_TO": "collin.bediner+support@gmail.com"
+      },
+      "d1_databases": [
+        {
+          "binding": "ORDERS_DB",
+          "database_name": "resalelane-orders-staging",
+          "database_id": "e46f2d81-bfec-4519-a3c1-435c811cd6c1"
+        }
+      ],
+      "r2_buckets": [
+        {
+          "binding": "ARTIFACTS",
+          "bucket_name": "resalelane-artifacts-staging"
+        }
+      ],
+      "ratelimits": [
+        {
+          "name": "CONTACT_RATE_LIMITER",
+          "namespace_id": "1302",
+          "simple": {
+            "limit": 5,
+            "period": 60
+          }
+        }
+      ],
+      "observability": {
+        "enabled": true,
+        "head_sampling_rate": 1
+      }
+    }
   }
 }

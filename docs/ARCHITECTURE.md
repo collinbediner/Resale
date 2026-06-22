@@ -69,7 +69,7 @@ The repository is the collaboration source of truth. Google Drive may hold draft
 
 ## Approved Backend Target
 
-The target backend is a Cloudflare Worker. It is not active yet, and checkout remains disabled until its Stripe, D1, R2, and Resend dependencies are configured and tested.
+The Cloudflare Worker is active for support email. Separate staging and production D1 databases and private R2 buckets are connected through environment-specific bindings. Checkout remains disabled until Stripe and the remaining order/fulfillment flows are configured and tested.
 
 | Responsibility | Approved service |
 | --- | --- |
