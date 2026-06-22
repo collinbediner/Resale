@@ -96,12 +96,37 @@ function openCheckout() {
 function openModal() { $("[data-modal-overlay]").hidden = false; document.body.classList.add("locked"); }
 function closeModal() { $("[data-modal-overlay]").hidden = true; document.body.classList.remove("locked"); }
 function toast(message) { const el = $("[data-toast]"); el.textContent = message; el.hidden = false; clearTimeout(window.toastTimer); window.toastTimer = setTimeout(() => el.hidden = true, 1800); }
-function sendContact(event) {
+async function sendContact(event) {
   event.preventDefault();
-  const data = new FormData(event.currentTarget);
-  const subject = encodeURIComponent(`ResaleLane support: ${data.get("reason")}`);
-  const body = encodeURIComponent(`Name: ${data.get("name")}\nEmail: ${data.get("email")}\nOrder ID: ${data.get("order") || "N/A"}\n\n${data.get("message")}`);
-  window.location.href = `mailto:collin.bediner+support@gmail.com?subject=${subject}&body=${body}`;
-  toast("Opening your email app");
+  const form = event.currentTarget;
+  const button = form.querySelector('button[type="submit"]');
+  const status = $("[data-contact-status]");
+  const data = Object.fromEntries(new FormData(form));
+
+  button.disabled = true;
+  button.textContent = "Sending...";
+  status.className = "form-status";
+  status.textContent = "Sending your message securely...";
+
+  try {
+    const response = await fetch("https://api.shopresalelane.com/support", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify(data)
+    });
+    const result = await response.json();
+    if (!response.ok || !result.ok) throw new Error(result.error || "Your message could not be sent.");
+
+    form.reset();
+    status.className = "form-status success";
+    status.textContent = `Message sent. Your support reference is ${result.requestId}.`;
+    toast("Message sent");
+  } catch (error) {
+    status.className = "form-status error";
+    status.textContent = `${error.message} You can also email collin.bediner+support@gmail.com.`;
+  } finally {
+    button.disabled = false;
+    button.textContent = "Send message";
+  }
 }
 init();
