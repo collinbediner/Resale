@@ -32,15 +32,33 @@ function init() {
   document.addEventListener("click", handleClick);
   $("[data-contact-form]").addEventListener("submit", sendContact);
   $("[data-rich-editor]").addEventListener("click", handleEditorToolbar);
+  $("[data-rich-editor]").addEventListener("mousedown", preserveEditorSelection);
+  document.addEventListener("selectionchange", updateEditorToolbar);
   updateCart();
+}
+
+function preserveEditorSelection(event) {
+  if (event.target.closest("[data-format]")) event.preventDefault();
 }
 
 function handleEditorToolbar(event) {
   const button = event.target.closest("[data-format]");
   if (!button) return;
   event.preventDefault();
-  $("[data-editor-content]").focus();
   document.execCommand(button.dataset.format, false);
+  $("[data-editor-content]").focus();
+  updateEditorToolbar();
+}
+
+function updateEditorToolbar() {
+  const selection = window.getSelection();
+  const editor = $("[data-editor-content]");
+  if (!selection?.anchorNode || !editor.contains(selection.anchorNode)) return;
+  $$("[data-format]").forEach(button => {
+    const active = document.queryCommandState(button.dataset.format);
+    button.classList.toggle("active", active);
+    button.setAttribute("aria-pressed", String(active));
+  });
 }
 
 function handleClick(event) {
