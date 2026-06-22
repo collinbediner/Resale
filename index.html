@@ -1,5 +1,5 @@
 <!doctype html>
-<html lang="en" data-release="916c0918b102c16c8b53de71da3b1311c579a0e2">
+<html lang="en" data-release="84bc2abfcda8fe7062de2f6549a0491f9dd9e0b7">
   <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
@@ -15,8 +15,8 @@
     <link rel="preconnect" href="https://fonts.googleapis.com" />
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
     <link href="https://fonts.googleapis.com/css2?family=Geist:wght@400;500;600;700;800&display=swap" rel="stylesheet" />
-    <link rel="stylesheet" href="./styles.916c0918b102c16c8b53de71da3b1311c579a0e2.css" />
-    <script src="./app.916c0918b102c16c8b53de71da3b1311c579a0e2.js" type="module"></script>
+    <link rel="stylesheet" href="./styles.84bc2abfcda8fe7062de2f6549a0491f9dd9e0b7.css" />
+    <script src="./app.84bc2abfcda8fe7062de2f6549a0491f9dd9e0b7.js" type="module"></script>
   </head>
   <body>
     <header class="header">
@@ -122,9 +122,19 @@
             <label>Message</label>
             <div class="rich-editor" data-rich-editor>
               <div class="editor-toolbar" role="toolbar" aria-label="Message formatting">
-                <button type="button" data-format="bold" aria-label="Bold"><b>B</b></button>
-                <button type="button" data-format="underline" aria-label="Underline"><u>U</u></button>
-                <button type="button" data-format="insertUnorderedList" aria-label="Bulleted list">• List</button>
+                <span class="toolbar-label">Format</span>
+                <div class="toolbar-actions">
+                  <button type="button" data-format="bold" data-tooltip="Bold" aria-label="Bold" aria-pressed="false">
+                    <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M7 5h6a4 4 0 0 1 0 8H7V5Zm0 8h7a4 4 0 0 1 0 8H7v-8Zm3-5v3h3a1.5 1.5 0 0 0 0-3h-3Zm0 8v2h4a1 1 0 0 0 0-2h-4Z"/></svg>
+                  </button>
+                  <button type="button" data-format="underline" data-tooltip="Underline" aria-label="Underline" aria-pressed="false">
+                    <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M7 4v7a5 5 0 0 0 10 0V4h-3v7a2 2 0 0 1-4 0V4H7Zm-1 16h12v-2H6v2Z"/></svg>
+                  </button>
+                  <span class="toolbar-divider" aria-hidden="true"></span>
+                  <button type="button" data-format="insertUnorderedList" data-tooltip="Bulleted list" aria-label="Bulleted list" aria-pressed="false">
+                    <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M5 6.5A1.5 1.5 0 1 1 2 6.5a1.5 1.5 0 0 1 3 0ZM7 5h15v3H7V5Zm-2 6.5A1.5 1.5 0 1 1 2 11.5a1.5 1.5 0 0 1 3 0ZM7 10h15v3H7v-3Zm-2 6.5A1.5 1.5 0 1 1 2 16.5a1.5 1.5 0 0 1 3 0ZM7 15h15v3H7v-3Z"/></svg>
+                  </button>
+                </div>
               </div>
               <div class="editor-content" data-editor-content contenteditable="true" role="textbox" aria-multiline="true" aria-label="Message" data-placeholder="How can we help?"></div>
               <input type="hidden" name="message" data-message-input />
