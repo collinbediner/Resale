@@ -9,6 +9,7 @@ const ALLOWED_ORIGINS = new Set([
   "http://127.0.0.1:8000"
 ]);
 
+// Keep CORS decisions in one place so every public route follows the same origin rules.
 function corsHeaders(origin) {
   const headers = {
     "Access-Control-Allow-Headers": "Content-Type",
@@ -32,6 +33,8 @@ function jsonResponse(body, status, origin, requestId) {
   });
 }
 
+// Centralize outgoing Resend calls so idempotency keys, tagging, and provider-error
+// handling stay consistent across support and monitoring flows.
 async function sendWithResend(env, message, requestId, category) {
   const response = await fetch("https://api.resend.com/emails", {
     method: "POST",
@@ -64,6 +67,7 @@ const worker = {
     const requestId = crypto.randomUUID();
     const url = new URL(request.url);
 
+    // Health answers only "is the API wired up?" and avoids exposing internal names.
     if (url.pathname === "/health" && request.method === "GET") {
       try {
         const databaseCheck = await env.ORDERS_DB.prepare(
@@ -84,6 +88,8 @@ const worker = {
       }
     }
 
+    // This private route is used by GitHub Actions so daily status emails can be sent
+    // without storing the Resend API key in GitHub.
     if (url.pathname === "/internal/monitor" && request.method === "POST") {
       const clientKey = request.headers.get("CF-Connecting-IP") || "unknown";
       const rateLimit = await env.CONTACT_RATE_LIMITER.limit({ key: `monitor:${clientKey}` });
@@ -142,6 +148,8 @@ const worker = {
       return jsonResponse({ ok: false, error: "This request is not allowed." }, 403, origin, requestId);
     }
 
+    // Keep the support route and monitor route on separate rate-limit keys so one
+    // traffic type cannot starve the other.
     const clientKey = request.headers.get("CF-Connecting-IP") || "unknown";
     const rateLimit = await env.CONTACT_RATE_LIMITER.limit({ key: `support:${clientKey}` });
     if (!rateLimit.success) {

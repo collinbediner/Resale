@@ -2,7 +2,7 @@
 
 ## Current Production System
 
-ResaleLane is currently a static storefront built with HTML, CSS, and browser JavaScript. It does not use React, Vite, a database, or a server.
+ResaleLane is currently a static storefront built with HTML, CSS, and browser JavaScript. It does not use React, Vite, a traditional app server, or a public database for the storefront itself.
 
 | Layer | Current implementation |
 | --- | --- |
@@ -12,16 +12,45 @@ ResaleLane is currently a static storefront built with HTML, CSS, and browser Ja
 | CI | GitHub Actions |
 | Preview | GitHub Pages PR preview paths |
 | Stable staging | `staging` branch at `/staging/` |
-| Production | GitHub Pages `gh-pages` branch |
+| Production | GitHub Pages through the `gh-pages` deploy branch |
 | Domain/DNS | Cloudflare |
 | Payments | Disabled placeholder until Stripe is configured |
+
+## Vendor And Integration Map
+
+| Vendor/service | Integrated component | How it is integrated | Why it exists |
+| --- | --- | --- | --- |
+| GitHub | Repo, issues, and project board | Source code, docs, planning, and PR review all live in GitHub | Gives collaborators one shared source of truth |
+| GitHub Actions | CI/CD workflows | `.github/workflows/` runs tests, preview deploys, staging deploys, production deploys, and uptime checks | Prevents manual deploy drift and catches regressions early |
+| GitHub Pages | Public website hosting | Built static files are deployed to `gh-pages` and served on the public domain | Good fit for a mostly static storefront |
+| Cloudflare | DNS and private backend platform | Cloudflare fronts the custom domain and runs the Worker, D1, and R2 services | Keeps domain control and private backend logic together |
+| Cloudflare Worker | Private API | `worker/index.js` handles support, health, and monitor endpoints today | Lets the site keep secrets server-side and add logic without a traditional server |
+| Cloudflare D1 | Private relational data | Worker bindings connect to separate staging and production D1 databases | Stores order, event, retry, and support metadata safely |
+| Cloudflare R2 | Private object storage | Worker bindings connect to separate staging and production buckets | Holds delivery artifacts outside the public repo |
+| Resend | Transactional email delivery | The Worker calls the Resend API with a Cloudflare secret | Sends support, monitoring, and future fulfillment email |
+| Stripe | Planned checkout and payment receipts | The future Worker checkout flow will create Checkout Sessions and verify Stripe webhooks | Keeps card handling and payment receipts out of the custom codebase |
+
+## Architecture In Plain English
+
+The public website is intentionally simple: GitHub Pages serves static HTML, CSS, JavaScript, and public-safe assets.
+
+Anything private or security-sensitive moves to the Cloudflare Worker side:
+
+- email sending
+- order records
+- retry and audit state
+- private package files
+- future checkout creation
+- future Stripe webhook verification
+
+That split is the main safety rule of the whole project: public site files stay public-safe, private operations stay server-side.
 
 ## Request And Deployment Flow
 
 ```mermaid
 flowchart LR
   A["Git main branch"] --> B["GitHub Actions tests"]
-  B -->|pass| C["Deploy site folder"]
+  B -->|pass| C["Deploy built site"]
   B -->|fail| D["Deployment blocked"]
   C --> E["gh-pages branch"]
   E --> F["GitHub Pages"]
@@ -38,13 +67,17 @@ flowchart LR
 - `site/assets/`: public brand assets only.
 - `Design System/design_handoff_resalelane/`: original public-safe design handoff, tokens, catalog model, prototypes, and brand exports.
 - `scripts/build.mjs`: creates the fingerprinted release in ignored `dist/`.
-- `docs/ARTIFACT-SECURITY.md`: private-artifact storage and secure-delivery design.
+- `worker/index.js`: main Worker router for health, monitoring, and support endpoints.
+- `worker/contact.js`: support-form validation and support-email rendering helpers.
+- `worker/security.js`: shared request-size, JSON, and response-header protections.
+- `worker/order-store.js`: D1 order-state helpers for idempotency, retries, and transitions.
+- `server/email-templates.js`: provider-independent transactional email templates for the future Worker.
 - `migrations/`: versioned D1 schema for orders, payment events, delivery attempts, and support request metadata.
+- `docs/ARTIFACT-SECURITY.md`: private-artifact storage and secure-delivery design.
 - `docs/DATA-RETENTION.md`: buyer-data minimization, anonymization, and recovery rules.
 - `docs/PRD.md` and `docs/WEBSITE-SPEC.md`: tracked requirements that replace unreadable local Google Drive shortcuts.
-- `server/email-templates.js`: provider-independent transactional email templates for the future Worker.
-- `test/site.test.js`: automated regression and safety checks.
-- `.github/workflows/ci.yml`: standalone/reusable test workflow.
+- `test/site.test.js`: automated storefront regression and safety checks.
+- `.github/workflows/ci.yml`: standalone test workflow.
 - `.github/workflows/deploy.yml`: production deployment after tests.
 - `.github/workflows/preview.yml`: pull-request preview after tests.
 - `.github/workflows/staging.yml`: stable staging-path deployment after tests.
@@ -56,22 +89,22 @@ Source files keep stable readable names under `site/`. CI creates deployment-onl
 
 This means:
 
-- A new release cannot accidentally reuse an old CSS or JavaScript URL.
-- Staging and production can be verified against an exact commit.
-- URLs returned after a push always include `?release=<commit-sha>` to bypass cached HTML.
-- Old release assets may remain temporarily, but they cannot be mixed into new HTML.
+- a new release cannot accidentally reuse an old CSS or JavaScript URL
+- staging and production can be verified against an exact commit
+- URLs returned after a push include `?release=<commit-sha>` to bypass cached HTML
+- old release assets may remain temporarily, but they cannot be mixed into new HTML
 
 ## Security Boundary
 
 The public repository and GitHub Pages can only contain information safe for anyone to download.
 
-Private supplier data, Stripe secret keys, webhook secrets, email-service keys, and order records must live in a future server-side backend. They must never be placed in `site/`, Git history, or browser JavaScript.
+Private supplier data, Stripe secret keys, webhook secrets, email-service keys, and order records must live in a server-side backend. They must never be placed in `site/`, Git history, or browser JavaScript.
 
 The repository is the collaboration source of truth. Google Drive may hold drafts and private operational files, but code, public-safe assets, and approved decisions are not considered current until they are represented in Git.
 
 ## Approved Backend Target
 
-The Cloudflare Worker is active for support email. Separate staging and production D1 databases and private R2 buckets are connected through environment-specific bindings. Checkout remains disabled until Stripe and the remaining order/fulfillment flows are configured and tested.
+The Cloudflare Worker is active for support email and monitoring. Separate staging and production D1 databases and private R2 buckets are connected through environment-specific bindings. Checkout remains disabled until Stripe and the remaining order and fulfillment flows are configured and tested.
 
 The Worker exposes a public-safe `/health` response containing API version, environment name, and connection status only. It never returns database identifiers, bucket names, secrets, customer records, or provider errors.
 
@@ -89,7 +122,21 @@ The Worker accepts product IDs only, maps them to server-controlled Stripe Price
 
 The public contact form posts to `https://api.shopresalelane.com/support`. The Worker validates and limits requests, uses a hidden bot-trap field, and sends the message through Resend. The `RESEND_API_KEY` is stored only as a Cloudflare Worker secret. Visitor email addresses are used as the reply-to address and are not written to public files or routine logs.
 
-D1 stores buyer/order metadata needed for payment verification, idempotency, delivery tracking, and support. Supplier contacts, PDF contents, and private package data remain in private R2 and are never copied into D1.
+D1 stores buyer and order metadata needed for payment verification, idempotency, delivery tracking, and support. Supplier contacts, PDF contents, and private package data remain in private R2 and are never copied into D1.
+
+## Technical Implementation Steps
+
+This is the intended implementation order for the full commerce system:
+
+1. Keep the public storefront static and public-safe.
+2. Validate all support and monitor traffic in the Worker.
+3. Keep secrets in Cloudflare Worker secrets, never in the repo or browser.
+4. Use D1 for order state, event tracking, and retry history.
+5. Use R2 for private delivery artifacts and contact bundles.
+6. Use Stripe Checkout for payment collection instead of custom card handling.
+7. Verify Stripe webhooks in the Worker before touching D1 or R2.
+8. Use Resend for customer-facing and operator-facing email.
+9. Keep staging and production isolated at the Worker, D1, R2, and email-credential layers.
 
 ## Target Transaction Architecture
 
@@ -110,10 +157,10 @@ sequenceDiagram
   B->>P: Complete payment
   P->>W: Send signed checkout webhook
   W->>W: Verify signature against raw body
-  W->>D: Create/idempotently update order
-  W->>R: Read purchased contact data/artifact
+  W->>D: Create or idempotently update order
+  W->>R: Read purchased contact data or artifact
   W->>E: Send fulfillment from orders@shopresalelane.com
-  E-->>B: Contact details plus optional PDF/link
+  E-->>B: Contact details plus optional PDF or link
   W->>D: Record email attempt and provider result
 ```
 
@@ -134,15 +181,15 @@ Stripe remains the payment receipt authority. ResaleLane sends a separate order 
 
 Approved frontend separation:
 
-- Feature/PR preview: per-PR Pages path
-- Stable staging: `/staging/`
-- Production: domain root
+- feature and PR preview: per-PR Pages path
+- stable staging: `/staging/`
+- production: domain root
 
 Backend environment separation:
 
-- The existing `/staging/` path is sufficient; a dedicated staging hostname is not required.
-- Staging uses Stripe test-mode keys and a test webhook secret.
-- Staging and production use separate D1 databases and R2 buckets/bindings.
-- Staging contains synthetic package data and cannot access production contacts.
-- Resend testing must not send fulfillment to real customers.
-- Production deployment occurs only after staging verification.
+- the existing `/staging/` path is sufficient; a dedicated staging hostname is not required
+- staging uses Stripe test-mode keys and a test webhook secret
+- staging and production use separate D1 databases and R2 buckets and bindings
+- staging contains synthetic package data and cannot access production contacts
+- Resend testing must not send fulfillment to real customers
+- production deployment occurs only after staging verification

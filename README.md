@@ -16,6 +16,22 @@ GitHub source of truth for the ResaleLane storefront, public-safe product docume
 - Collaborator setup: [.github/CONTRIBUTING.md](.github/CONTRIBUTING.md)
 - Brand/design source files: [Design System/design_handoff_resalelane/README.md](Design%20System/design_handoff_resalelane/README.md)
 
+## What This Project Uses
+
+ResaleLane uses a small set of services, each for one clear job:
+
+| Vendor/service | What it does here | Why we use it |
+| --- | --- | --- |
+| GitHub | Stores code, docs, issues, and the planning board | It is the shared source of truth for collaborators. |
+| GitHub Actions | Runs tests, previews, and deploy workflows | It checks changes automatically before publishing them. |
+| GitHub Pages | Hosts the public storefront | It is a simple fit for a mostly static site. |
+| Cloudflare DNS/proxy | Routes the custom domain | It keeps `shopresalelane.com` pointed at the right public site and private API. |
+| Cloudflare Worker | Runs the private API | It handles support email now and is the planned home for checkout and webhooks later. |
+| Cloudflare D1 | Stores order and support state | It gives the Worker a small SQL database for order, retry, and audit records. |
+| Cloudflare R2 | Stores private delivery artifacts | It keeps private package files out of the public repo and browser. |
+| Resend | Sends transactional email | It powers support and monitoring emails without exposing mail credentials in frontend code. |
+| Stripe | Planned checkout provider | It will own card handling and payment receipts once checkout is enabled. |
+
 ## How It Is Built
 
 The current storefront is a dependency-free static website:
@@ -32,13 +48,13 @@ The current storefront is a dependency-free static website:
 - `test/` contains automated Node.js tests.
 - `.github/workflows/` contains testing, preview, and production deployment automation.
 
-There is no public backend yet. Stripe payments and private supplier delivery must not be added to the static frontend.
+The public storefront is intentionally static and public-safe. Private supplier data, payment secrets, and order records do not belong in `site/`.
 
 ## Approved Target Architecture
 
-GitHub Pages remains the public storefront host. Checkout and fulfillment will be added as a private Cloudflare Worker backend:
+GitHub Pages remains the public storefront host. Checkout and fulfillment are designed to run through a private Cloudflare Worker backend:
 
-1. The browser sends selected product IDs—not prices—to the Worker.
+1. The browser sends selected product IDs, not prices, to the Worker.
 2. The Worker validates those IDs and maps them to authoritative Stripe Price IDs.
 3. Stripe hosts Checkout and sends its signed completion webhook to the Worker.
 4. The Worker verifies the webhook, records the order in D1, and resolves purchased contact data from private R2 or server-side configuration.
@@ -46,6 +62,62 @@ GitHub Pages remains the public storefront host. Checkout and fulfillment will b
 6. The Worker records each email-delivery attempt in D1.
 
 The storefront, Git repository, and GitHub Pages deployment must never contain Stripe secrets, buyer records, or private package contact data. See [docs/ARCHITECTURE.md](docs/ARCHITECTURE.md) for the complete request sequence and environment boundaries.
+
+## How The Main Pieces Fit Together
+
+Today:
+
+1. You edit public storefront files in `site/`.
+2. `npm run check` tests the public site, Worker code, docs consistency, and build safety.
+3. GitHub Actions runs the same checks on pull requests.
+4. If checks pass, GitHub Pages publishes the built static site.
+5. Cloudflare keeps the custom domain pointed at the published site.
+6. The private Cloudflare Worker powers the support form and daily monitor email.
+
+Later, when checkout is enabled:
+
+1. The storefront will send product IDs to the Worker.
+2. The Worker will create a Stripe Checkout Session.
+3. Stripe will process payment and send a webhook back to the Worker.
+4. The Worker will store safe order state in D1.
+5. The Worker will read private delivery data from R2.
+6. Resend will send the fulfillment email.
+
+## Technical Implementation Steps
+
+If you are trying to understand or extend the project, this is the normal order:
+
+1. Read `README.md`, `docs/HANDOFF.md`, `docs/ARCHITECTURE.md`, and `docs/SOP.md`.
+2. Check the planning issue and project-board status before changing anything.
+3. Make public storefront changes in `site/`.
+4. Make private API changes in `worker/`.
+5. Update docs when architecture, workflow, or behavior changes.
+6. Run `npm run check`.
+7. Push a branch and let GitHub Actions run tests and preview deployment.
+8. Verify the preview or production environment before calling the work done.
+
+## Local Setup For A Beginner
+
+Open PowerShell in the project folder, then:
+
+1. Install packages:
+
+```powershell
+npm install
+```
+
+2. Run the full repo check:
+
+```powershell
+npm run check
+```
+
+3. If you are working on Worker configuration, do safe dry runs before live deploys:
+
+```powershell
+npx wrangler deploy --env="" --dry-run
+npx wrangler deploy --env staging --dry-run
+```
 
 ## Tests
 
@@ -55,7 +127,7 @@ Run this in PowerShell from the project folder:
 npm run check
 ```
 
-This checks JavaScript syntax and tests prices, cart rules, safety copy, disabled checkout, and public asset references.
+This checks JavaScript syntax, docs consistency, prices, cart rules, safety copy, disabled checkout behavior, Worker routes, and public asset references.
 
 The build creates `dist/` with release-specific asset filenames. `dist/` is generated and is not committed.
 
@@ -67,7 +139,7 @@ The release model intentionally uses two source branches:
 - `main` is the production source and deploys to `https://shopresalelane.com/`.
 - `gh-pages` is an automated deployment artifact branch. Do not edit it manually.
 
-The normal path is feature branch → pull request preview → tests → `staging` verification → `main` production release. A failed automated test blocks deployment. Preview, staging, and production workflows share one deployment queue so they cannot write to GitHub Pages simultaneously.
+The normal path is feature branch -> pull request preview -> tests -> `staging` verification -> `main` production release. A failed automated test blocks deployment. Preview, staging, and production workflows share one deployment queue so they cannot write to GitHub Pages simultaneously.
 
 The `staging` branch deploys to `https://shopresalelane.com/staging/index.html?release=<commit>&fresh=<unique-value>`. Pull requests receive separate preview paths. A daily GitHub Actions job checks production uptime; daily email delivery activates after the Resend secrets are configured.
 
