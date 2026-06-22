@@ -1,4 +1,5 @@
 import { buildSupportEmail, validateContactSubmission } from "./contact.js";
+import { readBoundedJson, RequestError, securityHeaders } from "./security.js";
 
 const ALLOWED_ORIGINS = new Set([
   "https://shopresalelane.com",
@@ -8,13 +9,14 @@ const ALLOWED_ORIGINS = new Set([
 ]);
 
 function corsHeaders(origin) {
-  return {
-    "Access-Control-Allow-Origin": ALLOWED_ORIGINS.has(origin) ? origin : "https://shopresalelane.com",
+  const headers = {
     "Access-Control-Allow-Headers": "Content-Type",
     "Access-Control-Allow-Methods": "GET, POST, OPTIONS",
     "Access-Control-Max-Age": "86400",
     "Vary": "Origin"
   };
+  if (ALLOWED_ORIGINS.has(origin)) headers["Access-Control-Allow-Origin"] = origin;
+  return headers;
 }
 
 function jsonResponse(body, status, origin, requestId) {
@@ -22,6 +24,7 @@ function jsonResponse(body, status, origin, requestId) {
     status,
     headers: {
       ...corsHeaders(origin),
+      ...securityHeaders(),
       "Cache-Control": "no-store",
       "X-Request-ID": requestId
     }
@@ -77,16 +80,19 @@ const worker = {
           apiVersion: "1",
           environment: env.ENVIRONMENT,
           services: { d1: "schema-ready", r2: "connected" }
-        }, { headers: { "Cache-Control": "no-store", "X-Request-ID": requestId } });
+        }, { headers: { ...securityHeaders(), "Cache-Control": "no-store", "X-Request-ID": requestId } });
       } catch {
         return Response.json(
           { ok: false, environment: env.ENVIRONMENT, error: "Service check failed." },
-          { status: 503, headers: { "Cache-Control": "no-store", "X-Request-ID": requestId } }
+          { status: 503, headers: { ...securityHeaders(), "Cache-Control": "no-store", "X-Request-ID": requestId } }
         );
       }
     }
 
     if (request.method === "OPTIONS") {
+      if (!ALLOWED_ORIGINS.has(origin)) {
+        return jsonResponse({ ok: false, error: "This request is not allowed." }, 403, origin, requestId);
+      }
       return new Response(null, { status: 204, headers: corsHeaders(origin) });
     }
 
@@ -98,13 +104,8 @@ const worker = {
       return jsonResponse({ ok: false, error: "This request is not allowed." }, 403, origin, requestId);
     }
 
-    const contentLength = Number(request.headers.get("Content-Length") || "0");
-    if (contentLength > 12000) {
-      return jsonResponse({ ok: false, error: "That message is too large." }, 413, origin, requestId);
-    }
-
     const clientKey = request.headers.get("CF-Connecting-IP") || "unknown";
-    const rateLimit = await env.CONTACT_RATE_LIMITER.limit({ key: clientKey });
+    const rateLimit = await env.CONTACT_RATE_LIMITER.limit({ key: `support:${clientKey}` });
     if (!rateLimit.success) {
       return jsonResponse(
         { ok: false, error: "Too many messages were sent. Please wait a minute and try again." },
@@ -116,8 +117,11 @@ const worker = {
 
     let input;
     try {
-      input = await request.json();
-    } catch {
+      input = await readBoundedJson(request);
+    } catch (error) {
+      if (error instanceof RequestError) {
+        return jsonResponse({ ok: false, error: error.message }, error.status, origin, requestId);
+      }
       return jsonResponse({ ok: false, error: "Please complete the contact form and try again." }, 400, origin, requestId);
     }
 

@@ -17,6 +17,9 @@ test("production page includes required public content and safety controls", () 
   assert.match(app, /disabled/);
   assert.match(html, /ResaleLane sells informational vendor resources only/);
   assert.match(html, /collin\.bediner\+support@gmail\.com/);
+  assert.match(html, /Content-Security-Policy/);
+  assert.match(html, /object-src 'none'/);
+  assert.match(html, /name="referrer" content="strict-origin-when-cross-origin"/);
 });
 
 test("contact form sends through the private API and keeps a direct email fallback", () => {

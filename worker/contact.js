@@ -8,6 +8,7 @@ const SUPPORT_REASONS = new Set([
 ]);
 
 const EMAIL_PATTERN = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+const CONTACT_FIELDS = new Set(["name", "email", "order", "reason", "message", "messageHtml", "company"]);
 
 function clean(value, maximumLength) {
   return typeof value === "string" ? value.trim().slice(0, maximumLength) : "";
@@ -24,6 +25,9 @@ function cleanMessageHtml(value) {
 export function validateContactSubmission(input) {
   if (!input || typeof input !== "object" || Array.isArray(input)) {
     return { ok: false, error: "Please complete the contact form and try again." };
+  }
+  if (Object.keys(input).some(key => !CONTACT_FIELDS.has(key))) {
+    return { ok: false, error: "The form included an unexpected field. Please refresh and try again." };
   }
 
   const submission = {

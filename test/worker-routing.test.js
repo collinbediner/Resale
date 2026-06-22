@@ -48,5 +48,22 @@ test("unknown routes and unapproved origins return safe errors", async () => {
     body: "{}"
   }), testEnv());
   assert.equal(forbidden.status, 403);
-  assert.equal(forbidden.headers.get("Access-Control-Allow-Origin"), "https://shopresalelane.com");
+  assert.equal(forbidden.headers.get("Access-Control-Allow-Origin"), null);
+  assert.equal(forbidden.headers.get("X-Content-Type-Options"), "nosniff");
+});
+
+test("support endpoint requires JSON and bounds bodies without trusting Content-Length", async () => {
+  const wrongType = await worker.fetch(new Request("https://api.example.test/support", {
+    method: "POST",
+    headers: { Origin: "https://shopresalelane.com", "Content-Type": "text/plain" },
+    body: "{}"
+  }), testEnv());
+  assert.equal(wrongType.status, 415);
+
+  const oversized = await worker.fetch(new Request("https://api.example.test/support", {
+    method: "POST",
+    headers: { Origin: "https://shopresalelane.com", "Content-Type": "application/json" },
+    body: JSON.stringify({ message: "x".repeat(13_000) })
+  }), testEnv());
+  assert.equal(oversized.status, 413);
 });
