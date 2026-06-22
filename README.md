@@ -76,6 +76,31 @@ The normal path is feature branch → pull request preview → tests → `stagin
 
 The `staging` branch deploys to `https://shopresalelane.com/staging/index.html?release=<commit>&fresh=<unique-value>`. Pull requests receive separate preview paths. A daily GitHub Actions job checks production uptime; daily email delivery activates after the Resend secrets are configured.
 
+## Private Worker Environments
+
+- Production API: `https://api.shopresalelane.com`
+- Staging API: `https://api-staging.shopresalelane.com`
+- Production and staging use separate D1 databases and private R2 buckets.
+- The production Resend key is a Cloudflare secret and is not available to staging.
+- D1 migrations live in `migrations/` and are applied to staging before production.
+
+Common validation commands:
+
+```powershell
+npm run check
+npx wrangler deploy --env="" --dry-run
+npx wrangler deploy --env staging --dry-run
+```
+
+Health checks:
+
+```powershell
+curl.exe -sS https://api.shopresalelane.com/health
+curl.exe -sS https://api-staging.shopresalelane.com/health
+```
+
+Deployment, migrations, and rollback instructions are maintained in `docs/SOP.md`.
+
 ### Rollback
 
 Rollback remains available without force-pushing or renaming branches:

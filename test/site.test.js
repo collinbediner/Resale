@@ -7,6 +7,8 @@ const html = readFileSync(new URL("../site/index.html", import.meta.url), "utf8"
 const app = readFileSync(new URL("../site/app.js", import.meta.url), "utf8");
 const success = readFileSync(new URL("../site/success.html", import.meta.url), "utf8");
 const canceled = readFileSync(new URL("../site/canceled.html", import.meta.url), "utf8");
+const worker = readFileSync(new URL("../worker/index.js", import.meta.url), "utf8");
+const wrangler = readFileSync(new URL("../wrangler.jsonc", import.meta.url), "utf8");
 const bundleId = "all-vendor-bundle";
 
 test("production page includes required public content and safety controls", () => {
@@ -15,6 +17,34 @@ test("production page includes required public content and safety controls", () 
   assert.match(app, /disabled/);
   assert.match(html, /ResaleLane sells informational vendor resources only/);
   assert.match(html, /collin\.bediner\+support@gmail\.com/);
+  assert.match(html, /Content-Security-Policy/);
+  assert.match(html, /object-src 'none'/);
+  assert.match(html, /name="referrer" content="strict-origin-when-cross-origin"/);
+});
+
+test("contact form sends through the private API and keeps a direct email fallback", () => {
+  assert.match(app, /https:\/\/api\.shopresalelane\.com\/support/);
+  assert.match(app, /method: "POST"/);
+  assert.doesNotMatch(app, /window\.location\.href = `mailto:/);
+  assert.match(html, /name="company"/);
+  assert.match(html, /name="reason" required/);
+  assert.match(html, /data-format="bold"/);
+  assert.match(html, /data-format="underline"/);
+  assert.match(html, /data-format="insertUnorderedList"/);
+  assert.match(html, /data-contact-status/);
+  assert.match(app, /collin\.bediner\+support@gmail\.com/);
+});
+
+test("Worker keeps staging and production D1 and R2 bindings isolated", () => {
+  assert.match(worker, /url\.pathname === "\/health"/);
+  assert.match(worker, /env\.ORDERS_DB/);
+  assert.match(worker, /env\.ARTIFACTS/);
+  assert.match(wrangler, /resalelane-orders-production/);
+  assert.match(wrangler, /resalelane-artifacts-production/);
+  assert.match(wrangler, /resalelane-orders-staging/);
+  assert.match(wrangler, /resalelane-artifacts-staging/);
+  assert.match(wrangler, /"ENVIRONMENT": "production"/);
+  assert.match(wrangler, /"ENVIRONMENT": "staging"/);
 });
 
 test("all referenced local assets exist", () => {

@@ -26,3 +26,6 @@ jobs:
         env:
           RELEASE_ID: ${{ github.sha }}
         run: npm run check
+
+      - name: Validate Worker environments
+        run: npm run worker:check

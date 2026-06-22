@@ -5,6 +5,9 @@
   "scripts": {
     "build": "node scripts/build.mjs",
     "test": "node --test",
-    "check": "node --check site/app.js && node --check site/cart-logic.js && node --check server/email-templates.js && node --test && npm run build"
+    "security:scan": "node scripts/scan-secrets.mjs",
+    "check": "npm run security:scan && node --check site/app.js && node --check site/cart-logic.js && node --check server/email-templates.js && node --check worker/index.js && node --check worker/contact.js && node --check worker/order-store.js && node --check worker/security.js && node --test && npm run build",
+    "worker:deploy": "wrangler deploy",
+    "worker:check": "npx wrangler deploy --env=\"\" --dry-run && npx wrangler deploy --env staging --dry-run"
   }
 }
