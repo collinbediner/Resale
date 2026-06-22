@@ -37,17 +37,20 @@ The check should finish without errors and create a temporary ignored `dist/` fo
 - `docs/PRD.md`: full product requirements.
 - `docs/WEBSITE-SPEC.md`: website behavior and page requirements.
 - `docs/SOP.md`: team workflow, testing, preview, and release rules.
+- `HANDOFF.md`: current cross-agent work, authoritative links, blockers, and next exact action.
 - `server/`: future backend modules that must not be shipped in the static frontend.
 - `test/`: automated safety and behavior tests.
 
 ## Safe Collaboration Workflow
+
+First read `HANDOFF.md`, the implementation plan, the architecture, the active planning issue, and the Project board. Verify the handoff against current GitHub state before trusting it. Claim one ticket and one writer branch following the multi-machine protocol in `docs/SOP.md`; this applies equally to Codex, Claude, other agents, and humans.
 
 Before starting:
 
 ```powershell
 git switch main
 git pull --ff-only
-git switch -c feature/short-description
+git switch -c work/issue-number-short-description
 ```
 
 Make the change, update the related documentation, and run:
@@ -65,6 +68,8 @@ git push -u origin HEAD
 ```
 
 Open a pull request on GitHub. Wait for the automated checks and use the generated preview before merging visual or copy changes.
+
+Before stopping, push the branch, update the canonical issue and Project status, and refresh `HANDOFF.md` with completed work, tests, blockers, and the next exact action. Never leave the only useful continuation context in an agent chat or on one machine.
 
 ## Never Commit These
 

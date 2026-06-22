@@ -11,6 +11,8 @@ Source draft: [ResaleLane PRD Spec](https://docs.google.com/document/d/1614VMQnQ
 
 This tracked file is authoritative for collaborators. The Google Doc is a source draft; approved changes must be copied here.
 
+Current status: the static storefront is live and publicly viewable, and cart UX exists. Checkout is intentionally disabled while the site remains a pre-commerce storefront preview.
+
 ## Product Summary
 
 ResaleLane is a dark, mobile-first ecommerce-style storefront that sells low-cost digital sourcing resources. Buyers browse packages, use Stripe Checkout without creating an account, and receive the correct resource by email after payment.
@@ -35,8 +37,11 @@ This is the authoritative target architecture as of June 18, 2026:
 12. The Worker sends fulfillment through Resend from `orders@shopresalelane.com`.
 13. The email includes the purchased contact details directly and may also include a PDF or secure link.
 14. The Worker records each email-delivery attempt and provider result in D1.
+15. Support can verify an order and authorize a safe resend when needed.
 
-GitHub Pages remains intentionally static. Stripe secrets, webhook secrets, Resend credentials, order records, and private package data exist only in the Worker environment and its private bindings. The current `/staging/` deployment is sufficient for frontend testing; backend staging must use Stripe test mode, synthetic package data, and separate D1/R2 resources.
+GitHub Pages remains intentionally static. Cloudflare Pages is not planned. Stripe secrets, webhook secrets, Resend credentials, order records, and private package data exist only in the Worker environment and its private bindings. The current `/staging/` deployment is sufficient for frontend testing; backend staging must use Stripe test mode, synthetic package data, and separate D1/R2 resources.
+
+ResaleLane uses separate Stripe and Resend accounts/projects rather than PasteFlow accounts, sender identities, webhooks, support details, or reporting. Because Collin is 14, the Stripe account must be parent/adult controlled or otherwise satisfy Stripe's identity and business-verification requirements.
 
 ## MVP Goals
 
@@ -53,15 +58,16 @@ GitHub Pages remains intentionally static. Stripe secrets, webhook secrets, Rese
 - No custom card form; Stripe hosts payment entry.
 - No automatic publishing of reviews.
 - No promises of profit, product quality, supplier availability, or delivery timing.
+- No GA4, GTM, ecommerce analytics, attribution reporting, Search Console process, or SEO/content expansion in Phase 1.
 
 ## Products
 
 | Product | ID/slug | Price | Compare price | Badge |
 | --- | --- | ---: | ---: | --- |
-| Shoe Vendors | `shoe-vendors` | $7 | $15 | Launch Sale |
-| Clothing Vendors | `clothing-vendors` | $7 | $15 | Launch Sale |
-| AirPods & Headphones Vendors | `airpods-headphones-vendors` | $7 | $15 | Launch Sale |
-| Cologne Vendors | `cologne-vendors` | $7 | $15 | Launch Sale |
+| Shoe Vendor | `shoe-vendor` | $7 | $15 | Launch Sale |
+| Clothes Vendor | `clothes-vendor` | $7 | $15 | Launch Sale |
+| AirPods / Headphones Vendor | `airpods-headphones-vendor` | $7 | $15 | Launch Sale |
+| Cologne Vendor | `cologne-vendor` | $7 | $15 | Launch Sale |
 | All Vendor Bundle | `all-vendor-bundle` | $12 | $28 | Best Value |
 
 The bundle includes all four individual categories. Buying individually costs $28; the bundle costs $12 and saves $16.

@@ -1,31 +1,62 @@
 name: Test Website
 
 on:
-  push:
-    branches: [main]
-  pull_request:
   workflow_dispatch:
   workflow_call:
+    outputs:
+      validation-tier:
+        description: Validation tier selected from the changed file paths.
+        value: ${{ jobs.test.outputs.validation-tier }}
 
 permissions:
   contents: read
 
 jobs:
   test:
+    outputs:
+      validation-tier: ${{ steps.scope.outputs.validation-tier }}
     runs-on: ubuntu-latest
     steps:
       - name: Checkout
         uses: actions/checkout@v5
+        with:
+          fetch-depth: 0
 
       - name: Set up Node.js
         uses: actions/setup-node@v5
         with:
           node-version: 22
 
-      - name: Run checks and tests
+      # Classify from Git paths instead of trusting a PR label or contributor assertion.
+      - name: Select validation tier
+        id: scope
+        env:
+          EVENT_NAME: ${{ github.event_name }}
+          BEFORE_SHA: ${{ github.event.before }}
+          BASE_SHA: ${{ github.event.pull_request.base.sha }}
+          HEAD_SHA: ${{ github.event.pull_request.head.sha || github.sha }}
+        shell: bash
+        run: |
+          if [[ "$EVENT_NAME" == "pull_request" ]]; then
+            git diff --name-only --no-renames "$BASE_SHA" "$HEAD_SHA" |
+              node scripts/validation-policy.mjs >> "$GITHUB_OUTPUT"
+          elif [[ "$EVENT_NAME" == "push" && -n "$BEFORE_SHA" && ! "$BEFORE_SHA" =~ ^0+$ ]]; then
+            git diff --name-only --no-renames "$BEFORE_SHA" "$HEAD_SHA" |
+              node scripts/validation-policy.mjs >> "$GITHUB_OUTPUT"
+          else
+            echo "validation-tier=full" >> "$GITHUB_OUTPUT"
+          fi
+
+      - name: Run documentation checks
+        if: steps.scope.outputs.validation-tier == 'docs-only'
+        run: npm run check:docs
+
+      - name: Run full checks and tests
+        if: steps.scope.outputs.validation-tier == 'full'
         env:
           RELEASE_ID: ${{ github.sha }}
         run: npm run check
 
       - name: Validate Worker environments
+        if: steps.scope.outputs.validation-tier == 'full'
         run: npm run worker:check

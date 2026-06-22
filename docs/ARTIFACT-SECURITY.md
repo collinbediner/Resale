@@ -2,7 +2,7 @@
 
 ## Decision
 
-Customer delivery artifacts will live in a private Cloudflare R2 bucket. They will never be committed to either Git repository, placed in Google Drive links sent to customers, or copied into frontend files.
+Customer delivery artifacts and contact packages will live in private Cloudflare R2 buckets or equivalent Worker-only configuration. They will never be committed to either Git repository, placed in public Google Drive links sent to customers, or copied into frontend files.
 
 The fulfillment Worker is the only service allowed to read production package data. After a verified purchase, the customer receives the contact details directly in the Resend fulfillment email and may additionally receive either:
 
@@ -13,22 +13,23 @@ Direct email content is the default for concise contact packages. Short-lived de
 
 ## Storage Layout
 
-Use immutable, versioned object keys:
+Use private, versioned object keys:
 
 ```text
+artifacts/{environment}/{product-id}/{version}/contacts.json
 artifacts/{environment}/{product-id}/{version}/package.pdf
-artifacts/{environment}/{product-id}/{version}/manifest.json
 ```
 
 Example:
 
 ```text
-artifacts/production/shoe-vendor/2026-06-18.1/package.pdf
+artifacts/production/shoe-vendor/v1/contacts.json
+artifacts/production/shoe-vendor/v1/package.pdf
 ```
 
 Never use supplier names, customer email addresses, order IDs, or secrets in object keys.
 
-The manifest contains public-safe operational metadata only:
+The same layout applies to `clothes-vendor`, `airpods-headphones-vendor`, `cologne-vendor`, and `all-vendor-bundle`. `contacts.json` contains the private package data and is read only by the Worker. If operational metadata is needed, keep it in a separate public-safe manifest or server-controlled mapping:
 
 ```json
 {
@@ -41,7 +42,7 @@ The manifest contains public-safe operational metadata only:
 }
 ```
 
-Supplier contacts remain inside the encrypted-at-rest object or Worker-only configuration until a verified order is fulfilled. The Worker may copy the purchased contacts into that buyer's transactional email, but never into the manifest, logs, database, ticket system, or public files.
+Supplier contacts remain inside the private object or Worker-only configuration until a verified order is fulfilled. The Worker may copy purchased contacts into that buyer's transactional email, but never into logs, D1, ticket systems, public docs, frontend code, generated deployments, or public files.
 
 ## Environment Isolation
 
@@ -50,6 +51,7 @@ Supplier contacts remain inside the encrypted-at-rest object or Worker-only conf
 - Production credentials must not be available to preview or staging deployments.
 - Stripe test-mode orders can only resolve staging artifacts.
 - Live Stripe events can only resolve production artifacts.
+- Use `resalelane-artifacts-staging` and `resalelane-artifacts-production` so ResaleLane resources remain distinct from other projects.
 
 ## Access Control
 
@@ -69,10 +71,11 @@ Before issuing a delivery:
 3. Enforce idempotency using the Stripe event ID and Checkout Session ID.
 4. Map Stripe Price IDs to internal product IDs server-side.
 5. Resolve the active artifact version from server-controlled configuration.
-6. Create an order-bound delivery token with a short expiration.
-7. Record the artifact version and delivery attempt in D1.
+6. Render copy/paste-friendly contact details directly into the transactional email.
+7. If a download is included, create an order-bound delivery token with a short expiration.
+8. Record the artifact version and delivery attempt in D1.
 
-The download endpoint validates a cryptographically random token stored as a hash in D1. It does not accept a raw object key from the customer.
+The optional download endpoint validates a cryptographically random token stored as a hash in D1. It does not accept a raw object key from the customer. Direct contact text in the fulfillment email is the v1 primary artifact; a PDF/link is secondary.
 
 Recommended initial limits:
 

@@ -18,6 +18,8 @@ jobs:
 
   preview:
     needs: test
+    # Documentation-only pull requests do not change the deployed storefront.
+    if: needs.test.outputs.validation-tier == 'full' || github.event.action == 'closed'
     runs-on: ubuntu-latest
     environment:
       name: staging

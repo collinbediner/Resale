@@ -6,13 +6,19 @@ GitHub source of truth for the ResaleLane storefront, public-safe product docume
 - GitHub Pages: https://collinbediner.github.io/Resale/
 - Repository: https://github.com/collinbediner/Resale
 - Operating procedure: [docs/SOP.md](docs/SOP.md)
+- Current cross-agent handoff: [HANDOFF.md](HANDOFF.md)
 - Architecture: [docs/ARCHITECTURE.md](docs/ARCHITECTURE.md)
 - Product/spec snapshot: [docs/SPEC-SNAPSHOT.md](docs/SPEC-SNAPSHOT.md)
 - Full product requirements: [docs/PRD.md](docs/PRD.md)
 - Website specification: [docs/WEBSITE-SPEC.md](docs/WEBSITE-SPEC.md)
 - Delivery roadmap: [docs/ROADMAP.md](docs/ROADMAP.md)
+- Master implementation tracker: [docs/IMPLEMENTATION-PLAN.md](docs/IMPLEMENTATION-PLAN.md)
 - Collaborator setup: [CONTRIBUTING.md](CONTRIBUTING.md)
 - Brand/design source files: [Design System/design_handoff_resalelane/README.md](Design%20System/design_handoff_resalelane/README.md)
+
+## Starting Any Work Session
+
+Whether the contributor is using Codex, Claude, another AI agent, or working manually, begin with [HANDOFF.md](HANDOFF.md). Then verify it against Git, the canonical planning issue, and the [ResaleLane Delivery Kanban](https://github.com/users/collinbediner/projects/1) before making changes. The full mandatory start, work-claiming, collision-avoidance, and session-end process is in [docs/SOP.md](docs/SOP.md#agent-and-multi-machine-handoff-protocol).
 
 ## How It Is Built
 
@@ -29,7 +35,7 @@ The current storefront is a dependency-free static website:
 - `test/` contains automated Node.js tests.
 - `.github/workflows/` contains testing, preview, and production deployment automation.
 
-There is no public backend yet. Stripe payments and private supplier delivery must not be added to the static frontend.
+There is no public backend yet. The live site is a pre-commerce storefront preview, and checkout remains intentionally disabled. Stripe payments and private supplier delivery must not be added to the static frontend.
 
 ## Approved Target Architecture
 
@@ -43,6 +49,8 @@ GitHub Pages remains the public storefront host. Checkout and fulfillment will b
 6. The Worker records each email-delivery attempt in D1.
 
 The storefront, Git repository, and GitHub Pages deployment must never contain Stripe secrets, buyer records, or private package contact data. See [docs/ARCHITECTURE.md](docs/ARCHITECTURE.md) for the complete request sequence and environment boundaries.
+
+ResaleLane will use its own separate Stripe and Resend accounts/projects. PasteFlow products, customers, sender identities, webhooks, support details, and reporting must not be shared with this project. See [docs/IMPLEMENTATION-PLAN.md](docs/IMPLEMENTATION-PLAN.md) for the ordered work and launch gates.
 
 ## Tests
 

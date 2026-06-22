@@ -12,6 +12,8 @@ Tracked source material includes:
 - `server/` for backend-safe modules.
 - `Design System/design_handoff_resalelane/` for original public-safe brand and design files.
 - `docs/PRD.md` and `docs/WEBSITE-SPEC.md` for readable repository copies of the source specifications.
+- `docs/IMPLEMENTATION-PLAN.md` for the master phase, dependency, launch-gate, and ticket tracker.
+- `HANDOFF.md` for the current cross-agent working state and next exact action.
 - `docs/` for architecture, security, roadmap, and operating decisions.
 - `CONTRIBUTING.md` for collaborator setup and workflow.
 
@@ -26,31 +28,84 @@ Before every implementation pass:
 5. Update tracked docs, assets, or app files with every decision being implemented.
 6. Keep private supplier data out of Git. Supplier delivery content belongs in protected storage, never this public repository.
 
-## Required Testing
+## Agent And Multi-Machine Handoff Protocol
 
-Before every commit:
+This protocol applies to Codex, Claude, every other AI tool, and human contributors. The repository workflow must not depend on one vendor's private memory or chat history.
 
-1. Run `npm run check` from the project folder.
-2. Fix every failure before committing.
-3. For visual changes, inspect both desktop and mobile layouts in the browser.
-4. Test the affected user flow, such as navigation, cart, product details, or checkout preview.
+### Required session start
 
-The automated suite currently checks:
+Before reasoning about or implementing the next task:
 
-- JavaScript syntax
-- Product and bundle prices
-- Duplicate cart prevention
-- Bundle/individual conflict rules
-- Disabled Stripe checkout
-- Required legal/support content
-- Missing local assets
+1. Run `git status --short --branch`, `git remote -v`, `git fetch origin --prune`, and `git log -1 --oneline`.
+2. If starting from a clean `main`, run `git pull --ff-only origin main`. Never pull blindly over local changes.
+3. Read, in order: `HANDOFF.md`, `docs/IMPLEMENTATION-PLAN.md`, `docs/ARCHITECTURE.md`, `docs/ARTIFACT-SECURITY.md`, `docs/PRD.md`, and this SOP.
+4. Open the canonical planning issue and the Project board. Check status, dependencies, comments, assignee, linked branches, and open pull requests.
+5. Verify the handoff against Git and GitHub. If the handoff disagrees with the branch, issue, PR, or board, current GitHub state wins and the handoff must be corrected before implementation.
+6. State which ticket and branch the session will own. Do not begin untracked implementation.
+
+### Claiming work without collisions
+
+- One canonical issue has one active writer branch. Use a purpose-based name such as `work/issue-25-worker-foundation`; the branch name must not depend on the agent product.
+- Move the issue label and Project card to `In Progress`, then comment with the working branch, PR if available, scope, and expected files.
+- Before editing, search open pull requests and issue comments for overlapping work.
+- Different machines may work in parallel only on separate tickets/branches with non-overlapping ownership, or after the issue explicitly records how the work is split.
+- Do not have two agents push independently to the same branch. If another machine must continue that branch, the first agent must stop writing, push everything, and update `HANDOFF.md` plus the ticket.
+- Do not use chat history, local memory, or an unpushed local folder as the only record of a decision.
+- If local work is dirty or divergent, preserve it on a named branch or stash before syncing. Never overwrite unexplained changes.
+
+### Required session end
+
+Before stopping, even when work is incomplete:
+
+1. Run relevant automated and manual QA.
+2. Commit and push all intended public-safe work so another machine can fetch it.
+3. Update the canonical issue with completed work, remaining work, tests, blockers, branch, PR, and the next exact action.
+4. Synchronize the issue `status:*` label and Project status. Use `UAT` only when implementation and checks are complete and owner acceptance is next.
+5. Update root `HANDOFF.md` with the same current state and authoritative links.
+6. Verify the handoff contains no secrets, real vendor contacts, buyer data, private support data, or paid artifact contents.
+7. Re-fetch and compare local/remote branch state. Clearly disclose any uncommitted or unpushed work.
+
+The handoff is a navigation and continuation aid. GitHub code, the canonical issue, the Project board, and current pull-request checks remain authoritative.
+
+## Risk-Based Validation
+
+Testing must match the risk of the changed files. Agents should not spend time or model tokens narrating, running, and reviewing unrelated regression output, but they must never choose a lighter tier merely because a change appears simple. The shared path classifier in `scripts/validation-policy.mjs` makes the CI decision from Git file paths.
+
+### Documentation-only tier
+
+Use this tier only when every changed file is public Markdown under `docs/` or one of `README.md`, `CONTRIBUTING.md`, and `HANDOFF.md`.
+
+Before committing:
+
+1. Run `npm run check:docs`.
+2. Run `git diff --check`.
+3. Read the rendered Markdown or diff for broken headings, links, tables, contradictory instructions, accidental private data, and stale ticket or branch references.
+
+This tier runs the secret scan, architecture/document consistency tests, handoff/SOP tests, and validation-policy tests. It intentionally skips application syntax checks, Worker dry runs, the full storefront regression suite, release builds, CodeQL pull-request analysis, and preview/production deployment because Markdown-only changes cannot alter those artifacts.
+
+### Full tier
+
+Use `npm run check` plus `npm run worker:check` when any changed file is outside the documentation-only allowlist. The full tier is mandatory for application code, Worker or server code, tests, scripts, package configuration, workflows, migrations, HTML/CSS, assets, design sources, security configuration, and mixed documentation/code changes.
+
+For visual changes, also inspect desktop and mobile layouts and test the affected user flow. For backend or data changes, test the affected route, environment boundary, migration, failure path, and redaction behavior.
+
+When uncertain, use the full tier. Never weaken tests, split a code change into a misleading documentation-only commit, or relabel files to obtain the lightweight path.
+
+### CI/CD efficiency rules
+
+- Pull requests use one reusable validation workflow instead of running the same suite independently in both test and preview workflows.
+- Documentation-only pull requests run the lightweight tier and do not create a storefront preview.
+- Documentation-only merges to `staging` or `main` do not rebuild or redeploy unchanged website artifacts.
+- CodeQL still runs on executable or workflow changes, on `main`, on its schedule, and when manually requested; it skips Markdown-only pull requests.
+- Manual workflow dispatch defaults to the full tier because no trustworthy comparison range is guaranteed.
+- CI logs and agent summaries should report the selected tier and concise pass/fail evidence rather than reproducing every passing assertion.
 
 ## Branch And Preview Flow
 
-Use short feature branches for changes:
+Use short, purpose-based branches tied to the canonical issue:
 
 ```powershell
-git switch -c feature/name-of-change
+git switch -c work/issue-25-worker-foundation
 ```
 
 Every push response must include both URLs:
@@ -116,6 +171,7 @@ For every meaningful change:
 8. Move completed engineering work to `UAT` for Collin's acceptance.
 9. Move it to `Done` and close the issue only after UAT approval.
 10. During every PRD review, add unrefined gaps to `Backlog` and refined actionable work to `To Do`.
+11. Keep `docs/IMPLEMENTATION-PLAN.md` synchronized when a milestone, dependency, launch gate, or phase changes.
 
 At the beginning and end of every implementation pass, audit all planning issues against the Project, add missing issues, remove duplicate draft cards, and reconcile status mismatches.
 
@@ -125,16 +181,16 @@ Ticket updates are part of the definition of done, not optional administration.
 
 After every push:
 
-1. Open or query the GitHub Actions runs for that commit.
-2. Watch the `Test Website` workflow until it finishes.
-3. Watch the preview or production deployment workflow until it finishes.
-4. Do not report the deployment as successful while either workflow is pending.
-5. If CI fails, read the failed step, fix the issue, rerun local tests, and push again.
-6. Poll with disposable freshness values until the resulting public URL loads the expected commit.
-7. Verify `/release.json?release=<full-commit-sha>&fresh=<disposable-value>` reports the same commit.
-8. Confirm the deployed HTML references `styles.<commit>.css`, `app.<commit>.js`, and `cart-logic.<commit>.js`.
-9. Generate new, previously unused `fresh` values for the user-facing preview and production URLs.
-10. Report the commit ID, test result, deployment result, preview URL, and production URL.
+1. Open or query the GitHub Actions runs for that commit and confirm whether CI selected `docs-only` or `full`.
+2. Watch the reusable test job until it finishes.
+3. For the full tier, watch the preview or production deployment until it finishes; for the documentation-only tier, verify deployment was intentionally skipped.
+4. Do not report a required test or deployment as successful while it is pending.
+5. If CI fails, read the failed step, fix the issue, rerun the same or higher local validation tier, and push again.
+6. For deployed changes, poll with disposable freshness values until the resulting public URL loads the expected commit.
+7. For deployed changes, verify `/release.json?release=<full-commit-sha>&fresh=<disposable-value>` reports the same commit.
+8. For deployed changes, confirm the HTML references `styles.<commit>.css`, `app.<commit>.js`, and `cart-logic.<commit>.js`.
+9. Generate new, previously unused `fresh` values for user-facing preview and production URLs.
+10. Report the commit ID, selected validation tier, concise test result, and whether deployment ran or was correctly skipped.
 
 The deployment workflows depend on the test workflow, so failed tests block publishing.
 
@@ -171,6 +227,8 @@ Do not merge visual or copy changes to `main` until the preview URL has been rev
 ## Payment State
 
 Stripe is not set up yet. Checkout buttons must stay disabled or point to a placeholder state until Stripe products, checkout sessions, webhook secrets, and delivery email flows are configured.
+
+Use separate ResaleLane Stripe and Resend accounts/projects. Do not reuse PasteFlow account configuration, products, customers, sender identities, webhooks, support details, or reporting. The existing Cloudflare account may host ResaleLane DNS and backend resources, but names, bindings, data stores, variables, and secrets must remain project-specific.
 
 ## Deployment Safety
 
