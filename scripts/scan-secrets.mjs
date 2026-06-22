@@ -1,5 +1,5 @@
 import { execFileSync } from "node:child_process";
-import { readFileSync, statSync } from "node:fs";
+import { readFileSync } from "node:fs";
 
 const files = execFileSync("git", ["ls-files", "-z"], { encoding: "utf8" }).split("\0").filter(Boolean);
 const forbiddenPaths = [
@@ -21,9 +21,10 @@ for (const file of files) {
     findings.push(`${file}: private file type must not be tracked`);
     continue;
   }
-  const stats = statSync(file);
-  if (stats.size > 1_000_000 || /\.(?:png|jpe?g|gif|webp|pdf|ico)$/i.test(file)) continue;
-  const contents = readFileSync(file, "utf8");
+  if (/\.(?:png|jpe?g|gif|webp|pdf|ico)$/i.test(file)) continue;
+  const bytes = readFileSync(file);
+  if (bytes.byteLength > 1_000_000) continue;
+  const contents = bytes.toString("utf8");
   for (const { name, pattern } of secretPatterns) {
     pattern.lastIndex = 0;
     if (pattern.test(contents)) findings.push(`${file}: possible ${name}`);
