@@ -16,6 +16,8 @@ function clean(value, maximumLength) {
 
 function cleanMessageHtml(value) {
   if (typeof value !== "string") return "";
+  // Allow only a tiny formatting subset from the rich-text editor. This keeps the
+  // support inbox readable without accepting arbitrary HTML from the browser.
   return value
     .slice(0, 8000)
     .replace(/<(?!\/?(?:b|strong|u|ul|ol|li|p|br)(?:\s*\/?)>)[^>]*>/gi, "")

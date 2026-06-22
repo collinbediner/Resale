@@ -17,6 +17,8 @@ export function securityHeaders() {
   };
 }
 
+// Read the body as a stream and enforce the byte cap while reading so oversized
+// payloads are rejected even if Content-Length is missing or dishonest.
 export async function readBoundedJson(request, maximumBytes = MAX_JSON_BYTES) {
   const contentType = request.headers.get("Content-Type")?.split(";")[0].trim().toLowerCase();
   if (contentType !== "application/json") {

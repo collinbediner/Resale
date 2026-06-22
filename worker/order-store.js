@@ -12,6 +12,8 @@ const FULFILLMENT_TRANSITIONS = {
   delivered: new Set()
 };
 
+// Explicit transition rules make retries safer because duplicate events cannot
+// silently skip to impossible payment or fulfillment states.
 export function canTransition(type, from, to) {
   const transitions = type === "payment" ? PAYMENT_TRANSITIONS : FULFILLMENT_TRANSITIONS;
   return from === to || Boolean(transitions[from]?.has(to));
@@ -33,6 +35,8 @@ export async function claimStripeEvent(db, event) {
   return result.meta.changes === 1;
 }
 
+// Create the order and its line items together so partial writes do not leave an
+// orphaned order record behind.
 export async function createOrder(db, order) {
   if (!order.items?.length) throw new Error("Order requires at least one item");
 
@@ -81,6 +85,8 @@ export async function updateOrderState(db, orderId, current, next) {
 }
 
 export async function createDeliveryAttempt(db, attempt) {
+  // Generate attempt numbers inside SQLite so concurrent retries still get a clean
+  // increasing sequence for the same order.
   return db.prepare(`
     INSERT INTO delivery_attempts (
       id, order_id, attempt_number, artifact_version, delivery_status
