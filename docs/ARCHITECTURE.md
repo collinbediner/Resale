@@ -74,13 +74,16 @@ The target backend is a Cloudflare Worker. It is not active yet, and checkout re
 | Responsibility | Approved service |
 | --- | --- |
 | Public storefront | GitHub Pages |
-| Checkout API and webhook | Cloudflare Worker |
+| Checkout API, support form, and webhook | Cloudflare Worker |
 | Hosted payment page and receipt | Stripe Checkout |
 | Order and delivery-attempt records | Cloudflare D1 |
 | Private package contact data and optional files | Cloudflare R2 or Worker-only configuration |
 | Fulfillment email | Resend from `orders@shopresalelane.com` |
+| Support notifications | Resend from `support@shopresalelane.com` to the support Gmail inbox |
 
 The Worker accepts product IDs only, maps them to server-controlled Stripe Price IDs, and owns every privileged action. Cloudflare bindings grant the Worker access to D1 and R2 without exposing storage credentials or object identifiers to the browser.
+
+The public contact form posts to `https://api.shopresalelane.com/support`. The Worker validates and limits requests, uses a hidden bot-trap field, and sends the message through Resend. The `RESEND_API_KEY` is stored only as a Cloudflare Worker secret. Visitor email addresses are used as the reply-to address and are not written to public files or routine logs.
 
 ## Target Transaction Architecture
 

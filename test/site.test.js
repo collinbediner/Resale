@@ -17,6 +17,15 @@ test("production page includes required public content and safety controls", () 
   assert.match(html, /collin\.bediner\+support@gmail\.com/);
 });
 
+test("contact form sends through the private API and keeps a direct email fallback", () => {
+  assert.match(app, /https:\/\/api\.shopresalelane\.com\/support/);
+  assert.match(app, /method: "POST"/);
+  assert.doesNotMatch(app, /window\.location\.href = `mailto:/);
+  assert.match(html, /name="company"/);
+  assert.match(html, /data-contact-status/);
+  assert.match(app, /collin\.bediner\+support@gmail\.com/);
+});
+
 test("all referenced local assets exist", () => {
   const references = [...html.matchAll(/(?:src|href)="\.\/([^"?#]+)/g)].map(match => match[1]);
   for (const reference of references) {

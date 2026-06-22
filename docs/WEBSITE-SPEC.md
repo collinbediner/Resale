@@ -81,6 +81,7 @@ Private delivery content must never appear in HTML, browser JavaScript, public a
 - Digital sales are final after delivery, subject to the documented limited exceptions.
 - Buyers should save the confirmation email and check spam, junk, and promotions.
 - Contact includes delivery problems, package resend, order issues, and pre-purchase questions.
+- Contact submissions are sent through the private Cloudflare Worker to the support Gmail inbox. The public browser never receives the Resend API key.
 
 ## Reviews
 

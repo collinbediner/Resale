@@ -1,0 +1,31 @@
+{
+  "$schema": "./node_modules/wrangler/config-schema.json",
+  "name": "resalelane-api",
+  "main": "worker/index.js",
+  "compatibility_date": "2026-06-22",
+  "compatibility_flags": ["nodejs_compat"],
+  "routes": [
+    {
+      "pattern": "api.shopresalelane.com",
+      "custom_domain": true
+    }
+  ],
+  "vars": {
+    "SUPPORT_EMAIL_FROM": "ResaleLane Support <support@shopresalelane.com>",
+    "SUPPORT_EMAIL_TO": "collin.bediner+support@gmail.com"
+  },
+  "ratelimits": [
+    {
+      "name": "CONTACT_RATE_LIMITER",
+      "namespace_id": "1301",
+      "simple": {
+        "limit": 5,
+        "period": 60
+      }
+    }
+  ],
+  "observability": {
+    "enabled": true,
+    "head_sampling_rate": 1
+  }
+}
