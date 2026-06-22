@@ -13,7 +13,9 @@ Tracked source material includes:
 - `Design System/design_handoff_resalelane/` for original public-safe brand and design files.
 - `docs/PRD.md` and `docs/WEBSITE-SPEC.md` for readable repository copies of the source specifications.
 - `docs/` for architecture, security, roadmap, and operating decisions.
-- `CONTRIBUTING.md` for collaborator setup and workflow.
+- `docs/HANDOFF.md` for current working status and blockers.
+- `docs/REPOSITORY-STRUCTURE.md` for folder layout and root-file rules.
+- `.github/CONTRIBUTING.md` for collaborator setup and workflow.
 
 ## Drift Control
 
@@ -22,9 +24,10 @@ Before every implementation pass:
 1. Run `git status --short --branch`.
 2. Fetch the latest GitHub state with `git fetch origin`.
 3. If starting new work, switch to `main`, pull it with `git pull --ff-only`, and create a new branch.
-4. Read the tracked repository specs first. Re-read a linked Google Doc only when the repository says the draft has changed.
-5. Update tracked docs, assets, or app files with every decision being implemented.
-6. Keep private supplier data out of Git. Supplier delivery content belongs in protected storage, never this public repository.
+4. Read `docs/HANDOFF.md`, `docs/REPOSITORY-STRUCTURE.md`, and the tracked repository specs first.
+5. Re-read a linked Google Doc only when the repository says the draft has changed.
+6. Update tracked docs, assets, or app files with every decision being implemented.
+7. Keep private supplier data out of Git. Supplier delivery content belongs in protected storage, never this public repository.
 
 ## Required Testing
 
@@ -120,6 +123,19 @@ For every meaningful change:
 At the beginning and end of every implementation pass, audit all planning issues against the Project, add missing issues, remove duplicate draft cards, and reconcile status mismatches.
 
 Ticket updates are part of the definition of done, not optional administration.
+
+## Repository Layout
+
+Keep most general guidance inside folders, not as loose root files.
+
+Allowed root-level tracked files:
+
+- `README.md`
+- `package.json`
+- `wrangler.jsonc`
+- `.gitignore`
+
+General guidance belongs in `docs/` or `.github/` unless a tool requires a root path.
 
 ## CI/CD Monitoring
 

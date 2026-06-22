@@ -8,6 +8,8 @@ const prd = readDoc("PRD.md");
 const architecture = readDoc("ARCHITECTURE.md");
 const roadmap = readDoc("ROADMAP.md");
 const artifactSecurity = readDoc("ARTIFACT-SECURITY.md");
+const handoff = readDoc("HANDOFF.md");
+const repoStructure = readDoc("REPOSITORY-STRUCTURE.md");
 
 test("approved architecture names every public and private service boundary", () => {
   for (const required of [
@@ -37,4 +39,11 @@ test("fulfillment permits direct private contact delivery only after verificatio
   assert.match(artifactSecurity, /verified purchase/);
   assert.match(artifactSecurity, /contact details directly in the Resend fulfillment email/);
   assert.match(artifactSecurity, /never into the manifest, logs, database, ticket system, or public files/);
+});
+
+test("handoff and repository structure docs protect against context drift and root clutter", () => {
+  assert.match(handoff, /Do not trust this handoff by itself/i);
+  assert.match(handoff, /update the planning ticket and project status/i);
+  assert.match(repoStructure, /Root Files That Intentionally Stay At The Top/i);
+  assert.match(repoStructure, /Everything else should live in a logical folder/i);
 });
