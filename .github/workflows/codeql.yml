@@ -4,6 +4,10 @@ on:
   push:
     branches: [main]
   pull_request:
+    paths-ignore:
+      # Markdown-only changes cannot alter executable JavaScript or workflow behavior.
+      - "*.md"
+      - "docs/**/*.md"
   schedule:
     - cron: "31 9 * * 1"
   workflow_dispatch:

@@ -67,24 +67,38 @@ Before stopping, even when work is incomplete:
 
 The handoff is a navigation and continuation aid. GitHub code, the canonical issue, the Project board, and current pull-request checks remain authoritative.
 
-## Required Testing
+## Risk-Based Validation
 
-Before every commit:
+Testing must match the risk of the changed files. Agents should not spend time or model tokens narrating, running, and reviewing unrelated regression output, but they must never choose a lighter tier merely because a change appears simple. The shared path classifier in `scripts/validation-policy.mjs` makes the CI decision from Git file paths.
 
-1. Run `npm run check` from the project folder.
-2. Fix every failure before committing.
-3. For visual changes, inspect both desktop and mobile layouts in the browser.
-4. Test the affected user flow, such as navigation, cart, product details, or checkout preview.
+### Documentation-only tier
 
-The automated suite currently checks:
+Use this tier only when every changed file is public Markdown under `docs/` or one of `README.md`, `CONTRIBUTING.md`, and `HANDOFF.md`.
 
-- JavaScript syntax
-- Product and bundle prices
-- Duplicate cart prevention
-- Bundle/individual conflict rules
-- Disabled Stripe checkout
-- Required legal/support content
-- Missing local assets
+Before committing:
+
+1. Run `npm run check:docs`.
+2. Run `git diff --check`.
+3. Read the rendered Markdown or diff for broken headings, links, tables, contradictory instructions, accidental private data, and stale ticket or branch references.
+
+This tier runs the secret scan, architecture/document consistency tests, handoff/SOP tests, and validation-policy tests. It intentionally skips application syntax checks, Worker dry runs, the full storefront regression suite, release builds, CodeQL pull-request analysis, and preview/production deployment because Markdown-only changes cannot alter those artifacts.
+
+### Full tier
+
+Use `npm run check` plus `npm run worker:check` when any changed file is outside the documentation-only allowlist. The full tier is mandatory for application code, Worker or server code, tests, scripts, package configuration, workflows, migrations, HTML/CSS, assets, design sources, security configuration, and mixed documentation/code changes.
+
+For visual changes, also inspect desktop and mobile layouts and test the affected user flow. For backend or data changes, test the affected route, environment boundary, migration, failure path, and redaction behavior.
+
+When uncertain, use the full tier. Never weaken tests, split a code change into a misleading documentation-only commit, or relabel files to obtain the lightweight path.
+
+### CI/CD efficiency rules
+
+- Pull requests use one reusable validation workflow instead of running the same suite independently in both test and preview workflows.
+- Documentation-only pull requests run the lightweight tier and do not create a storefront preview.
+- Documentation-only merges to `staging` or `main` do not rebuild or redeploy unchanged website artifacts.
+- CodeQL still runs on executable or workflow changes, on `main`, on its schedule, and when manually requested; it skips Markdown-only pull requests.
+- Manual workflow dispatch defaults to the full tier because no trustworthy comparison range is guaranteed.
+- CI logs and agent summaries should report the selected tier and concise pass/fail evidence rather than reproducing every passing assertion.
 
 ## Branch And Preview Flow
 
@@ -167,16 +181,16 @@ Ticket updates are part of the definition of done, not optional administration.
 
 After every push:
 
-1. Open or query the GitHub Actions runs for that commit.
-2. Watch the `Test Website` workflow until it finishes.
-3. Watch the preview or production deployment workflow until it finishes.
-4. Do not report the deployment as successful while either workflow is pending.
-5. If CI fails, read the failed step, fix the issue, rerun local tests, and push again.
-6. Poll with disposable freshness values until the resulting public URL loads the expected commit.
-7. Verify `/release.json?release=<full-commit-sha>&fresh=<disposable-value>` reports the same commit.
-8. Confirm the deployed HTML references `styles.<commit>.css`, `app.<commit>.js`, and `cart-logic.<commit>.js`.
-9. Generate new, previously unused `fresh` values for the user-facing preview and production URLs.
-10. Report the commit ID, test result, deployment result, preview URL, and production URL.
+1. Open or query the GitHub Actions runs for that commit and confirm whether CI selected `docs-only` or `full`.
+2. Watch the reusable test job until it finishes.
+3. For the full tier, watch the preview or production deployment until it finishes; for the documentation-only tier, verify deployment was intentionally skipped.
+4. Do not report a required test or deployment as successful while it is pending.
+5. If CI fails, read the failed step, fix the issue, rerun the same or higher local validation tier, and push again.
+6. For deployed changes, poll with disposable freshness values until the resulting public URL loads the expected commit.
+7. For deployed changes, verify `/release.json?release=<full-commit-sha>&fresh=<disposable-value>` reports the same commit.
+8. For deployed changes, confirm the HTML references `styles.<commit>.css`, `app.<commit>.js`, and `cart-logic.<commit>.js`.
+9. Generate new, previously unused `fresh` values for user-facing preview and production URLs.
+10. Report the commit ID, selected validation tier, concise test result, and whether deployment ran or was correctly skipped.
 
 The deployment workflows depend on the test workflow, so failed tests block publishing.
 

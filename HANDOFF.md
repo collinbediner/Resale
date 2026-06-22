@@ -1,6 +1,6 @@
 # ResaleLane Working Handoff
 
-Last updated: June 22, 2026, 2:16 PM Eastern
+Last updated: June 22, 2026, 2:31 PM Eastern
 
 This is the current, agent-agnostic continuation file for Codex, Claude, other AI agents, and human collaborators. Read it first, but never trust it blindly: verify its claims against the current Git branch, open pull requests, the canonical issue, and the Project board before changing anything.
 
@@ -34,8 +34,8 @@ Read these sources in order:
 | Canonical ticket | [Resale-Planning #28](https://github.com/collinbediner/Resale-Planning/issues/28) |
 | Working branch | `codex/align-commerce-implementation-plan` |
 | Pull request | [Resale #8](https://github.com/collinbediner/Resale/pull/8) |
-| State | Latest `main` merged through `090dc44`, architecture conflict resolved, and local checks pass; awaiting refreshed PR checks and owner review |
-| Production impact | Documentation and tests only; checkout and live visuals remain unchanged |
+| State | Latest `main` merged through `090dc44`; architecture conflict resolved; risk-based CI validation added and locally verified; awaiting refreshed PR checks and owner review |
+| Production impact | CI/SOP efficiency only; checkout, Worker runtime behavior, data, and live visuals remain unchanged |
 
 Parallel Project work is active outside this branch: security controls (#19), the emailed production checkpoint (#17), and private R2 package import (#26) are In Progress. Worker foundation (#25) and D1 schema (#10) are in UAT. Owner-input tickets for Stripe (#3), Resend (#8), vendor details (#24), and branded PDFs (#29) remain To Do.
 
@@ -50,6 +50,7 @@ Parallel Project work is active outside this branch: security controls (#19), th
 - Resolved the PRD conflict by preserving the approved internal product IDs and synchronizing the bundle's $28 comparison value across product documents.
 - Added a regression test that keeps the $28 bundle comparison synchronized across the PRD, roadmap, implementation plan, and specification snapshot.
 - Merged the latest `main` implementation work for the support Worker, isolated D1/R2 bindings, D1 reliability, and pre-launch security controls without weakening the approved commerce boundaries.
+- Added deterministic documentation-only versus full validation tiers, removed duplicate reusable test runs, and skipped unnecessary preview/deployment/CodeQL work for Markdown-only changes.
 
 ## Next Exact Actions
 
@@ -67,7 +68,7 @@ Parallel Project work is active outside this branch: security controls (#19), th
 ## Validation Evidence
 
 - Merge-conflict resolution commit before this handoff update: `0a5c805`.
-- Current local validation after merging `origin/main` at `090dc44`: `npm run check` — secret scan passed, 49 tests passed, and the production build completed; `git diff --check` passed.
+- Current local validation: focused policy QA passed; `npm run check` passed the secret scan, 55 tests, and production build; `npm run worker:check` passed production and staging dry-runs; `git diff --check` passed.
 - Scope verification against `origin/main`: documentation and documentation tests only; no `site/` or `server/` differences.
 - PR #8's previous checks passed, but GitHub reported a conflict after newer work reached `main`; local merge commit `6deb8b3` resolves it and requires refreshed remote checks.
 - Issue #28 holds the latest validation result after each push; agents must check it and the PR directly.

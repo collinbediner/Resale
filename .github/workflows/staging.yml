@@ -18,6 +18,8 @@ jobs:
 
   deploy:
     needs: test
+    # A documentation-only merge has no staging artifact to redeploy.
+    if: needs.test.outputs.validation-tier == 'full'
     runs-on: ubuntu-latest
     environment:
       name: staging
