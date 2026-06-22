@@ -184,3 +184,44 @@ Do not commit:
 - generated `dist/`, dependency `node_modules/`, or local tool-state folders
 
 Everything else that collaborators need to understand, build, test, or reproduce the public project should be committed.
+
+## Worker And Database Operations
+
+Run Worker commands from the repository root in PowerShell.
+
+Validate without deploying:
+
+```powershell
+npx wrangler deploy --env="" --dry-run
+npx wrangler deploy --env staging --dry-run
+```
+
+Apply pending D1 migrations to staging first:
+
+```powershell
+npx wrangler d1 migrations apply resalelane-orders-staging --remote
+```
+
+After staging verification, apply the same committed migration to production:
+
+```powershell
+npx wrangler d1 migrations apply resalelane-orders-production --remote
+```
+
+Deploy the isolated Workers:
+
+```powershell
+npx wrangler deploy --env staging
+npx wrangler deploy --env=""
+```
+
+Verify:
+
+```powershell
+curl.exe -sS https://api-staging.shopresalelane.com/health
+curl.exe -sS https://api.shopresalelane.com/health
+```
+
+Both responses must identify the expected environment and report D1 as `schema-ready` and R2 as `connected`.
+
+For Worker rollback, use `npx wrangler versions list` and then `npx wrangler rollback <VERSION_ID>` for the explicitly named environment. Database migrations are forward-only: fix schema problems with a new migration rather than deleting tables or rewriting an applied migration.

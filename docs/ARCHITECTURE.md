@@ -39,6 +39,7 @@ flowchart LR
 - `Design System/design_handoff_resalelane/`: original public-safe design handoff, tokens, catalog model, prototypes, and brand exports.
 - `scripts/build.mjs`: creates the fingerprinted release in ignored `dist/`.
 - `docs/ARTIFACT-SECURITY.md`: private-artifact storage and secure-delivery design.
+- `migrations/`: versioned D1 schema for orders, payment events, delivery attempts, and support request metadata.
 - `docs/PRD.md` and `docs/WEBSITE-SPEC.md`: tracked requirements that replace unreadable local Google Drive shortcuts.
 - `server/email-templates.js`: provider-independent transactional email templates for the future Worker.
 - `test/site.test.js`: automated regression and safety checks.
@@ -71,6 +72,8 @@ The repository is the collaboration source of truth. Google Drive may hold draft
 
 The Cloudflare Worker is active for support email. Separate staging and production D1 databases and private R2 buckets are connected through environment-specific bindings. Checkout remains disabled until Stripe and the remaining order/fulfillment flows are configured and tested.
 
+The Worker exposes a public-safe `/health` response containing API version, environment name, and connection status only. It never returns database identifiers, bucket names, secrets, customer records, or provider errors.
+
 | Responsibility | Approved service |
 | --- | --- |
 | Public storefront | GitHub Pages |
@@ -84,6 +87,8 @@ The Cloudflare Worker is active for support email. Separate staging and producti
 The Worker accepts product IDs only, maps them to server-controlled Stripe Price IDs, and owns every privileged action. Cloudflare bindings grant the Worker access to D1 and R2 without exposing storage credentials or object identifiers to the browser.
 
 The public contact form posts to `https://api.shopresalelane.com/support`. The Worker validates and limits requests, uses a hidden bot-trap field, and sends the message through Resend. The `RESEND_API_KEY` is stored only as a Cloudflare Worker secret. Visitor email addresses are used as the reply-to address and are not written to public files or routine logs.
+
+D1 stores buyer/order metadata needed for payment verification, idempotency, delivery tracking, and support. Supplier contacts, PDF contents, and private package data remain in private R2 and are never copied into D1.
 
 ## Target Transaction Architecture
 
