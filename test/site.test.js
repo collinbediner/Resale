@@ -22,6 +22,10 @@ test("contact form sends through the private API and keeps a direct email fallba
   assert.match(app, /method: "POST"/);
   assert.doesNotMatch(app, /window\.location\.href = `mailto:/);
   assert.match(html, /name="company"/);
+  assert.match(html, /name="reason" required/);
+  assert.match(html, /data-format="bold"/);
+  assert.match(html, /data-format="underline"/);
+  assert.match(html, /data-format="insertUnorderedList"/);
   assert.match(html, /data-contact-status/);
   assert.match(app, /collin\.bediner\+support@gmail\.com/);
 });
