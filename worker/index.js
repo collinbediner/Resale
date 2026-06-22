@@ -11,7 +11,7 @@ function corsHeaders(origin) {
   return {
     "Access-Control-Allow-Origin": ALLOWED_ORIGINS.has(origin) ? origin : "https://shopresalelane.com",
     "Access-Control-Allow-Headers": "Content-Type",
-    "Access-Control-Allow-Methods": "POST, OPTIONS",
+    "Access-Control-Allow-Methods": "GET, POST, OPTIONS",
     "Access-Control-Max-Age": "86400",
     "Vary": "Origin"
   };
@@ -60,7 +60,7 @@ async function sendWithResend(env, submission, requestId) {
   return response.json();
 }
 
-export default {
+const worker = {
   async fetch(request, env) {
     const origin = request.headers.get("Origin") || "";
     const requestId = crypto.randomUUID();
@@ -68,12 +68,15 @@ export default {
 
     if (url.pathname === "/health" && request.method === "GET") {
       try {
-        const databaseCheck = await env.ORDERS_DB.prepare("SELECT 1 AS ok").first();
+        const databaseCheck = await env.ORDERS_DB.prepare(
+          "SELECT COUNT(*) AS table_count FROM sqlite_master WHERE type = 'table' AND name IN ('orders', 'order_items', 'payment_events', 'delivery_attempts', 'support_requests')"
+        ).first();
         const storageCheck = await env.ARTIFACTS.head("__resalelane_healthcheck__");
         return Response.json({
-          ok: databaseCheck?.ok === 1 && storageCheck === null,
+          ok: databaseCheck?.table_count === 5 && storageCheck === null,
+          apiVersion: "1",
           environment: env.ENVIRONMENT,
-          services: { d1: "connected", r2: "connected" }
+          services: { d1: "schema-ready", r2: "connected" }
         }, { headers: { "Cache-Control": "no-store", "X-Request-ID": requestId } });
       } catch {
         return Response.json(
@@ -143,3 +146,5 @@ export default {
     }
   }
 };
+
+export default worker;

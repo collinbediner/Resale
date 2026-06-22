@@ -19,7 +19,8 @@
     {
       "binding": "ORDERS_DB",
       "database_name": "resalelane-orders-production",
-      "database_id": "ac364727-82c6-458f-8395-6711904ca516"
+      "database_id": "ac364727-82c6-458f-8395-6711904ca516",
+      "migrations_dir": "migrations"
     }
   ],
   "r2_buckets": [
@@ -60,7 +61,8 @@
         {
           "binding": "ORDERS_DB",
           "database_name": "resalelane-orders-staging",
-          "database_id": "e46f2d81-bfec-4519-a3c1-435c811cd6c1"
+          "database_id": "e46f2d81-bfec-4519-a3c1-435c811cd6c1",
+          "migrations_dir": "migrations"
         }
       ],
       "r2_buckets": [
