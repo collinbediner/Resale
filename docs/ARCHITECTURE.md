@@ -40,6 +40,7 @@ flowchart LR
 - `scripts/build.mjs`: creates the fingerprinted release in ignored `dist/`.
 - `docs/ARTIFACT-SECURITY.md`: private-artifact storage and secure-delivery design.
 - `migrations/`: versioned D1 schema for orders, payment events, delivery attempts, and support request metadata.
+- `docs/DATA-RETENTION.md`: buyer-data minimization, anonymization, and recovery rules.
 - `docs/PRD.md` and `docs/WEBSITE-SPEC.md`: tracked requirements that replace unreadable local Google Drive shortcuts.
 - `server/email-templates.js`: provider-independent transactional email templates for the future Worker.
 - `test/site.test.js`: automated regression and safety checks.

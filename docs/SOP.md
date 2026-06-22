@@ -225,3 +225,5 @@ curl.exe -sS https://api.shopresalelane.com/health
 Both responses must identify the expected environment and report D1 as `schema-ready` and R2 as `connected`.
 
 For Worker rollback, use `npx wrangler versions list` and then `npx wrangler rollback <VERSION_ID>` for the explicitly named environment. Database migrations are forward-only: fix schema problems with a new migration rather than deleting tables or rewriting an applied migration.
+
+Before enabling any automated deletion or anonymization, follow `docs/DATA-RETENTION.md` and obtain owner approval for the final retention period.
