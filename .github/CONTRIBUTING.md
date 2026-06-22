@@ -33,11 +33,12 @@ The check should finish without errors and create a temporary ignored `dist/` fo
 
 - `site/`: production website source.
 - `site/assets/`: assets actually used by the production website.
+- `worker/`: private Cloudflare Worker API for support, monitoring, and future checkout/fulfillment flows.
+- `server/`: backend-safe shared modules that must not be shipped in the static frontend.
+- `scripts/`: build and safety automation.
+- `migrations/`: D1 database schema history.
+- `docs/`: operating docs, product docs, handoff notes, and repository structure guides.
 - `Design System/design_handoff_resalelane/`: original logos, tokens, product data, and visual design references.
-- `docs/PRD.md`: full product requirements.
-- `docs/WEBSITE-SPEC.md`: website behavior and page requirements.
-- `docs/SOP.md`: team workflow, testing, preview, and release rules.
-- `server/`: future backend modules that must not be shipped in the static frontend.
 - `test/`: automated safety and behavior tests.
 
 ## Safe Collaboration Workflow
@@ -49,6 +50,13 @@ git switch main
 git pull --ff-only
 git switch -c feature/short-description
 ```
+
+Read these files before making changes:
+
+- `docs/HANDOFF.md`
+- `docs/REPOSITORY-STRUCTURE.md`
+- `docs/SOP.md`
+- the ticket you are working on
 
 Make the change, update the related documentation, and run:
 

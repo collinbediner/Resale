@@ -6,12 +6,14 @@ GitHub source of truth for the ResaleLane storefront, public-safe product docume
 - GitHub Pages: https://collinbediner.github.io/Resale/
 - Repository: https://github.com/collinbediner/Resale
 - Operating procedure: [docs/SOP.md](docs/SOP.md)
+- Handoff: [docs/HANDOFF.md](docs/HANDOFF.md)
+- Repository structure: [docs/REPOSITORY-STRUCTURE.md](docs/REPOSITORY-STRUCTURE.md)
 - Architecture: [docs/ARCHITECTURE.md](docs/ARCHITECTURE.md)
 - Product/spec snapshot: [docs/SPEC-SNAPSHOT.md](docs/SPEC-SNAPSHOT.md)
 - Full product requirements: [docs/PRD.md](docs/PRD.md)
 - Website specification: [docs/WEBSITE-SPEC.md](docs/WEBSITE-SPEC.md)
 - Delivery roadmap: [docs/ROADMAP.md](docs/ROADMAP.md)
-- Collaborator setup: [CONTRIBUTING.md](CONTRIBUTING.md)
+- Collaborator setup: [.github/CONTRIBUTING.md](.github/CONTRIBUTING.md)
 - Brand/design source files: [Design System/design_handoff_resalelane/README.md](Design%20System/design_handoff_resalelane/README.md)
 
 ## How It Is Built
@@ -25,6 +27,7 @@ The current storefront is a dependency-free static website:
 - `site/assets/` contains the public logo and social assets.
 - `Design System/design_handoff_resalelane/` contains the original public-safe brand assets, design tokens, product model, and visual reference files.
 - `scripts/build.mjs` creates commit-fingerprinted deployment files.
+- `worker/` contains the private Cloudflare Worker API.
 - `server/` contains backend-safe modules that are not shipped in the static website.
 - `test/` contains automated Node.js tests.
 - `.github/workflows/` contains testing, preview, and production deployment automation.
