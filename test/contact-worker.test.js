@@ -25,6 +25,12 @@ test("contact validation rejects invalid fields", () => {
   assert.equal(validateContactSubmission({ ...validSubmission, message: "short" }).ok, false);
 });
 
+test("contact validation rejects unexpected fields", () => {
+  const result = validateContactSubmission({ ...validSubmission, admin: true });
+  assert.equal(result.ok, false);
+  assert.match(result.error, /unexpected field/);
+});
+
 test("contact validation silently catches the hidden bot field", () => {
   assert.deepEqual(validateContactSubmission({ ...validSubmission, company: "Spam LLC" }), {
     ok: false,

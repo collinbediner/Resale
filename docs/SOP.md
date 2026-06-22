@@ -227,3 +227,5 @@ Both responses must identify the expected environment and report D1 as `schema-r
 For Worker rollback, use `npx wrangler versions list` and then `npx wrangler rollback <VERSION_ID>` for the explicitly named environment. Database migrations are forward-only: fix schema problems with a new migration rather than deleting tables or rewriting an applied migration.
 
 Before enabling any automated deletion or anonymization, follow `docs/DATA-RETENTION.md` and obtain owner approval for the final retention period.
+
+Secret rotation and incident handling follow `docs/SECURITY-OPERATIONS.md`. Record only secret names and test results; never record secret values.
