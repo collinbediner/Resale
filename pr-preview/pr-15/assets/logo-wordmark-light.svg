@@ -1,8 +1,0 @@
-<svg width="320" height="64" viewBox="0 0 320 64" xmlns="http://www.w3.org/2000/svg" role="img" aria-label="ResaleLane">
-  <rect x="4" y="9" width="46" height="46" rx="12" fill="#0A0A0A"></rect>
-  <g transform="translate(4 9) scale(0.46)">
-    <path d="M30 28 L52 50 L30 72" stroke="#8A8A8A" stroke-width="9" stroke-linecap="round" stroke-linejoin="round" fill="none"></path>
-    <path d="M50 28 L72 50 L50 72" stroke="#FFFFFF" stroke-width="9" stroke-linecap="round" stroke-linejoin="round" fill="none"></path>
-  </g>
-  <text x="64" y="41" font-family="Geist, system-ui, -apple-system, Segoe UI, Roboto, sans-serif" font-size="30" font-weight="700" letter-spacing="-1" fill="#0A0A0A">ResaleLane</text>
-</svg>
