@@ -1,4 +1,4 @@
-import { resolveCartAdd } from "./cart-logic.054d8133a59c8a7992958c78f1d3461df6772adc.js";
+import { resolveCartAdd } from "./cart-logic.bb0b635b70047486f83fb512e45a438d70d1e9a6.js";
 
 const products = [
   { id: "shoe-vendor", name: "Shoe Vendor", icon: "👟", price: 7, compareAt: 15, badge: "Launch Sale", description: "Digital supplier information and marketplace links for shoe sourcing research." },
@@ -31,7 +31,34 @@ function init() {
   $("[data-faq-list]").innerHTML = faqs.map(([q, a]) => `<details class="faq"><summary>${q}</summary><p>${a}</p></details>`).join("");
   document.addEventListener("click", handleClick);
   $("[data-contact-form]").addEventListener("submit", sendContact);
+  $("[data-rich-editor]").addEventListener("click", handleEditorToolbar);
+  $("[data-rich-editor]").addEventListener("mousedown", preserveEditorSelection);
+  document.addEventListener("selectionchange", updateEditorToolbar);
   updateCart();
+}
+
+function preserveEditorSelection(event) {
+  if (event.target.closest("[data-format]")) event.preventDefault();
+}
+
+function handleEditorToolbar(event) {
+  const button = event.target.closest("[data-format]");
+  if (!button) return;
+  event.preventDefault();
+  document.execCommand(button.dataset.format, false);
+  $("[data-editor-content]").focus();
+  updateEditorToolbar();
+}
+
+function updateEditorToolbar() {
+  const selection = window.getSelection();
+  const editor = $("[data-editor-content]");
+  if (!selection?.anchorNode || !editor.contains(selection.anchorNode)) return;
+  $$("[data-format]").forEach(button => {
+    const active = document.queryCommandState(button.dataset.format);
+    button.classList.toggle("active", active);
+    button.setAttribute("aria-pressed", String(active));
+  });
 }
 
 function handleClick(event) {
@@ -96,12 +123,48 @@ function openCheckout() {
 function openModal() { $("[data-modal-overlay]").hidden = false; document.body.classList.add("locked"); }
 function closeModal() { $("[data-modal-overlay]").hidden = true; document.body.classList.remove("locked"); }
 function toast(message) { const el = $("[data-toast]"); el.textContent = message; el.hidden = false; clearTimeout(window.toastTimer); window.toastTimer = setTimeout(() => el.hidden = true, 1800); }
-function sendContact(event) {
+async function sendContact(event) {
   event.preventDefault();
-  const data = new FormData(event.currentTarget);
-  const subject = encodeURIComponent(`ResaleLane support: ${data.get("reason")}`);
-  const body = encodeURIComponent(`Name: ${data.get("name")}\nEmail: ${data.get("email")}\nOrder ID: ${data.get("order") || "N/A"}\n\n${data.get("message")}`);
-  window.location.href = `mailto:collin.bediner+support@gmail.com?subject=${subject}&body=${body}`;
-  toast("Opening your email app");
+  const form = event.currentTarget;
+  const button = form.querySelector('button[type="submit"]');
+  const status = $("[data-contact-status]");
+  const editor = $("[data-editor-content]");
+  const message = editor.innerText.trim();
+  if (message.length < 10) {
+    status.className = "form-status error";
+    status.textContent = "Please enter at least 10 characters in your message.";
+    editor.focus();
+    return;
+  }
+  $("[data-message-input]").value = message;
+  $("[data-message-html-input]").value = editor.innerHTML;
+  const data = Object.fromEntries(new FormData(form));
+
+  button.disabled = true;
+  button.textContent = "Sending...";
+  status.className = "form-status";
+  status.textContent = "Sending your message securely...";
+
+  try {
+    const response = await fetch("https://api.shopresalelane.com/support", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify(data)
+    });
+    const result = await response.json();
+    if (!response.ok || !result.ok) throw new Error(result.error || "Your message could not be sent.");
+
+    form.reset();
+    editor.innerHTML = "";
+    status.className = "form-status success";
+    status.textContent = `Message sent. Your support reference is ${result.requestId}.`;
+    toast("Message sent");
+  } catch (error) {
+    status.className = "form-status error";
+    status.textContent = `${error.message} You can also email collin.bediner+support@gmail.com.`;
+  } finally {
+    button.disabled = false;
+    button.textContent = "Send message";
+  }
 }
 init();
