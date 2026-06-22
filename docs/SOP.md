@@ -156,13 +156,12 @@ The `Daily Production Check` GitHub Actions workflow runs each day and verifies:
 - The expected storefront headline is present
 - Response time is recorded
 
-After Resend is configured, set these GitHub Actions secrets:
+The daily email uses the private Worker so GitHub never stores the Resend API key. Configure:
 
-- `RESEND_API_KEY`
-- `UPTIME_EMAIL_FROM`
-- `UPTIME_EMAIL_TO`
+- Cloudflare Worker secret: `MONITOR_TOKEN`
+- GitHub Actions secret containing the same value: `UPTIME_MONITOR_TOKEN`
 
-The job will then email Collin a daily pass/fail checkpoint. Failed checks also fail visibly in GitHub Actions.
+The job checks both the storefront and private API, then emails Collin a daily pass/fail checkpoint. Failed production checks still fail visibly even if email delivery fails.
 
 ## Approval Rule
 

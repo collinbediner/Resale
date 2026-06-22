@@ -6,6 +6,7 @@
 - CI runs a tracked-file secret-pattern scan, JavaScript tests, Worker configuration dry runs, and CodeQL.
 - Dependabot monitors npm and GitHub Actions dependencies.
 - Worker endpoints use explicit routes, approved origins, bounded JSON bodies, exact schemas, route-specific rate-limit keys, redacted errors, and structured logs without message bodies.
+- The daily monitor calls an authenticated Worker-only endpoint. GitHub stores only a dedicated monitor token, never the Resend API key.
 - Staging and production use separate D1 databases and R2 buckets. Staging has no production Resend secret.
 - R2 buckets remain private and are accessed only through Worker bindings.
 - Storefront pages deploy a restrictive CSP and referrer policy. The API adds content-type, frame, referrer, resource, and permissions headers.

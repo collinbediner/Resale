@@ -12,6 +12,8 @@
   ],
   "vars": {
     "ENVIRONMENT": "production",
+    "MONITOR_EMAIL_FROM": "ResaleLane Monitor <support@shopresalelane.com>",
+    "MONITOR_EMAIL_TO": "collin.bediner+support@gmail.com",
     "SUPPORT_EMAIL_FROM": "ResaleLane Support <support@shopresalelane.com>",
     "SUPPORT_EMAIL_TO": "collin.bediner+support@gmail.com"
   },
@@ -54,6 +56,8 @@
       ],
       "vars": {
         "ENVIRONMENT": "staging",
+        "MONITOR_EMAIL_FROM": "ResaleLane Staging Monitor <support@shopresalelane.com>",
+        "MONITOR_EMAIL_TO": "collin.bediner+support@gmail.com",
         "SUPPORT_EMAIL_FROM": "ResaleLane Staging <support@shopresalelane.com>",
         "SUPPORT_EMAIL_TO": "collin.bediner+support@gmail.com"
       },
