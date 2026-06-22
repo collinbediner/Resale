@@ -4,6 +4,12 @@ on:
   schedule:
     - cron: "15 13 * * *"
   workflow_dispatch:
+    inputs:
+      force_failure:
+        description: "Mark this manual run as a simulated outage to verify alerting."
+        required: false
+        default: false
+        type: boolean
 
 permissions:
   contents: read
@@ -14,6 +20,8 @@ jobs:
     steps:
       - name: Check production
         id: uptime
+        env:
+          FORCE_FAILURE: ${{ github.event.inputs.force_failure == 'true' && 'true' || 'false' }}
         shell: bash
         run: |
           set +e
@@ -27,49 +35,76 @@ jobs:
 
           if [[ "$curl_exit" -eq 0 && "$http_code" == "200" ]] &&
              grep -q "Premium Vendors for Resellers" response.html; then
-            status="PASS"
+            site_status="PASS"
           else
+            site_status="FAIL"
+          fi
+
+          api_result=$(curl --silent --show-error --output api-response.json \
+            --write-out "%{http_code}" "https://api.shopresalelane.com/health")
+          api_exit=$?
+          if [[ "$api_exit" -eq 0 && "$api_result" == "200" ]] &&
+             jq -e '.ok == true and .environment == "production" and .services.d1 == "schema-ready" and .services.r2 == "connected"' api-response.json >/dev/null; then
+            api_status="PASS"
+          else
+            api_status="FAIL"
+          fi
+
+          if [[ "$site_status" == "PASS" && "$api_status" == "PASS" ]]; then status="PASS"; else status="FAIL"; fi
+
+          if [[ "$FORCE_FAILURE" == "true" ]]; then
             status="FAIL"
+            site_status="FAIL"
           fi
 
           echo "status=$status" >> "$GITHUB_OUTPUT"
+          echo "site_status=$site_status" >> "$GITHUB_OUTPUT"
+          echo "api_status=$api_status" >> "$GITHUB_OUTPUT"
           echo "http_code=${http_code:-none}" >> "$GITHUB_OUTPUT"
           echo "duration=${duration:-unknown}" >> "$GITHUB_OUTPUT"
 
           {
             echo "## ResaleLane daily production check"
             echo "- Result: **$status**"
+            echo "- Storefront: **$site_status**"
+            echo "- Private API: **$api_status**"
             echo "- HTTP status: ${http_code:-none}"
             echo "- Response time: ${duration:-unknown}s"
             echo "- URL: https://shopresalelane.com/"
+            if [[ "$FORCE_FAILURE" == "true" ]]; then
+              echo "- Mode: **Simulated failure (manual test)**"
+            fi
           } >> "$GITHUB_STEP_SUMMARY"
 
-      - name: Email daily checkpoint through Resend
+      - name: Email daily checkpoint through the private Worker
+        continue-on-error: true
         env:
-          RESEND_API_KEY: ${{ secrets.RESEND_API_KEY }}
-          UPTIME_EMAIL_FROM: ${{ secrets.UPTIME_EMAIL_FROM }}
-          UPTIME_EMAIL_TO: ${{ secrets.UPTIME_EMAIL_TO }}
+          UPTIME_MONITOR_TOKEN: ${{ secrets.UPTIME_MONITOR_TOKEN }}
           CHECK_STATUS: ${{ steps.uptime.outputs.status }}
+          SITE_STATUS: ${{ steps.uptime.outputs.site_status }}
+          API_STATUS: ${{ steps.uptime.outputs.api_status }}
           HTTP_CODE: ${{ steps.uptime.outputs.http_code }}
           DURATION: ${{ steps.uptime.outputs.duration }}
         shell: bash
         run: |
-          if [[ -z "$RESEND_API_KEY" || -z "$UPTIME_EMAIL_FROM" || -z "$UPTIME_EMAIL_TO" ]]; then
-            echo "Resend secrets are not configured yet; email was skipped."
+          if [[ -z "$UPTIME_MONITOR_TOKEN" ]]; then
+            echo "Monitor token is not configured yet; email was skipped."
             exit 0
           fi
 
           payload=$(jq -n \
-            --arg from "$UPTIME_EMAIL_FROM" \
-            --arg to "$UPTIME_EMAIL_TO" \
-            --arg subject "ResaleLane daily check: $CHECK_STATUS" \
-            --arg text "Production: $CHECK_STATUS\nHTTP: $HTTP_CODE\nResponse time: ${DURATION}s\nURL: https://shopresalelane.com/" \
-            '{from:$from,to:[$to],subject:$subject,text:$text}')
+            --arg status "$CHECK_STATUS" \
+            --arg siteStatus "$SITE_STATUS" \
+            --arg apiStatus "$API_STATUS" \
+            --arg httpCode "$HTTP_CODE" \
+            --arg duration "$DURATION" \
+            --arg runUrl "https://github.com/${GITHUB_REPOSITORY}/actions/runs/${GITHUB_RUN_ID}" \
+            '{status:$status,siteStatus:$siteStatus,apiStatus:$apiStatus,httpCode:$httpCode,duration:$duration,runUrl:$runUrl}')
 
           curl --fail --silent --show-error \
             --request POST \
-            --url https://api.resend.com/emails \
-            --header "Authorization: Bearer $RESEND_API_KEY" \
+            --url https://api.shopresalelane.com/internal/monitor \
+            --header "Authorization: Bearer $UPTIME_MONITOR_TOKEN" \
             --header "Content-Type: application/json" \
             --data "$payload"
 

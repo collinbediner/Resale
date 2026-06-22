@@ -1,4 +1,5 @@
 import { buildSupportEmail, validateContactSubmission } from "./contact.js";
+import { buildMonitorEmail, constantTimeTokenEqual, validateMonitorReport } from "./monitor.js";
 import { readBoundedJson, RequestError, securityHeaders } from "./security.js";
 
 const ALLOWED_ORIGINS = new Set([
@@ -31,8 +32,7 @@ function jsonResponse(body, status, origin, requestId) {
   });
 }
 
-async function sendWithResend(env, submission, requestId) {
-  const email = buildSupportEmail(submission, requestId);
+async function sendWithResend(env, message, requestId, category) {
   const response = await fetch("https://api.resend.com/emails", {
     method: "POST",
     headers: {
@@ -41,13 +41,8 @@ async function sendWithResend(env, submission, requestId) {
       "Idempotency-Key": requestId
     },
     body: JSON.stringify({
-      from: env.SUPPORT_EMAIL_FROM,
-      to: [env.SUPPORT_EMAIL_TO],
-      reply_to: submission.email,
-      subject: email.subject,
-      text: email.text,
-      html: email.html,
-      tags: [{ name: "category", value: "support_request" }]
+      ...message,
+      tags: [{ name: "category", value: category }]
     })
   });
 
@@ -86,6 +81,49 @@ const worker = {
           { ok: false, environment: env.ENVIRONMENT, error: "Service check failed." },
           { status: 503, headers: { ...securityHeaders(), "Cache-Control": "no-store", "X-Request-ID": requestId } }
         );
+      }
+    }
+
+    if (url.pathname === "/internal/monitor" && request.method === "POST") {
+      const clientKey = request.headers.get("CF-Connecting-IP") || "unknown";
+      const rateLimit = await env.CONTACT_RATE_LIMITER.limit({ key: `monitor:${clientKey}` });
+      if (!rateLimit.success) {
+        return jsonResponse({ ok: false, error: "Too many requests." }, 429, "", requestId);
+      }
+
+      const token = request.headers.get("Authorization")?.replace(/^Bearer\s+/i, "") || "";
+      if (!env.MONITOR_TOKEN || !constantTimeTokenEqual(token, env.MONITOR_TOKEN)) {
+        return jsonResponse({ ok: false, error: "Not authorized." }, 401, "", requestId);
+      }
+
+      let input;
+      try {
+        input = await readBoundedJson(request, 4_000);
+      } catch (error) {
+        const status = error instanceof RequestError ? error.status : 400;
+        return jsonResponse({ ok: false, error: "Invalid monitor report." }, status, "", requestId);
+      }
+
+      const validation = validateMonitorReport(input);
+      if (!validation.ok) return jsonResponse({ ok: false, error: validation.error }, 400, "", requestId);
+
+      try {
+        const email = buildMonitorEmail(validation.report);
+        const providerResult = await sendWithResend(env, {
+          from: env.MONITOR_EMAIL_FROM,
+          to: [env.MONITOR_EMAIL_TO],
+          subject: email.subject,
+          text: email.text
+        }, requestId, "production_monitor");
+        console.log(JSON.stringify({
+          event: "monitor_email_sent",
+          requestId,
+          status: validation.report.status,
+          providerMessageId: providerResult.id
+        }));
+        return jsonResponse({ ok: true, requestId }, 200, "", requestId);
+      } catch {
+        return jsonResponse({ ok: false, error: "Monitor email failed." }, 502, "", requestId);
       }
     }
 
@@ -133,7 +171,15 @@ const worker = {
     }
 
     try {
-      const providerResult = await sendWithResend(env, validation.submission, requestId);
+      const email = buildSupportEmail(validation.submission, requestId);
+      const providerResult = await sendWithResend(env, {
+        from: env.SUPPORT_EMAIL_FROM,
+        to: [env.SUPPORT_EMAIL_TO],
+        reply_to: validation.submission.email,
+        subject: email.subject,
+        text: email.text,
+        html: email.html
+      }, requestId, "support_request");
       console.log(JSON.stringify({
         event: "support_email_sent",
         requestId,
