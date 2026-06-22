@@ -24,6 +24,12 @@ export function validateMonitorReport(input) {
   if (!["PASS", "FAIL"].includes(report.status)) return { ok: false, error: "Invalid monitor status." };
   if (!["PASS", "FAIL"].includes(report.siteStatus)) return { ok: false, error: "Invalid site status." };
   if (!["PASS", "FAIL"].includes(report.apiStatus)) return { ok: false, error: "Invalid API status." };
+  if (report.httpCode && !/^(?:\d{3}|none)$/.test(report.httpCode)) {
+    return { ok: false, error: "Invalid monitor HTTP code." };
+  }
+  if (report.duration && !/^(?:\d+(?:\.\d+)?|unknown)$/.test(report.duration)) {
+    return { ok: false, error: "Invalid monitor duration." };
+  }
   if (!/^https:\/\/github\.com\/collinbediner\/Resale\/actions\/runs\/\d+$/.test(report.runUrl)) {
     return { ok: false, error: "Invalid monitor run URL." };
   }

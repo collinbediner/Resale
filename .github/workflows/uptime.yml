@@ -4,6 +4,12 @@ on:
   schedule:
     - cron: "15 13 * * *"
   workflow_dispatch:
+    inputs:
+      force_failure:
+        description: "Mark this manual run as a simulated outage to verify alerting."
+        required: false
+        default: false
+        type: boolean
 
 permissions:
   contents: read
@@ -14,6 +20,8 @@ jobs:
     steps:
       - name: Check production
         id: uptime
+        env:
+          FORCE_FAILURE: ${{ github.event.inputs.force_failure == 'true' && 'true' || 'false' }}
         shell: bash
         run: |
           set +e
@@ -44,6 +52,11 @@ jobs:
 
           if [[ "$site_status" == "PASS" && "$api_status" == "PASS" ]]; then status="PASS"; else status="FAIL"; fi
 
+          if [[ "$FORCE_FAILURE" == "true" ]]; then
+            status="FAIL"
+            site_status="FAIL"
+          fi
+
           echo "status=$status" >> "$GITHUB_OUTPUT"
           echo "site_status=$site_status" >> "$GITHUB_OUTPUT"
           echo "api_status=$api_status" >> "$GITHUB_OUTPUT"
@@ -58,6 +71,9 @@ jobs:
             echo "- HTTP status: ${http_code:-none}"
             echo "- Response time: ${duration:-unknown}s"
             echo "- URL: https://shopresalelane.com/"
+            if [[ "$FORCE_FAILURE" == "true" ]]; then
+              echo "- Mode: **Simulated failure (manual test)**"
+            fi
           } >> "$GITHUB_STEP_SUMMARY"
 
       - name: Email daily checkpoint through the private Worker

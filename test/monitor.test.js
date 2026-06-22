@@ -15,6 +15,8 @@ test("monitor reports accept only fixed safe fields", () => {
   assert.equal(validateMonitorReport(report).ok, true);
   assert.equal(validateMonitorReport({ ...report, recipient: "attacker@example.com" }).ok, false);
   assert.equal(validateMonitorReport({ ...report, runUrl: "https://example.com" }).ok, false);
+  assert.equal(validateMonitorReport({ ...report, httpCode: "200 OK" }).ok, false);
+  assert.equal(validateMonitorReport({ ...report, duration: "slow" }).ok, false);
 });
 
 test("monitor token comparison handles equal and unequal values", () => {

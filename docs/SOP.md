@@ -163,6 +163,8 @@ The daily email uses the private Worker so GitHub never stores the Resend API ke
 
 The job checks both the storefront and private API, then emails Collin a daily pass/fail checkpoint. Failed production checks still fail visibly even if email delivery fails.
 
+To prove alerting still works after setup or secret rotation, manually run `Daily Production Check` from GitHub Actions with `force_failure` enabled. That sends a clearly simulated fail email and keeps the workflow visibly failed without requiring a real outage.
+
 ## Approval Rule
 
 Do not merge visual or copy changes to `main` until the preview URL has been reviewed. Local preview is acceptable for quick checks, but the approval target should be the GitHub Pages preview whenever possible.
