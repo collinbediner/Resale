@@ -3,6 +3,7 @@
 ## Current Controls
 
 - The public repository contains no service secrets or private supplier data.
+- Provider-managed secret stores are the source of truth for credentials. Local `.env`, `.dev.vars`, `.secrets/`, and `.wrangler/` files are disposable developer caches only.
 - CI runs a tracked-file secret-pattern scan, JavaScript tests, Worker configuration dry runs, and CodeQL.
 - Dependabot monitors npm and GitHub Actions dependencies.
 - Worker endpoints use explicit routes, approved origins, bounded JSON bodies, exact schemas, route-specific rate-limit keys, redacted errors, and structured logs without message bodies.
@@ -15,6 +16,8 @@
 ## Secret Rotation
 
 Never paste a secret into chat, GitHub, source files, screenshots, or tickets.
+
+No production or shared staging secret may be stored only on a local Codex machine. Follow `docs/SECRET-MANAGEMENT.md` when adding, verifying, or rotating credentials across machines.
 
 For each provider:
 

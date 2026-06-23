@@ -8,6 +8,7 @@ const prd = readDoc("PRD.md");
 const architecture = readDoc("ARCHITECTURE.md");
 const roadmap = readDoc("ROADMAP.md");
 const artifactSecurity = readDoc("ARTIFACT-SECURITY.md");
+const secretManagement = readDoc("SECRET-MANAGEMENT.md");
 const handoff = readDoc("HANDOFF.md");
 const repoStructure = readDoc("REPOSITORY-STRUCTURE.md");
 const readme = readFileSync(new URL("../README.md", import.meta.url), "utf8");
@@ -55,6 +56,15 @@ test("readme explains the main vendors and technical flow in beginner-friendly t
   }
   assert.match(readme, /technical implementation steps/i);
   assert.match(readme, /what this project uses/i);
+});
+
+test("secret management docs prevent local-only credentials across machines", () => {
+  assert.match(secretManagement, /No production or shared staging secret may be stored only on a local Codex machine/i);
+  assert.match(secretManagement, /Cloudflare Worker secrets/i);
+  assert.match(secretManagement, /GitHub Actions secrets/i);
+  assert.match(secretManagement, /not the source of truth/i);
+  assert.match(readme, /docs\/SECRET-MANAGEMENT\.md/i);
+  assert.match(handoff, /Secret source of truth: provider-managed stores/i);
 });
 
 test("private R2 artifact docs name the current v1 production PDF keys", () => {

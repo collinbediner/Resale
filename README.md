@@ -9,6 +9,7 @@ GitHub source of truth for the ResaleLane storefront, public-safe product docume
 - Handoff: [docs/HANDOFF.md](docs/HANDOFF.md)
 - Repository structure: [docs/REPOSITORY-STRUCTURE.md](docs/REPOSITORY-STRUCTURE.md)
 - Architecture: [docs/ARCHITECTURE.md](docs/ARCHITECTURE.md)
+- Secret management: [docs/SECRET-MANAGEMENT.md](docs/SECRET-MANAGEMENT.md)
 - Product/spec snapshot: [docs/SPEC-SNAPSHOT.md](docs/SPEC-SNAPSHOT.md)
 - Full product requirements: [docs/PRD.md](docs/PRD.md)
 - Website specification: [docs/WEBSITE-SPEC.md](docs/WEBSITE-SPEC.md)
@@ -62,6 +63,8 @@ GitHub Pages remains the public storefront host. Checkout and fulfillment are de
 6. The Worker records each email-delivery attempt in D1.
 
 The storefront, Git repository, and GitHub Pages deployment must never contain Stripe secrets, buyer records, or private package contact data. See [docs/ARCHITECTURE.md](docs/ARCHITECTURE.md) for the complete request sequence and environment boundaries.
+
+Production and shared staging keys must live in provider-managed secret stores, not only on one local machine. See [docs/SECRET-MANAGEMENT.md](docs/SECRET-MANAGEMENT.md) for the multi-machine secret workflow.
 
 ## How The Main Pieces Fit Together
 

@@ -9,8 +9,9 @@ Use this file at the start of every session so a new contributor can understand 
 1. `README.md`
 2. `docs/REPOSITORY-STRUCTURE.md`
 3. `docs/SOP.md`
-4. The ticket you are working on in `collinbediner/Resale-Planning`
-5. The ResaleLane Delivery project board
+4. `docs/SECRET-MANAGEMENT.md`
+5. The ticket you are working on in `collinbediner/Resale-Planning`
+6. The ResaleLane Delivery project board
 
 Do not trust this handoff by itself. Verify the current branch, Git status, latest merged commits, and ticket labels before making changes.
 
@@ -22,6 +23,7 @@ Do not trust this handoff by itself. Verify the current branch, Git status, late
 - Checkout: still intentionally disabled
 - Daily production monitor: live and emailing through the private Worker
 - Source of truth: tracked repo files only, not chat and not Google Doc shortcut files
+- Secret source of truth: provider-managed stores, not local Codex machine files
 
 ## Current Focus
 
@@ -50,10 +52,12 @@ Good independent tasks:
 - reconcile ticket status mismatches
 - document blocked work clearly
 - refine backup/recovery now that production v1 artifacts exist in R2
+- verify secret names and provider locations without exposing values
 
 Stop and ask before:
 
 - enabling real Stripe checkout
+- rotating, creating, deleting, or revealing production secrets
 - touching private supplier data
 - changing domains, billing, or account ownership
 - deleting user-owned local private folders
