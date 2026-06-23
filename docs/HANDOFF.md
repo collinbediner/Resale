@@ -35,10 +35,10 @@ Today's working checklist is tracked in `docs/TODAY-PLAN-2026-06-23.md`.
 - `#25` Worker foundation: waiting on UAT confirmation
 - `#10` D1 order and email-attempt schema: waiting on UAT confirmation
 - `#19` Security controls: partially complete, still needs Turnstile and Stripe-specific hardening
-- `#26` Private R2 artifact packaging: in progress, waiting on approved private vendor data and PDFs
 - `#3`: today's first focus; Stripe account/catalog setup still requires owner and adult-account coordination
-- `#29`: PDF artifact work is still tied to verified private source data in `#24`
-- `#8`, `#24`, and `#5`: owner or business inputs still required before checkout can go live
+- `#5`, `#24`, `#26`, and `#29`: completed; v1 PDFs are in private production R2 and hash-verified
+- `#8`: Resend sender setup remains in progress, especially final `orders@shopresalelane.com` fulfillment path
+- `#4`, `#7`, `#9`, and `#12`: next checkout/fulfillment launch blockers after Stripe setup
 
 ## Safe Independent Work
 
@@ -49,6 +49,7 @@ Good independent tasks:
 - strengthen Worker validation and redaction
 - reconcile ticket status mismatches
 - document blocked work clearly
+- refine backup/recovery now that production v1 artifacts exist in R2
 
 Stop and ask before:
 

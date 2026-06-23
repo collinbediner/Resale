@@ -23,10 +23,28 @@ artifacts/{environment}/{product-id}/{version}/manifest.json
 Example:
 
 ```text
-artifacts/production/shoe-vendor/2026-06-18.1/package.pdf
+artifacts/production/shoe-vendor/v1/package.pdf
 ```
 
 Never use supplier names, customer email addresses, order IDs, or secrets in object keys.
+
+## Current Production Artifact Set
+
+The v1 customer PDF artifacts are uploaded to the private production R2 bucket `resalelane-artifacts-production` and were verified by downloading them back from Cloudflare R2 and comparing SHA-256 hashes to the private source PDFs.
+
+Current production object keys:
+
+```text
+artifacts/production/shoe-vendor/v1/package.pdf
+artifacts/production/clothes-vendor/v1/package.pdf
+artifacts/production/airpods-headphones-vendor/v1/package.pdf
+artifacts/production/cologne-vendor/v1/package.pdf
+artifacts/production/all-vendor-bundle/v1/package.pdf
+```
+
+The private source artifacts, generated HTML, validation report, rendered QA images, and artifact-generation scripts live in the private `collinbediner/Resale-Planning` repository under `customer-delivery-artifacts/vendor-resources/`.
+
+Do not copy the PDFs, extracted text, rendered validation images, or private vendor source data into this public repository.
 
 The manifest contains public-safe operational metadata only:
 
@@ -142,10 +160,11 @@ If an artifact or delivery link is exposed:
 
 ## Acceptance Checklist
 
-- [ ] Private staging and production buckets exist.
+- [x] Private staging and production buckets exist.
+- [x] Production v1 PDF artifacts are uploaded to private R2 and hash-verified.
+- [x] Worker bindings are environment-specific.
 - [ ] Public bucket access is disabled.
 - [ ] Staging uses synthetic data only.
-- [ ] Worker bindings are environment-specific.
 - [ ] Signed/order-bound delivery tokens expire.
 - [ ] D1 records artifact version and delivery attempts.
 - [ ] Artifact upload validates digest and customer-safe content.

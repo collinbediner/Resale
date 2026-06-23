@@ -11,17 +11,22 @@ Every roadmap item must be represented by one canonical issue in the planning re
 
 1. Implement the Cloudflare Worker checkout and signed-webhook endpoints.
 2. Configure Stripe products, authoritative Price IDs, Checkout, and test/live secrets.
-3. Define and secure the exact package contact data and optional files delivered for every product.
-4. Configure private staging/production R2 bindings or equivalent Worker-only configuration.
-5. Configure Resend domain authentication and delivery from `orders@shopresalelane.com`.
-6. Store orders and delivery attempts in separate staging/production D1 databases.
-7. Build success, cancel, resend-help, and support flows.
-8. Complete end-to-end Stripe test-mode launch verification before enabling live checkout.
+3. Configure Resend delivery from `orders@shopresalelane.com`.
+4. Build fulfillment email logic that reads the approved private R2 v1 package artifacts.
+5. Build success, cancel, resend-help, and support flows around real checkout.
+6. Complete end-to-end Stripe test-mode launch verification before enabling live checkout.
+
+## Completed Launch Dependencies
+
+- Package contact data and bundle composition are approved for the current v1 artifact set.
+- Four individual vendor PDFs and one all-vendor bundle PDF are generated in the private planning repository.
+- Production v1 PDFs are uploaded to private Cloudflare R2 and hash-verified.
+- Separate staging and production D1 databases and R2 buckets exist.
+- Support form email and daily production monitor email are already live through the private Worker.
 
 ## After Checkout Is Working
 
 - Verified-buyer review submission and moderation
-- Real support endpoint with abuse protection
 - Legal review of policies and checkout language
 - Google Analytics 4 and privacy-safe ecommerce events
 - Monitoring, alerting, retries, backups, and restoration drills
