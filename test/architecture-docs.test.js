@@ -56,3 +56,16 @@ test("readme explains the main vendors and technical flow in beginner-friendly t
   assert.match(readme, /technical implementation steps/i);
   assert.match(readme, /what this project uses/i);
 });
+
+test("private R2 artifact docs name the current v1 production PDF keys", () => {
+  for (const key of [
+    "artifacts/production/shoe-vendor/v1/package.pdf",
+    "artifacts/production/clothes-vendor/v1/package.pdf",
+    "artifacts/production/airpods-headphones-vendor/v1/package.pdf",
+    "artifacts/production/cologne-vendor/v1/package.pdf",
+    "artifacts/production/all-vendor-bundle/v1/package.pdf"
+  ]) {
+    assert.match(artifactSecurity, new RegExp(key.replaceAll("/", "\\/")));
+    assert.match(architecture, new RegExp(key.replaceAll("/", "\\/")));
+  }
+});

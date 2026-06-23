@@ -124,6 +124,18 @@ The public contact form posts to `https://api.shopresalelane.com/support`. The W
 
 D1 stores buyer and order metadata needed for payment verification, idempotency, delivery tracking, and support. Supplier contacts, PDF contents, and private package data remain in private R2 and are never copied into D1.
 
+The current production v1 PDF artifact keys are:
+
+```text
+artifacts/production/shoe-vendor/v1/package.pdf
+artifacts/production/clothes-vendor/v1/package.pdf
+artifacts/production/airpods-headphones-vendor/v1/package.pdf
+artifacts/production/cologne-vendor/v1/package.pdf
+artifacts/production/all-vendor-bundle/v1/package.pdf
+```
+
+Those objects are in the private `resalelane-artifacts-production` bucket. They were verified by downloading them back from Cloudflare R2 and comparing hashes to the private source PDFs.
+
 ## Technical Implementation Steps
 
 This is the intended implementation order for the full commerce system:
@@ -132,7 +144,7 @@ This is the intended implementation order for the full commerce system:
 2. Validate all support and monitor traffic in the Worker.
 3. Keep secrets in Cloudflare Worker secrets, never in the repo or browser.
 4. Use D1 for order state, event tracking, and retry history.
-5. Use R2 for private delivery artifacts and contact bundles.
+5. Use R2 for private delivery artifacts and contact bundles. The production v1 PDF set is already uploaded and hash-verified.
 6. Use Stripe Checkout for payment collection instead of custom card handling.
 7. Verify Stripe webhooks in the Worker before touching D1 or R2.
 8. Use Resend for customer-facing and operator-facing email.
