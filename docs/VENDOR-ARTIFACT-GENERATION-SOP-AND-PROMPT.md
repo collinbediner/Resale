@@ -8,18 +8,15 @@ Generate official ResaleLane PDF fulfillment artifacts for purchased vendor reso
 
 ## Current Scope
 
-Generate the Shoe Vendor artifact first as the visual/template trial. Do not generate the remaining individual vendor PDFs or the bundle until Collin approves the first visual direction.
+Collin approved the Shoe Vendor visual/template direction. Generate and maintain the full five-artifact set:
 
-After approval, reuse the accepted template direction for:
-
+- `resalelane-shoe-vendor.pdf`
 - `resalelane-airpods-headphones-vendor.pdf`
 - `resalelane-cologne-vendor.pdf`
 - `resalelane-clothes-vendor.pdf`
 - `resalelane-all-vendor-bundle.pdf`
 
-The current Shoe Vendor customer-facing filename is:
-
-- `resalelane-shoe-vendor.pdf`
+The bundle PDF should be five pages: a styled bundle title page followed by one dedicated vendor page for Shoe Vendor, AirPods / Headphones Vendor, Cologne Vendor, and Clothes Vendor.
 
 Do not add `v1`, dates, hashes, supplier names, customer emails, or order IDs to customer-facing PDF filenames. Internal private object keys may still be versioned by the fulfillment system.
 
@@ -55,13 +52,13 @@ Private planning repo:
 - Store and commit validation text extracts and reports that might contain vendor details.
 - Treat `collinbediner/Resale-Planning` as the source-of-truth repository for customer artifact outputs and editable generation sources.
 
-Recommended private local path shape:
+Current private local path shape:
 
 ```text
-planning-docs/customer-delivery-artifacts/<product-purpose>/
+planning-docs/customer-delivery-artifacts/vendor-resources/
 ```
 
-Use purpose-driven folder names such as `shoe-vendor`, `airpods-headphones-vendor`, `cologne-vendor`, `clothes-vendor`, and `all-vendor-bundle`.
+Use purpose-driven folder names. `vendor-resources/` owns the editable source, structured data, generated individual PDFs, generated bundle PDF, and validation outputs.
 
 ## Brand Source Of Truth
 
@@ -240,10 +237,14 @@ Use the private Google Doc as the only source for vendor-specific data. If the G
 
 Keep generated PDFs, private JSON, extracted text, and validation images in the private `collinbediner/Resale-Planning` repository and commit them there. Do not put them in the public code repo.
 
-For the current staged run, generate only the Shoe Vendor artifact unless Collin has explicitly approved the first visual/template direction and asked for the remaining artifacts.
+The Shoe Vendor visual/template direction has been approved. Generate the full five-artifact set:
+- resalelane-shoe-vendor.pdf
+- resalelane-airpods-headphones-vendor.pdf
+- resalelane-cologne-vendor.pdf
+- resalelane-clothes-vendor.pdf
+- resalelane-all-vendor-bundle.pdf
 
-The Shoe Vendor customer-facing output filename is:
-resalelane-shoe-vendor.pdf
+The bundle PDF should be five pages: a styled title page plus one dedicated page per vendor.
 
 Do not include v1, dates, hashes, supplier names, customer emails, or order IDs in customer-facing PDF filenames.
 
