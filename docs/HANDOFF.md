@@ -27,6 +27,8 @@ Do not trust this handoff by itself. Verify the current branch, Git status, late
 
 The repo has solid public-site foundations, support email, D1 schema, security controls, and production monitoring. The remaining launch-critical work is mostly blocked on private business setup and private vendor data, not on public frontend code.
 
+Today's working checklist is tracked in `docs/TODAY-PLAN-2026-06-23.md`.
+
 ## Ticket Snapshot
 
 - `#17` Daily production checkpoint: engineering complete, waiting on UAT confirmation
@@ -34,7 +36,9 @@ The repo has solid public-site foundations, support email, D1 schema, security c
 - `#10` D1 order and email-attempt schema: waiting on UAT confirmation
 - `#19` Security controls: partially complete, still needs Turnstile and Stripe-specific hardening
 - `#26` Private R2 artifact packaging: in progress, waiting on approved private vendor data and PDFs
-- `#3`, `#8`, `#24`, and `#5`: owner or business inputs still required before checkout can go live
+- `#3`: today's first focus; Stripe account/catalog setup still requires owner and adult-account coordination
+- `#29`: PDF artifact work is still tied to verified private source data in `#24`
+- `#8`, `#24`, and `#5`: owner or business inputs still required before checkout can go live
 
 ## Safe Independent Work
 
