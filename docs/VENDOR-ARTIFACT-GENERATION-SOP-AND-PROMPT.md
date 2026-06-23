@@ -116,9 +116,10 @@ Use these exact contact labels:
 - Company Name
 - Contact Name
 - Phone / WhatsApp
-- Email
 - Best Contact Method
 - Ordering Notes
+
+Do not include a vendor `Email` field in the PDF. These vendors communicate through WhatsApp, so the field creates noise when it only says `Not available`.
 
 When a value is missing or the source says it is unavailable, display exactly:
 
