@@ -15,6 +15,7 @@ Tracked source material includes:
 - `docs/` for architecture, security, roadmap, and operating decisions.
 - `docs/HANDOFF.md` for current working status and blockers.
 - `docs/REPOSITORY-STRUCTURE.md` for folder layout and root-file rules.
+- `docs/SECRET-MANAGEMENT.md` for the shared secret source-of-truth policy.
 - `.github/CONTRIBUTING.md` for collaborator setup and workflow.
 
 ## Drift Control
@@ -28,6 +29,7 @@ Before every implementation pass:
 5. Re-read a linked Google Doc only when the repository says the draft has changed.
 6. Update tracked docs, assets, or app files with every decision being implemented.
 7. Keep private supplier data out of Git. Supplier delivery content belongs in protected storage, never this public repository.
+8. Treat provider-managed secret stores as the credential source of truth. Local `.env`, `.dev.vars`, `.secrets/`, and `.wrangler/` files are only temporary machine caches.
 
 ## Required Testing
 
@@ -194,6 +196,8 @@ Stripe is not set up yet. Checkout buttons must stay disabled or point to a plac
 Do not commit:
 
 - `.env` files
+- `.dev.vars` files
+- `secrets.json`
 - `.wrangler/`
 - supplier/private delivery data
 - Stripe, Resend, Cloudflare, or GitHub tokens
@@ -245,4 +249,4 @@ For Worker rollback, use `npx wrangler versions list` and then `npx wrangler rol
 
 Before enabling any automated deletion or anonymization, follow `docs/DATA-RETENTION.md` and obtain owner approval for the final retention period.
 
-Secret rotation and incident handling follow `docs/SECURITY-OPERATIONS.md`. Record only secret names and test results; never record secret values.
+Secret ownership, rotation, and incident handling follow `docs/SECRET-MANAGEMENT.md` and `docs/SECURITY-OPERATIONS.md`. Record only secret names, provider stores, environments, and test results; never record secret values.
