@@ -206,6 +206,31 @@ Do not commit:
 
 Everything else that collaborators need to understand, build, test, or reproduce the public project should be committed.
 
+## Shared Secret Locations
+
+Production and shared staging keys must live in provider-managed stores, not only on a local Codex machine.
+
+Use these locations as the source of truth:
+
+| Secret/config | Secure location | Current status |
+| --- | --- | --- |
+| `RESEND_API_KEY` | Cloudflare Dashboard -> Workers & Pages -> `resalelane-api` -> Settings -> Variables and Secrets | Production Worker secret installed |
+| `MONITOR_TOKEN` | Cloudflare Dashboard -> Workers & Pages -> `resalelane-api` -> Settings -> Variables and Secrets | Production Worker secret installed |
+| `UPTIME_MONITOR_TOKEN` | GitHub repo -> Settings -> Secrets and variables -> Actions | GitHub Actions secret installed |
+| Future `STRIPE_SECRET_KEY` | Cloudflare Dashboard -> Workers & Pages -> `resalelane-api` -> Settings -> Variables and Secrets | Not set until Stripe checkout work begins |
+| Future `STRIPE_WEBHOOK_SECRET` | Cloudflare Dashboard -> Workers & Pages -> `resalelane-api` -> Settings -> Variables and Secrets | Not set until Stripe webhook work begins |
+| Private delivery PDFs | Cloudflare Dashboard -> R2 Object Storage -> `resalelane-artifacts-production` | Production R2 bucket |
+
+For command-line verification, run these from the repository root in PowerShell:
+
+```powershell
+npx wrangler secret list
+npx wrangler secret list --env staging
+gh secret list --repo collinbediner/Resale
+```
+
+These commands show secret names only. They do not print the secret values.
+
 ## Worker And Database Operations
 
 Run Worker commands from the repository root in PowerShell.
