@@ -3,6 +3,7 @@ import test from "node:test";
 import {
   deliveryDelayedEmail,
   deliveryEmail,
+  fulfilledContactEmail,
   orderConfirmationEmail,
   supportAcknowledgementEmail
 } from "../server/email-templates.js";
@@ -34,6 +35,26 @@ test("delivery uses an expiring order-specific URL and artifact version", () => 
   assert.match(email.html, /2026-06-18\.1/);
 });
 
+test("direct fulfillment email includes purchased contact sections", () => {
+  const email = fulfilledContactEmail(order, {
+    artifactVersion: "shoe-vendor:v1",
+    sections: [{
+      title: "Shoe Vendor",
+      companyName: "Vendor Co",
+      contactName: "Su Su",
+      phoneWhatsApp: "+86 150 5987 0957",
+      bestContactMethod: "WhatsApp",
+      orderingNotes: "Send a message first.",
+      recommendedFirstMessage: "Hello there.",
+      beforeOrdering: "Verify everything first.",
+      disclaimer: "Private source only.",
+    }],
+  });
+  assert.match(email.text, /Company Name: Vendor Co/);
+  assert.match(email.html, /Phone \/ WhatsApp/);
+  assert.match(email.html, /Do not forward this email/);
+});
+
 test("delayed delivery prevents duplicate purchasing", () => {
   const email = deliveryDelayedEmail(order);
   assert.match(email.text, /do not need to purchase again/i);
@@ -54,4 +75,5 @@ test("support acknowledgement escapes untrusted content", () => {
 test("templates reject incomplete transactional data", () => {
   assert.throws(() => orderConfirmationEmail({}), /required/);
   assert.throws(() => deliveryEmail(order, {}), /required/);
+  assert.throws(() => fulfilledContactEmail(order, {}), /required/);
 });

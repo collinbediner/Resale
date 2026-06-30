@@ -42,12 +42,15 @@ Public code repo:
 
 - This SOP and public-safe generation instructions may live here.
 - Generic template patterns may live here only if they contain no supplier/customer data.
+- Public-safe instructions for generating private post-purchase preview media may live here.
 - No generated customer PDFs, private vendor JSON, extracted PDF text, rendered validation screenshots, supplier contacts, customer details, or fulfillment secrets belong here.
+- No contact-visible preview PNGs belong here either.
 
 Private planning repo:
 
 - Store and commit private structured vendor data.
 - Store and commit generated PDFs.
+- Store and commit generated preview PNGs derived from those PDFs.
 - Store and commit rendered validation images.
 - Store and commit validation text extracts and reports that might contain vendor details.
 - Treat `collinbediner/Resale-Planning` as the source-of-truth repository for customer artifact outputs and editable generation sources.
@@ -59,6 +62,8 @@ planning-docs/customer-delivery-artifacts/vendor-resources/
 ```
 
 Use purpose-driven folder names. `vendor-resources/` owns the editable source, structured data, generated individual PDFs, generated bundle PDF, and validation outputs.
+
+Use `preview-assets/` under that private workspace for derivative PNG media generated from the approved PDFs.
 
 ## Brand Source Of Truth
 
@@ -219,6 +224,47 @@ Visual validation must include rendered PDF inspection for:
 - ResaleLane storefront consistency.
 - Mobile readability.
 
+## Private Preview Asset Requirements
+
+After the PDFs are approved or regenerated, also create private derivative preview media from page 1 of each approved PDF.
+
+These assets are allowed only in private or post-purchase contexts such as:
+
+- Fulfillment emails
+- Authorized resend/support tools
+- Internal operations previews
+- Authenticated delivery views
+
+These assets are not allowed in:
+
+- Public storefront product cards
+- Public OG/Twitter/social previews
+- Public screenshots
+- Public GitHub repositories
+- Public marketing pages
+
+Required asset variants per product PDF and per bundle PDF:
+
+- `<slug>-thumbnail.png`
+- `<slug>-receipt-preview.png`
+- `<slug>-delivery-preview.png`
+
+Generation rules:
+
+- Use the approved PDF as the source, not a recreated card or new mockup.
+- Render page 1 only.
+- Keep the full page visible as a faithful miniature.
+- Do not crop away contact details for post-purchase variants.
+- Use stable filenames with no version suffix in the visible asset name.
+- Keep output in the private planning repo only.
+
+Validation rules:
+
+- Confirm the source PDF exists before rendering.
+- Confirm all three PNGs are generated for each selected slug.
+- Confirm image dimensions match the approved variant sizes.
+- Confirm the manifest records the source PDF and generated PNG filenames.
+
 ## Standard Next-Codex Prompt
 
 Use this prompt when handing the task to another Codex machine:
@@ -236,6 +282,7 @@ First, read:
 Use the private Google Doc as the only source for vendor-specific data. If the Google Doc is inaccessible, stop and report the access problem. Do not guess or use external research.
 
 Keep generated PDFs, private JSON, extracted text, and validation images in the private `collinbediner/Resale-Planning` repository and commit them there. Do not put them in the public code repo.
+Keep any contact-visible preview PNGs in that same private repository only.
 
 The Shoe Vendor visual/template direction has been approved. Generate the full five-artifact set:
 - resalelane-shoe-vendor.pdf
@@ -258,12 +305,14 @@ Create or update:
 - editable semantic HTML template
 - print-focused CSS
 - repeatable generation script
+- repeatable preview-asset generation script
 - private structured data file, if needed
 - README
 - validation report
 - unit/QA tests
 
 Validate one-page US Letter output, selectable text, required copy, source-value parity, prohibited terms, WhatsApp link correctness, and rendered visual fit before returning.
+Also generate and validate the private preview PNGs derived from page 1 of each approved PDF.
 
 If you change the artifact design, filenames, validation rules, or prompt, update website/docs/VENDOR-ARTIFACT-GENERATION-SOP-AND-PROMPT.md in the code repo in the same pass.
 ```

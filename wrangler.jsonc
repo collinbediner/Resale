@@ -13,7 +13,11 @@
   "vars": {
     "ENVIRONMENT": "production",
     "SUPPORT_EMAIL_FROM": "ResaleLane Support <support@shopresalelane.com>",
-    "SUPPORT_EMAIL_TO": "collin.bediner+support@gmail.com"
+    "SUPPORT_EMAIL_TO": "collin.bediner+support@gmail.com",
+    "ORDERS_EMAIL_FROM": "ResaleLane Orders <orders@shopresalelane.com>",
+    "PUBLIC_SITE_URL": "https://shopresalelane.com",
+    "STRIPE_PRICE_LOOKUP": "{\"shoe-vendor\":\"price_1To6nWGVUc2BGBXRUzC4a0db\",\"clothes-vendor\":\"price_1To6nXGVUc2BGBXR3kOEt2qL\",\"airpods-headphones-vendor\":\"price_1To6nYGVUc2BGBXR4OVeRbpE\",\"cologne-vendor\":\"price_1To6nZGVUc2BGBXR6zL00R3o\",\"all-vendor-bundle\":\"price_1To6neGVUc2BGBXRFZP6kLfj\"}",
+    "ACTIVE_ARTIFACT_VERSIONS": "{\"shoe-vendor\":\"v1\",\"clothes-vendor\":\"v1\",\"airpods-headphones-vendor\":\"v1\",\"cologne-vendor\":\"v1\",\"all-vendor-bundle\":\"v1\"}"
   },
   "d1_databases": [
     {
@@ -55,7 +59,11 @@
       "vars": {
         "ENVIRONMENT": "staging",
         "SUPPORT_EMAIL_FROM": "ResaleLane Staging <support@shopresalelane.com>",
-        "SUPPORT_EMAIL_TO": "collin.bediner+support@gmail.com"
+        "SUPPORT_EMAIL_TO": "collin.bediner+support@gmail.com",
+        "ORDERS_EMAIL_FROM": "ResaleLane Staging <orders@shopresalelane.com>",
+        "PUBLIC_SITE_URL": "https://shopresalelane.com/staging",
+        "STRIPE_PRICE_LOOKUP": "{\"shoe-vendor\":\"price_1To6nWGVUc2BGBXRUzC4a0db\",\"clothes-vendor\":\"price_1To6nXGVUc2BGBXR3kOEt2qL\",\"airpods-headphones-vendor\":\"price_1To6nYGVUc2BGBXR4OVeRbpE\",\"cologne-vendor\":\"price_1To6nZGVUc2BGBXR6zL00R3o\",\"all-vendor-bundle\":\"price_1To6neGVUc2BGBXRFZP6kLfj\"}",
+        "ACTIVE_ARTIFACT_VERSIONS": "{\"shoe-vendor\":\"v1\",\"clothes-vendor\":\"v1\",\"airpods-headphones-vendor\":\"v1\",\"cologne-vendor\":\"v1\",\"all-vendor-bundle\":\"v1\"}"
       },
       "d1_databases": [
         {
