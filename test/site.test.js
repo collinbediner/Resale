@@ -13,8 +13,8 @@ const bundleId = "all-vendor-bundle";
 
 test("production page includes required public content and safety controls", () => {
   assert.match(html, /Premium Vendors for Resellers/);
-  assert.match(app, /Continue to Stripe \(Setup Pending\)/);
-  assert.match(app, /disabled/);
+  assert.match(app, /Continue to Stripe/);
+  assert.match(app, /Creating your secure Stripe checkout/);
   assert.match(html, /ResaleLane sells informational vendor resources only/);
   assert.match(html, /collin\.bediner\+support@gmail\.com/);
   assert.match(html, /Content-Security-Policy/);
@@ -23,7 +23,9 @@ test("production page includes required public content and safety controls", () 
 });
 
 test("contact form sends through the private API and keeps a direct email fallback", () => {
-  assert.match(app, /https:\/\/api\.shopresalelane\.com\/support/);
+  assert.match(app, /https:\/\/api-staging\.shopresalelane\.com/);
+  assert.match(app, /https:\/\/api\.shopresalelane\.com/);
+  assert.match(app, /\/support/);
   assert.match(app, /method: "POST"/);
   assert.doesNotMatch(app, /window\.location\.href = `mailto:/);
   assert.match(html, /name="company"/);
@@ -75,6 +77,12 @@ test("catalog keeps launch prices and bundle price authoritative in code", () =>
   assert.match(app, /id: "all-vendor-bundle"[\s\S]*?price: 12/);
 });
 
+test("checkout posts only product ids to the API before redirecting to Stripe", () => {
+  assert.match(app, /JSON\.stringify\(\{ productIds: cart \}\)/);
+  assert.match(app, /window\.location\.href = result\.url/);
+  assert.doesNotMatch(app, /price_id/i);
+});
+
 test("adding a normal product adds exactly that product", () => {
   assert.deepEqual(resolveCartAdd([], "shoe-vendor", bundleId), {
     cart: ["shoe-vendor"], conflict: null, status: "added"
@@ -108,6 +116,9 @@ test("checkout result pages are safe, private, and support-focused", () => {
   assert.match(success, /We're confirming your order/);
   assert.match(success, /server-side payment verification/);
   assert.match(success, /after 15 minutes/);
+  assert.match(success, /href="\.\/index\.html#contact"/);
+  assert.doesNotMatch(success, /Get delivery help/);
+  assert.doesNotMatch(success, /mailto:collin\.bediner\+support@gmail\.com/);
   assert.doesNotMatch(success, /supplier contact|marketplace link/i);
   assert.match(canceled, /No order was placed/);
   assert.match(canceled, /generally final after successful delivery/);

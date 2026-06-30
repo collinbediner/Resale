@@ -3,6 +3,7 @@ import test from "node:test";
 import {
   deliveryDelayedEmail,
   deliveryEmail,
+  fulfilledPackageEmail,
   orderConfirmationEmail,
   supportAcknowledgementEmail
 } from "../server/email-templates.js";
@@ -18,7 +19,8 @@ const order = {
 test("confirmation distinguishes Stripe receipt from ResaleLane fulfillment", () => {
   const email = orderConfirmationEmail(order);
   assert.match(email.subject, /RL-12345/);
-  assert.match(email.text, /Stripe provides the official payment receipt/);
+  assert.match(email.text, /Thank you for shopping with ResaleLane/);
+  assert.match(email.text, /If Stripe sends a payment receipt/);
   assert.match(email.text, /\$12\.00/);
   assert.doesNotMatch(email.text, /supplier contact/i);
 });
@@ -32,6 +34,19 @@ test("delivery uses an expiring order-specific URL and artifact version", () => 
   assert.match(email.text, /Do not forward/);
   assert.match(email.html, /Download your package/);
   assert.match(email.html, /2026-06-18\.1/);
+});
+
+test("fulfillment email is branded and points buyers to attached PDFs", () => {
+  const email = fulfilledPackageEmail(order, {
+    artifactVersion: "shoe-vendor:v1",
+    attachmentCount: 1,
+    resourceTitles: ["Shoe Vendor"],
+  });
+  assert.match(email.text, /Thank you for shopping with ResaleLane/);
+  assert.match(email.text, /PDF is attached to this email/i);
+  assert.match(email.html, /Attached PDFs/);
+  assert.match(email.html, /Shoe Vendor/);
+  assert.doesNotMatch(email.html, /Phone \/ WhatsApp/);
 });
 
 test("delayed delivery prevents duplicate purchasing", () => {
@@ -54,4 +69,5 @@ test("support acknowledgement escapes untrusted content", () => {
 test("templates reject incomplete transactional data", () => {
   assert.throws(() => orderConfirmationEmail({}), /required/);
   assert.throws(() => deliveryEmail(order, {}), /required/);
+  assert.throws(() => fulfilledPackageEmail(order, {}), /required/);
 });

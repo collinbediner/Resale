@@ -25,6 +25,17 @@ const $$ = selector => [...document.querySelectorAll(selector)];
 const product = id => products.find(item => item.id === id);
 const money = value => `$${value}`;
 
+// Keep the public site pointed at the matching private API for the current environment.
+function apiBaseUrl() {
+  if (window.location.hostname === "localhost" || window.location.hostname === "127.0.0.1") {
+    return "https://api-staging.shopresalelane.com";
+  }
+  if (window.location.hostname === "shopresalelane.com" && window.location.pathname.startsWith("/staging/")) {
+    return "https://api-staging.shopresalelane.com";
+  }
+  return "https://api.shopresalelane.com";
+}
+
 function init() {
   $("[data-preview-list]").innerHTML = products.filter(p => !p.isBundle).map(p => `<div class="preview-item"><span>${p.icon}</span><b>${p.name}</b><s>$15</s></div>`).join("");
   $("[data-product-grid]").innerHTML = products.filter(p => !p.isBundle).map(p => `<article class="product-card"><div class="product-top"><span class="product-icon">${p.icon}</span><span class="badge">${p.badge}</span></div><h3>${p.name}</h3><p>${p.description}</p><div class="price"><strong>${money(p.price)}</strong><s>${money(p.compareAt)}</s></div><button class="button primary" data-add="${p.id}">Add to Cart</button><button class="text-button" data-detail="${p.id}">View Details</button></article>`).join("");
@@ -98,7 +109,7 @@ function updateCart() {
   const items = cart.map(product);
   $("[data-cart-content]").innerHTML = items.length ? items.map(p => `<div class="cart-item"><span class="cart-item-icon">${p.icon}</span><div><h3>${p.name}</h3><button data-remove="${p.id}">Remove</button></div><strong>${money(p.price)}</strong></div>`).join("") : `<div class="empty-cart"><h3>Your cart is empty</h3><p>Choose a vendor package to get started.</p></div>`;
   const subtotal = items.reduce((sum, p) => sum + p.price, 0);
-  $("[data-cart-footer]").innerHTML = items.length ? `<div class="subtotal"><span>Subtotal</span><strong>${money(subtotal)}</strong></div><p class="reassurance">Digital sourcing information only<br>Stripe checkout is not active yet</p>${conflictMarkup()}<button class="button primary" data-checkout>Checkout Securely</button>` : `<button class="button secondary" data-close-cart>Continue Shopping</button>`;
+  $("[data-cart-footer]").innerHTML = items.length ? `<div class="subtotal"><span>Subtotal</span><strong>${money(subtotal)}</strong></div><p class="reassurance">Digital sourcing information only<br>Secure checkout is handled by Stripe</p>${conflictMarkup()}<button class="button primary" data-checkout>Checkout Securely</button>` : `<button class="button secondary" data-close-cart>Continue Shopping</button>`;
 }
 function conflictMarkup() {
   if (!conflict) return "";
@@ -117,7 +128,7 @@ function openDetail(id) {
 function openCheckout() {
   const items = cart.map(product), subtotal = items.reduce((sum, p) => sum + p.price, 0);
   closeCart();
-  $("[data-modal]").innerHTML = `<div class="modal-heading"><h2>Checkout</h2><button class="icon-button" data-close-modal aria-label="Close">×</button></div><p class="modal-label">ORDER SUMMARY</p><div class="checkout-summary">${items.map(p => `<div class="checkout-line"><span>${p.name}</span><strong>${money(p.price)}</strong></div>`).join("")}<div class="checkout-total"><span>Subtotal</span><strong>${money(subtotal)}</strong></div></div><label class="modal-label">DELIVERY EMAIL<input type="email" placeholder="you@email.com" /></label><button class="button disabled" disabled>Continue to Stripe (Setup Pending)</button><p class="legal">Payments are not active. When checkout launches, you will be buying digital sourcing information, not a physical product. All sales will be final after delivery except reviewed duplicate-charge, wrong-delivery, or unresolved non-delivery cases.</p>`;
+  $("[data-modal]").innerHTML = `<div class="modal-heading"><h2>Checkout</h2><button class="icon-button" data-close-modal aria-label="Close">×</button></div><p class="modal-label">ORDER SUMMARY</p><div class="checkout-summary">${items.map(p => `<div class="checkout-line"><span>${p.name}</span><strong>${money(p.price)}</strong></div>`).join("")}<div class="checkout-total"><span>Subtotal</span><strong>${money(subtotal)}</strong></div></div><button class="button primary" data-start-checkout>Continue to Stripe</button><p class="form-status" data-checkout-status role="status" aria-live="polite"></p><p class="legal">You are buying digital sourcing information, not a physical product. Stripe collects the checkout email and payment details. All sales are final after delivery except reviewed duplicate-charge, wrong-delivery, or unresolved non-delivery cases.</p>`;
   openModal();
 }
 function openModal() { $("[data-modal-overlay]").hidden = false; document.body.classList.add("locked"); }
@@ -146,7 +157,7 @@ async function sendContact(event) {
   status.textContent = "Sending your message securely...";
 
   try {
-    const response = await fetch("https://api.shopresalelane.com/support", {
+    const response = await fetch(`${apiBaseUrl()}/support`, {
       method: "POST",
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify(data)
@@ -167,4 +178,41 @@ async function sendContact(event) {
     button.textContent = "Send message";
   }
 }
+
+// Start the hosted Stripe checkout from the server-side approved product list only.
+async function startCheckout() {
+  if (!cart.length) return;
+
+  const button = $("[data-start-checkout]");
+  const status = $("[data-checkout-status]");
+  if (!button || !status) return;
+
+  button.disabled = true;
+  button.textContent = "Redirecting...";
+  status.className = "form-status";
+  status.textContent = "Creating your secure Stripe checkout...";
+
+  try {
+    const response = await fetch(`${apiBaseUrl()}/checkout`, {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ productIds: cart })
+    });
+    const result = await response.json();
+    if (!response.ok || !result.ok || !result.url) {
+      throw new Error(result.error || "Checkout could not be started.");
+    }
+    window.location.href = result.url;
+  } catch (error) {
+    button.disabled = false;
+    button.textContent = "Continue to Stripe";
+    status.className = "form-status error";
+    status.textContent = `${error.message} If this keeps happening, contact support before trying again.`;
+  }
+}
+
+document.addEventListener("click", (event) => {
+  if (event.target.closest("[data-start-checkout]")) startCheckout();
+});
+
 init();

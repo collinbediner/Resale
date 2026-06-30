@@ -56,6 +56,38 @@ function orderSummary(order) {
   <p style="color:#a3a3a3;font-size:13px">ResaleLane order: ${escapeHtml(order.orderId)}<br>Stripe reference: ${escapeHtml(order.stripeReference)}</p>`;
 }
 
+function fulfillmentSectionHtml(section) {
+  return `<section style="margin:20px 0 0;padding:18px;border:1px solid #282828;border-radius:14px;background:#151515">
+    <h2 style="margin:0 0 14px;font-size:21px">${escapeHtml(section.title)}</h2>
+    <table role="presentation" style="width:100%;border-collapse:collapse">
+      <tr><td style="padding:6px 0;color:#8f8f8f">Company Name</td><td style="padding:6px 0;text-align:right;font-weight:700">${escapeHtml(section.companyName)}</td></tr>
+      <tr><td style="padding:6px 0;color:#8f8f8f">Contact Name</td><td style="padding:6px 0;text-align:right;font-weight:700">${escapeHtml(section.contactName)}</td></tr>
+      <tr><td style="padding:6px 0;color:#8f8f8f">Phone / WhatsApp</td><td style="padding:6px 0;text-align:right;font-weight:700">${escapeHtml(section.phoneWhatsApp)}</td></tr>
+      <tr><td style="padding:6px 0;color:#8f8f8f">Best Contact Method</td><td style="padding:6px 0;text-align:right;font-weight:700">${escapeHtml(section.bestContactMethod)}</td></tr>
+    </table>
+    <p style="margin:16px 0 0;color:#8f8f8f;font-size:12px;letter-spacing:.08em;text-transform:uppercase">Ordering Notes</p>
+    <p style="margin:8px 0 0;color:#d4d4d4;line-height:1.65">${escapeHtml(section.orderingNotes)}</p>
+    <p style="margin:16px 0 0;color:#8f8f8f;font-size:12px;letter-spacing:.08em;text-transform:uppercase">Recommended First Message</p>
+    <p style="margin:8px 0 0;color:#d4d4d4;line-height:1.65">${escapeHtml(section.recommendedFirstMessage)}</p>
+    <p style="margin:16px 0 0;color:#8f8f8f;font-size:12px;letter-spacing:.08em;text-transform:uppercase">Before Ordering</p>
+    <p style="margin:8px 0 0;color:#d4d4d4;line-height:1.65">${escapeHtml(section.beforeOrdering)}</p>
+  </section>`;
+}
+
+function fulfillmentSectionText(section) {
+  return [
+    section.title,
+    `Company Name: ${section.companyName}`,
+    `Contact Name: ${section.contactName}`,
+    `Phone / WhatsApp: ${section.phoneWhatsApp}`,
+    `Best Contact Method: ${section.bestContactMethod}`,
+    `Ordering Notes: ${section.orderingNotes}`,
+    `Recommended First Message: ${section.recommendedFirstMessage}`,
+    `Before Ordering: ${section.beforeOrdering}`,
+    `Disclaimer: ${section.disclaimer}`,
+  ].join("\n");
+}
+
 function validateOrder(order) {
   if (!order?.orderId || !order?.stripeReference || !order?.items?.length) {
     throw new Error("Order ID, Stripe reference, and at least one item are required.");
@@ -67,13 +99,15 @@ function validateOrder(order) {
 
 export function orderConfirmationEmail(order) {
   validateOrder(order);
-  const subject = `ResaleLane order received - ${order.orderId}`;
-  const text = `We received your ResaleLane order ${order.orderId}.
+  const subject = `Thank you for shopping with ResaleLane - ${order.orderId}`;
+  const text = `Thank you for shopping with ResaleLane.
+
+We received your order ${order.orderId} and are getting everything ready for you.
 
 Stripe payment reference: ${order.stripeReference}
 Total: ${formatMoney(order.totalCents, order.currency)}
 
-Stripe provides the official payment receipt. Your purchased sourcing resource will be sent separately after server-side payment verification.
+If Stripe sends a payment receipt for this checkout, it will come separately from Stripe. ResaleLane sends your delivery email separately after server-side verification.
 
 Support: ${SUPPORT_EMAIL}
 
@@ -83,9 +117,11 @@ ${DISCLAIMER}`;
     subject,
     text,
     html: layout({
-      preheader: `We received order ${order.orderId}.`,
-      heading: "We received your order.",
-      body: `<p style="color:#d4d4d4;line-height:1.65">Stripe provides the official payment receipt. ResaleLane will send your purchased sourcing resource separately after server-side payment verification.</p>${orderSummary(order)}`
+      preheader: `Thank you for shopping with ResaleLane.`,
+      heading: "Thank you for shopping with ResaleLane.",
+      body: `<p style="color:#d4d4d4;line-height:1.65">We received your order and are preparing your delivery now. We appreciate you trusting ResaleLane with your sourcing research.</p>
+        <p style="color:#d4d4d4;line-height:1.65">If Stripe sends a payment receipt for this checkout, it will arrive separately from Stripe. Your ResaleLane delivery email will follow after server-side verification.</p>
+        ${orderSummary(order)}`
     })
   };
 }
@@ -116,6 +152,54 @@ ${DISCLAIMER}`;
       body: `<p style="color:#d4d4d4;line-height:1.65">Use the secure, order-specific link below. Do not forward it. The link expires on <strong>${escapeHtml(delivery.expiresAt)}</strong>.</p>
         <p style="color:#737373;font-size:12px">Order ${escapeHtml(order.orderId)} · Artifact version ${escapeHtml(delivery.artifactVersion)}</p>`,
       action: { label: "Download your package", url: delivery.url }
+    })
+  };
+}
+
+export function fulfilledPackageEmail(order, fulfillment) {
+  validateOrder(order);
+  if (!fulfillment?.artifactVersion || !Array.isArray(fulfillment.resourceTitles) || fulfillment.resourceTitles.length === 0) {
+    throw new Error("Artifact version and at least one fulfillment resource title are required.");
+  }
+
+  const resourceListText = fulfillment.resourceTitles.map((title) => `- ${title}`).join("\n");
+  const resourceListHtml = fulfillment.resourceTitles.map((title) => `<li style="margin:0 0 8px;color:#d4d4d4">${escapeHtml(title)}</li>`).join("");
+  const attachmentLine = fulfillment.attachmentCount === 1
+    ? "Your PDF is attached to this email."
+    : `Your ${fulfillment.attachmentCount} PDF files are attached to this email.`;
+
+  return {
+    subject: `Your ResaleLane package is ready - ${order.orderId}`,
+    text: `Thank you for shopping with ResaleLane.
+
+Your purchased sourcing package is ready.
+
+Artifact version: ${fulfillment.artifactVersion}
+${attachmentLine}
+
+Included in this delivery:
+${resourceListText}
+
+This email is your ResaleLane delivery confirmation. If Stripe sends a payment receipt for this order, it will arrive separately from Stripe.
+
+Do not forward this email. If you need help, contact ${SUPPORT_EMAIL} from the checkout email and include order ${order.orderId}.
+
+${DISCLAIMER}`,
+    html: layout({
+      preheader: `Your order ${order.orderId} is ready.`,
+      heading: "Your package is ready.",
+      body: `<p style="color:#d4d4d4;line-height:1.65">Thank you for shopping with ResaleLane. Your sourcing package is ready, and the PDF delivery file${fulfillment.attachmentCount === 1 ? "" : "s"} ${fulfillment.attachmentCount === 1 ? "is" : "are"} attached to this email.</p>
+        <p style="color:#d4d4d4;line-height:1.65">This email is your ResaleLane delivery confirmation. If Stripe sends a payment receipt for this order, it will arrive separately from Stripe.</p>
+        ${orderSummary(order)}
+        <p style="color:#737373;font-size:12px">Artifact version ${escapeHtml(fulfillment.artifactVersion)} · Do not forward this email.</p>
+        <section style="margin:20px 0 0;padding:18px;border:1px solid #282828;border-radius:14px;background:#151515">
+          <p style="margin:0 0 10px;color:#8f8f8f;font-size:12px;letter-spacing:.08em;text-transform:uppercase">Attached PDFs</p>
+          <ul style="margin:0;padding-left:20px">${resourceListHtml}</ul>
+        </section>
+        <section style="margin:20px 0 0;padding:18px;border:1px solid #282828;border-radius:14px;background:#151515">
+          <p style="margin:0 0 10px;color:#8f8f8f;font-size:12px;letter-spacing:.08em;text-transform:uppercase">Before you buy from any vendor</p>
+          <p style="margin:0;color:#d4d4d4;line-height:1.65">Please verify supplier identity, pricing, minimum order requirements, payment method, shipping details, and product authenticity directly with the vendor before sending money.</p>
+        </section>`
     })
   };
 }
