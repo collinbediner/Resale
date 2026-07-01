@@ -27,6 +27,7 @@ Do not trust this handoff by itself. Verify the current branch, Git status, late
 - Email fulfillment: branded ResaleLane confirmation + fulfillment emails are deployed from the Worker, with PDF attachments pulled from private R2
 - Storefront cart: public site now serves the real live checkout JavaScript through fingerprinted Pages assets
 - Public-site proof: a live hosted checkout completed from the public storefront on 2026-06-30 and wrote order `RL-B15XWXURSO` with `payment_status = paid` and `fulfillment_status = delivered`
+- Reviews: the public storefront now includes a verified-buyer review form, and production accepted a real test submission on 2026-06-30 for delivered order `RL-B15XWXURSO` while rejecting both fake-order and duplicate-order attempts
 - Daily production monitor: live and emailing through the private Worker
 - Source of truth: tracked repo files only, not chat and not Google Doc shortcut files
 - Secret source of truth: provider-managed stores, not local Codex machine files
@@ -35,10 +36,9 @@ Do not trust this handoff by itself. Verify the current branch, Git status, late
 
 The current launch-critical work is now customer-experience polish plus operational verification:
 
-- deploy the latest email padding fix so Gmail and desktop mail clients stop pinning text against the dark card edge
-- deploy the latest homepage and success-page copy cleanup so checkout no longer reads as "setup pending" and the lower success CTA points to FAQ instead of duplicating support
-- deploy the internal sale-alert email that goes to support and CCs Collin without exposing customer recipients
-- apply the new `reviews` migration and deploy the verified-buyer review submission flow
+- verify the latest email padding fix in a real inbox so Gmail and desktop mail clients no longer pin text against the dark card edge
+- confirm the latest homepage and success-page copy cleanup is acceptable after public deployment
+- verify the internal sale-alert email reaches support and CCs Collin after a fresh live sale
 - verify multi-item cart behavior from the public site with a clean browser state
 - run the remaining real test checkouts against each SKU and the 5-item total coverage plan
 - confirm what Stripe itself sends as a separate receipt and document that behavior clearly
@@ -55,7 +55,7 @@ Today's working checklist is tracked in `docs/TODAY-PLAN-2026-06-23.md`.
 - `#5`, `#24`, `#26`, and `#29`: completed; v1 PDFs are in private production R2 and hash-verified
 - `#8`: Resend send path is working in production; latest local changes add safer email spacing plus a dedicated internal sale-alert email
 - `#4`, `#7`, `#9`, and `#12`: now mostly about end-to-end QA, post-purchase UX polish, and support/receipt verification
-- Reviews: no published review surface yet, but the current local branch now adds a verified-buyer review intake endpoint and D1 table pending deployment
+- Reviews: verified-buyer intake is live in production; moderation and any future public display of approved reviews are the remaining pieces
 
 ## Safe Independent Work
 
