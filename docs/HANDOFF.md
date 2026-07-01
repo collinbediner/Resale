@@ -35,30 +35,27 @@ Do not trust this handoff by itself. Verify the current branch, Git status, late
 
 ## Current Focus
 
-The current launch-critical work is now customer-experience polish plus operational verification:
+The board was resynchronized on 2026-07-01. The real outstanding work is:
 
-- verify the newly deployed single-email buyer flow in a real inbox so Gmail and desktop mail clients show the revised spacing and there is no extra buyer "thank you" email
-- confirm buyer-facing templates no longer expose Stripe checkout-session references
-- confirm the latest homepage and success-page copy cleanup is acceptable after public deployment
-- verify the internal sale-alert email reaches support and CCs Collin after a fresh live sale
-- configure Stripe Dashboard report scheduling if weekly summary emails are desired from Stripe itself; this is a Stripe Dashboard/reporting setting, not a Worker-code feature
+- run a fresh live checkout to verify the new single-email buyer flow in a real inbox and confirm buyer-facing templates no longer expose Stripe checkout-session references
+- verify the paid-order internal sale alert reaches support and CCs Collin immediately after purchase
 - verify multi-item cart behavior from the public site with a clean browser state
-- run the remaining real test checkouts against each SKU and the 5-item total coverage plan
-- confirm what Stripe itself sends as a separate receipt and document that behavior clearly
+- finish the documented launch evidence matrix for checkout, fulfillment, alerts, receipts, and failure handling
+- configure Stripe Dashboard weekly report scheduling and any desired per-user Stripe payment notifications
+- finish the remaining security/operations hardening work: Turnstile decision, deeper alert/runbook coverage, and backup/recovery procedure
 
 Today's working checklist is tracked in `docs/TODAY-PLAN-2026-06-23.md`.
 
 ## Ticket Snapshot
 
-- `#17` Daily production checkpoint: engineering complete, waiting on UAT confirmation
-- `#25` Worker foundation: production live; verify ticket language reflects real live secrets and deployment
-- `#10` D1 order and email-attempt schema: production live and now protects order creation before fulfillment
-- `#19` Security controls: partially complete, still needs Turnstile and Stripe-specific hardening
-- `#3`: Stripe setup is no longer blocked; live products, prices, webhook, and promo code exist
+- `#3`, `#4`, `#7`, `#8`, `#9`, `#10`, `#17`, `#25`, `#28`, `#30`: implementation is live or substantially complete and now sits in `status:uat` while inbox proof, board reconciliation, or final acceptance evidence is gathered
+- `#12`: now the main in-progress launch-evidence ticket; live functionality exists, but the evidence matrix is incomplete and the old test-only wording no longer matches reality
+- `#18`: moved to `status:in-progress`; some monitoring/alerting exists now, but broader retries, runbooks, and synthetic alert proof remain
+- `#19`: still `status:in-progress`; core validation and isolation controls are in place, but Turnstile/final security review work remains
+- `#14`: verified-buyer review intake is live, but moderation/public publishing is still backlog work
+- `#20`: backup, recovery, and vendor-data update procedure is still real backlog work
+- `#16` and `#27`: post-launch analytics/SEO backlog, not launch blockers
 - `#5`, `#24`, `#26`, and `#29`: completed; v1 PDFs are in private production R2 and hash-verified
-- `#8`: Resend send path is working in production; the 2026-07-01 production deploy removes the redundant buyer confirmation email, standardizes buyer-template spacing and typography, and moves the internal sale-alert trigger to the paid-order event so Collin/support get immediate notice
-- `#4`, `#7`, `#9`, and `#12`: now mostly about end-to-end QA, post-purchase UX polish, and support/receipt verification
-- Reviews: verified-buyer intake is live in production; moderation and any future public display of approved reviews are the remaining pieces
 
 ## Safe Independent Work
 
