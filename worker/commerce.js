@@ -241,15 +241,7 @@ export async function resolveArtifactForProduct(env, product) {
   if (!version) {
     throw new Error(`Missing active artifact version for ${product.id}.`);
   }
-
-  const objectKey = artifactContactsObjectKey(env.ENVIRONMENT, product.id, version);
-  const object = await env.ARTIFACTS.get(objectKey);
-  if (!object) {
-    throw new Error(`Artifact object not found for ${product.id}.`);
-  }
-
-  const payload = JSON.parse(await object.text());
-  return normalizeArtifactPayload(product, version, payload);
+  return resolveArtifactForVersion(env, product, version);
 }
 
 export function checkoutOrderItems(products) {
@@ -259,6 +251,25 @@ export function checkoutOrderItems(products) {
     amountCents: product.unitAmount,
     unitAmount: product.unitAmount,
   }));
+}
+
+export function catalogProductMap() {
+  return productMap();
+}
+
+export async function resolveArtifactForVersion(env, product, version) {
+  if (!version) {
+    throw new Error(`Missing artifact version for ${product.id}.`);
+  }
+
+  const objectKey = artifactContactsObjectKey(env.ENVIRONMENT, product.id, version);
+  const object = await env.ARTIFACTS.get(objectKey);
+  if (!object) {
+    throw new Error(`Artifact object not found for ${product.id}.`);
+  }
+
+  const payload = JSON.parse(await object.text());
+  return normalizeArtifactPayload(product, version, payload);
 }
 
 export function environmentMatchesLivemode(environment, livemode) {

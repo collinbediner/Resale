@@ -10,6 +10,8 @@ GitHub source of truth for the ResaleLane storefront, public-safe product docume
 - Repository structure: [docs/REPOSITORY-STRUCTURE.md](docs/REPOSITORY-STRUCTURE.md)
 - Architecture: [docs/ARCHITECTURE.md](docs/ARCHITECTURE.md)
 - Secret management: [docs/SECRET-MANAGEMENT.md](docs/SECRET-MANAGEMENT.md)
+- Operations runbook: [docs/OPERATIONS-RUNBOOK.md](docs/OPERATIONS-RUNBOOK.md)
+- Backup and recovery: [docs/BACKUP-RECOVERY.md](docs/BACKUP-RECOVERY.md)
 - Product/spec snapshot: [docs/SPEC-SNAPSHOT.md](docs/SPEC-SNAPSHOT.md)
 - Full product requirements: [docs/PRD.md](docs/PRD.md)
 - Website specification: [docs/WEBSITE-SPEC.md](docs/WEBSITE-SPEC.md)

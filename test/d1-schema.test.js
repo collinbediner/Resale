@@ -6,6 +6,8 @@ const schema = readFileSync(new URL("../migrations/0001_initial_schema.sql", imp
 const reliability = readFileSync(new URL("../migrations/0002_reliability_and_retention.sql", import.meta.url), "utf8");
 const reviews = readFileSync(new URL("../migrations/0003_verified_reviews.sql", import.meta.url), "utf8");
 const retention = readFileSync(new URL("../docs/DATA-RETENTION.md", import.meta.url), "utf8");
+const backup = readFileSync(new URL("../docs/BACKUP-RECOVERY.md", import.meta.url), "utf8");
+const runbook = readFileSync(new URL("../docs/OPERATIONS-RUNBOOK.md", import.meta.url), "utf8");
 
 test("D1 schema defines required commerce and support tables", () => {
   for (const table of [
@@ -51,4 +53,18 @@ test("retention policy minimizes PII and documents recovery", () => {
   assert.match(retention, /Do not store customer names, billing addresses, card details, or IP addresses/);
   assert.match(retention, /Migrations are forward-only/);
   assert.match(retention, /staging database and synthetic records/);
+});
+
+test("backup and recovery docs preserve historical artifact versions and private exports", () => {
+  assert.match(backup, /wrangler d1 export/i);
+  assert.match(backup, /synthetic data only/i);
+  assert.match(backup, /historical order records/i);
+  assert.match(backup, /artifact_version/);
+});
+
+test("operations runbook documents manual retry and alert coverage", () => {
+  assert.match(runbook, /internal\/fulfillment\/retry/);
+  assert.match(runbook, /checkout_failure/);
+  assert.match(runbook, /retry_exhausted/);
+  assert.match(runbook, /X-Request-ID/);
 });

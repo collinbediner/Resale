@@ -27,7 +27,8 @@ test("monitor token comparison handles equal and unequal values", () => {
 
 test("monitor email contains operational status but no customer data", () => {
   const email = buildMonitorEmail(report);
-  assert.equal(email.subject, "ResaleLane daily check: PASS");
+  assert.equal(email.subject, "ResaleLane PRODUCTION daily check: PASS");
+  assert.match(email.text, /Environment: PRODUCTION/);
   assert.match(email.text, /Storefront: PASS/);
   assert.match(email.text, /Private API: PASS/);
   assert.doesNotMatch(email.text, /buyer|vendor|supplier/i);

@@ -39,24 +39,21 @@ Do not trust this handoff by itself. Verify the current branch, Git status, late
 
 ## Current Focus
 
-The board was cleaned up on 2026-07-01 after the Turnstile rollout, Worker deploy, and GitHub Pages release went live. The real outstanding work is now:
+The board was cleaned up on 2026-07-01 after the Turnstile rollout, Worker deploy, GitHub Pages release, manual-retry runbook, and backup/recovery drill updates. The real outstanding work is now:
 
-- `#18` Add Worker observability, retries, and fulfillment alerts: keep this open for deeper runbooks, broader alert coverage, and clearer retry/backoff design
-- `#20` Implement backup, recovery, and vendor-data update procedure: still real backlog work
 - `#14` Build post-launch verified-buyer review moderation: backlog, not a launch blocker
 - `#16` Add post-launch privacy-safe GA4 ecommerce measurement: backlog, not a launch blocker
 - `#27` Add post-launch Search Console and SEO growth program: backlog, not a launch blocker
 - verify whether Stripe sends a separate buyer receipt for zero-dollar live orders; no Stripe receipt was visible yet in `rbediner@gmail.com` immediately after order `RL-B1ADML7MIA`
 - decide whether any additional Stripe per-user notifications beyond `Successful payments` and weekly reports are worth the noise
-- decide whether `ntfy` should stay limited to sale alerts or also mirror monitor failures and delivery-failed incidents as separate topics
+- decide whether the shared internal operations token should later be split into separate monitor and manual-retry credentials
 
 Today's working checklist is tracked in `docs/TODAY-PLAN-2026-06-23.md`.
 
 ## Ticket Snapshot
 
-- Closed on 2026-07-01 after live verification and rollout cleanup: `#3`, `#4`, `#7`, `#8`, `#9`, `#10`, `#12`, `#17`, `#19`, `#25`, `#28`, `#30`
-- `#18`: the only remaining active non-backlog ticket; monitoring and alerting exist, but deeper operational hardening is still open
-- `#14`, `#16`, `#20`, and `#27`: genuine remaining backlog or post-launch work
+- Closed on 2026-07-01 after live verification and rollout cleanup: `#3`, `#4`, `#7`, `#8`, `#9`, `#10`, `#12`, `#17`, `#18`, `#19`, `#20`, `#25`, `#28`, `#30`
+- `#14`, `#16`, and `#27`: genuine remaining backlog or post-launch work
 - `#5`, `#24`, `#26`, and `#29`: completed; v1 PDFs are in private production R2 and hash-verified
 
 ## Safe Independent Work

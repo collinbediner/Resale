@@ -39,9 +39,9 @@ Rotate immediately after suspected exposure, collaborator removal, unexplained p
 6. Notify affected customers when required by the approved policy or applicable law.
 7. Document cause, scope, remediation, and prevention using redacted evidence.
 
-## Remaining Launch Controls
+## Current Follow-up Controls
 
-- Add Turnstile to public support and checkout submissions after a fresh Cloudflare token with Turnstile edit permission is available.
-- Add Stripe signature verification and replay tests when the separate Stripe test account and webhook secret exist.
-- Configure Cloudflare response-header rules for the static GitHub Pages origin if stronger header-only directives are required.
-- Perform a focused final security review after checkout, webhook fulfillment, resend, and artifact delivery are complete.
+- Keep the manual monitor-failure test in the GitHub workflow rotation after any monitor-token change.
+- Repeat the synthetic restore drill quarterly with staging-only synthetic data.
+- Revisit whether `ntfy` should also mirror monitor failures and manual-retry failures after the first real month of production usage.
+- Split the shared internal operations token if the team later wants separate credentials for monitor posts and manual fulfillment retries.

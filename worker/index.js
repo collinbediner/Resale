@@ -3,11 +3,13 @@ import {
   activeArtifactVersionMap,
   artifactAttachmentFilename,
   artifactPackageObjectKey,
+  catalogProductMap,
   checkoutOrderItems,
   createCheckoutSession,
   environmentMatchesLivemode,
   parseCheckoutProductsFromSession,
   resolveArtifactForProduct,
+  resolveArtifactForVersion,
   validateRequestedProducts,
   verifyStripeWebhookSignature,
 } from "./commerce.js";
@@ -19,6 +21,7 @@ import {
   finishStripeEvent,
   updateOrderState,
 } from "./order-store.js";
+import { buildMonitorEmail, constantTimeTokenEqual, validateMonitorReport } from "./monitor.js";
 import { readBoundedJson, RequestError, securityHeaders } from "./security.js";
 import { createReviewSubmission, validateReviewSubmission, verifyReviewBuyer } from "./reviews.js";
 import { readTurnstileToken, verifyTurnstileToken } from "./turnstile.js";
@@ -54,6 +57,45 @@ function jsonResponse(body, status, origin, requestId) {
   });
 }
 
+function redactEmail(email) {
+  const normalized = String(email || "").trim().toLowerCase();
+  const [localPart, domain] = normalized.split("@");
+  if (!localPart || !domain) return "redacted";
+  return `${localPart.slice(0, 2)}***@${domain}`;
+}
+
+function safeErrorMessage(error) {
+  return error instanceof Error ? error.message : String(error);
+}
+
+function logOpsEvent(event, details = {}) {
+  console.log(JSON.stringify({ event, ...details }));
+}
+
+function createOperationalError(message, { category, retryable = false, status = null } = {}) {
+  const error = new Error(message);
+  error.category = category || "unknown_failure";
+  error.retryable = retryable;
+  error.providerStatus = status;
+  return error;
+}
+
+function failureCategory(error, fallback = "unknown_failure") {
+  return error?.category || fallback;
+}
+
+function isRetryableFailure(error) {
+  return error?.retryable === true;
+}
+
+async function pause(milliseconds) {
+  await new Promise((resolve) => setTimeout(resolve, milliseconds));
+}
+
+function environmentLabel(environment) {
+  return String(environment || "production").toUpperCase();
+}
+
 async function limitRoute(rateLimiter, key, errorMessage, origin, requestId) {
   if (!rateLimiter?.limit) return null;
   const rateLimit = await rateLimiter.limit({ key });
@@ -80,6 +122,7 @@ function ntfyEndpoint(env) {
 
 function internalSaleAlertPushText(order, details) {
   return [
+    `Environment ${environmentLabel(details?.environment || "production")}`,
     `Order ${order.orderId}`,
     `Buyer ${order.buyerEmail}`,
     `Status ${details?.saleStatus || "paid"}`,
@@ -88,37 +131,65 @@ function internalSaleAlertPushText(order, details) {
   ].join("\n");
 }
 
+function operationalAlertText(details) {
+  return [
+    `Environment ${environmentLabel(details.environment)}`,
+    `Type ${details.type}`,
+    `Request ${details.requestId}`,
+    details.orderId ? `Order ${details.orderId}` : null,
+    details.eventId ? `Stripe event ${details.eventId}` : null,
+    details.failureCategory ? `Failure ${details.failureCategory}` : null,
+    details.retryAttempt ? `Attempt ${details.retryAttempt}` : null,
+    details.retryDelayMs ? `Next retry ${details.retryDelayMs}ms` : null,
+    details.httpStatus ? `HTTP ${details.httpStatus}` : null,
+    details.buyerEmail ? `Buyer ${details.buyerEmail}` : null,
+    details.message ? `Message ${details.message}` : null,
+  ].filter(Boolean).join("\n");
+}
+
 async function sendEmail(env, payload, requestId, replyTo = null, tags = []) {
-  const response = await fetch("https://api.resend.com/emails", {
-    method: "POST",
-    headers: {
-      "Authorization": `Bearer ${env.RESEND_API_KEY}`,
-      "Content-Type": "application/json",
-      "Idempotency-Key": requestId
-    },
-    body: JSON.stringify({
-      from: payload.from || env.SUPPORT_EMAIL_FROM,
-      to: payload.to,
-      cc: payload.cc,
-      bcc: payload.bcc,
-      reply_to: replyTo || undefined,
-      subject: payload.subject,
-      text: payload.text,
-      html: payload.html,
-      attachments: payload.attachments,
-      tags,
-    })
-  });
+  let response;
+  try {
+    response = await fetch("https://api.resend.com/emails", {
+      method: "POST",
+      headers: {
+        "Authorization": `Bearer ${env.RESEND_API_KEY}`,
+        "Content-Type": "application/json",
+        "Idempotency-Key": requestId
+      },
+      body: JSON.stringify({
+        from: payload.from || env.SUPPORT_EMAIL_FROM,
+        to: payload.to,
+        cc: payload.cc,
+        bcc: payload.bcc,
+        reply_to: replyTo || undefined,
+        subject: payload.subject,
+        text: payload.text,
+        html: payload.html,
+        attachments: payload.attachments,
+        tags,
+      })
+    });
+  } catch (error) {
+    throw createOperationalError("Email provider request failed", {
+      category: "email_network_failed",
+      retryable: true,
+    });
+  }
 
   if (!response.ok) {
     const result = await response.json().catch(() => ({}));
-    console.error(JSON.stringify({
+    logOpsEvent("email_send_failed", {
       event: "email_send_failed",
       requestId,
       providerStatus: response.status,
       providerError: result.error?.message || null,
-    }));
-    throw new Error("Email provider rejected the request");
+    });
+    throw createOperationalError("Email provider rejected the request", {
+      category: response.status >= 500 ? "email_provider_failed" : "email_provider_rejected",
+      retryable: response.status >= 500,
+      status: response.status,
+    });
   }
 
   return response.json();
@@ -132,7 +203,7 @@ async function sendNtfyAlert(env, order, details, requestId) {
     method: "POST",
     headers: {
       "Content-Type": "text/plain; charset=utf-8",
-      "Title": `ResaleLane sale ${order.orderId}`,
+      "Title": `ResaleLane ${environmentLabel(details?.environment || env.ENVIRONMENT)} sale ${order.orderId}`,
       "Priority": details?.saleStatus === "delivery_failed" ? "urgent" : "default",
       "Tags": details?.saleStatus === "delivery_failed" ? "warning,rotating_light,moneybag" : "white_check_mark,moneybag",
       "X-Request-ID": `${requestId}:ntfy`,
@@ -142,7 +213,65 @@ async function sendNtfyAlert(env, order, details, requestId) {
 
   if (!response.ok) {
     const providerError = await response.text().catch(() => "");
-    throw new Error(`ntfy rejected the request (${response.status}): ${providerError || "unknown error"}`);
+    throw createOperationalError(`ntfy rejected the request (${response.status}): ${providerError || "unknown error"}`, {
+      category: "ntfy_rejected",
+      retryable: response.status >= 500,
+      status: response.status,
+    });
+  }
+}
+
+async function sendOperationalAlert(env, details) {
+  const environment = details.environment || env.ENVIRONMENT;
+  const subject = `ResaleLane ${environmentLabel(environment)} ops alert: ${details.type}`;
+  const text = operationalAlertText({
+    ...details,
+    environment,
+  });
+
+  try {
+    await Promise.all([
+      sendEmail(env, {
+        from: env.ORDERS_EMAIL_FROM || "ResaleLane Orders <orders@shopresalelane.com>",
+        to: [env.SUPPORT_EMAIL_TO],
+        cc: readEmailList(env.ORDER_NOTIFICATION_CC),
+        subject,
+        text,
+      }, `${details.requestId}:ops:${details.type}`, env.SUPPORT_EMAIL_TO, [{ name: "category", value: "ops_alert" }]),
+      sendNtfyOperationalAlert(env, { ...details, environment }),
+    ]);
+  } catch (error) {
+    logOpsEvent("ops_alert_failed", {
+      requestId: details.requestId,
+      alertType: details.type,
+      message: safeErrorMessage(error),
+    });
+  }
+}
+
+async function sendNtfyOperationalAlert(env, details) {
+  const endpoint = ntfyEndpoint(env);
+  if (!endpoint) return;
+
+  const response = await fetch(endpoint, {
+    method: "POST",
+    headers: {
+      "Content-Type": "text/plain; charset=utf-8",
+      "Title": `ResaleLane ${environmentLabel(details.environment)} ${details.type}`,
+      "Priority": details.type.includes("failure") || details.type.includes("exhausted") ? "urgent" : "default",
+      "Tags": details.type.includes("failure") || details.type.includes("exhausted") ? "warning,rotating_light" : "information_source",
+      "X-Request-ID": `${details.requestId}:ops-ntfy`,
+    },
+    body: operationalAlertText(details),
+  });
+
+  if (!response.ok) {
+    const providerError = await response.text().catch(() => "");
+    throw createOperationalError(`ntfy rejected the request (${response.status}): ${providerError || "unknown error"}`, {
+      category: "ntfy_rejected",
+      retryable: response.status >= 500,
+      status: response.status,
+    });
   }
 }
 
@@ -194,7 +323,10 @@ async function resolvePackageAttachments(env, artifacts) {
     const objectKey = artifactPackageObjectKey(env.ENVIRONMENT, artifact.productId, artifact.artifactVersion);
     const object = await env.ARTIFACTS.get(objectKey);
     if (!object) {
-      throw new Error(`Artifact PDF not found for ${artifact.productId}.`);
+      throw createOperationalError(`Artifact PDF not found for ${artifact.productId}.`, {
+        category: "artifact_missing",
+        retryable: false,
+      });
     }
 
     return {
@@ -204,7 +336,7 @@ async function resolvePackageAttachments(env, artifacts) {
   }));
 }
 
-async function sendFulfillment(env, order, artifacts, requestId) {
+async function sendFulfillmentAttempt(env, order, artifacts, requestId) {
   const attemptId = crypto.randomUUID();
   const primaryVersion = artifacts.map((artifact) => `${artifact.productId}:${artifact.artifactVersion}`).join(", ");
 
@@ -236,25 +368,67 @@ async function sendFulfillment(env, order, artifacts, requestId) {
       status: "sent",
       providerMessageId: providerResult.id,
     });
-    await updateOrderState(
-      env.ORDERS_DB,
-      order.orderId,
-      { payment: "paid", fulfillment: "processing" },
-      { payment: "paid", fulfillment: "delivered" }
-    );
+    return { attemptNumber: attempt.attempt_number, artifactVersion: primaryVersion };
   } catch (error) {
     await finishDeliveryAttempt(env.ORDERS_DB, attemptId, {
       status: "failed",
-      failureCategory: "email_send_failed",
+      failureCategory: failureCategory(error, "fulfillment_failed"),
     });
-    await updateOrderState(
-      env.ORDERS_DB,
-      order.orderId,
-      { payment: "paid", fulfillment: "processing" },
-      { payment: "paid", fulfillment: "failed" }
-    );
     throw error;
   }
+}
+
+async function sendFulfillmentWithRetry(env, order, artifacts, requestId) {
+  const retryDelays = [250, 750];
+
+  for (let attemptIndex = 0; attemptIndex <= retryDelays.length; attemptIndex += 1) {
+    try {
+      const result = await sendFulfillmentAttempt(env, order, artifacts, `${requestId}:attempt-${attemptIndex + 1}`);
+      await updateOrderState(
+        env.ORDERS_DB,
+        order.orderId,
+        { payment: "paid", fulfillment: "processing" },
+        { payment: "paid", fulfillment: "delivered" }
+      );
+      return result;
+    } catch (error) {
+      const retryable = isRetryableFailure(error);
+      const delay = retryDelays[attemptIndex];
+
+      logOpsEvent("fulfillment_attempt_failed", {
+        requestId,
+        orderId: order.orderId,
+        buyerEmail: redactEmail(order.buyerEmail),
+        failureCategory: failureCategory(error, "fulfillment_failed"),
+        retryable,
+        retryAttempt: attemptIndex + 1,
+      });
+
+      if (!retryable || delay == null) {
+        throw createOperationalError(safeErrorMessage(error), {
+          category: retryable ? "retry_exhausted" : failureCategory(error, "fulfillment_failed"),
+          retryable: false,
+        });
+      }
+
+      await sendOperationalAlert(env, {
+        type: "fulfillment_retry_scheduled",
+        requestId,
+        orderId: order.orderId,
+        buyerEmail: redactEmail(order.buyerEmail),
+        failureCategory: failureCategory(error, "fulfillment_failed"),
+        retryAttempt: attemptIndex + 1,
+        retryDelayMs: delay,
+        message: "Transient fulfillment failure detected. Automatic retry scheduled.",
+      });
+      await pause(delay);
+    }
+  }
+
+  throw createOperationalError("Retry loop exited unexpectedly", {
+    category: "retry_exhausted",
+    retryable: false,
+  });
 }
 
 // Internal sale alerts keep support and Collin informed without exposing addresses
@@ -315,6 +489,14 @@ async function handleCheckout(request, env, origin, requestId) {
     const session = await createCheckoutSession(env, products);
     return jsonResponse({ ok: true, sessionId: session.id, url: session.url }, 200, origin, requestId);
   } catch (error) {
+    if (!/Choose at least one|Unknown product|Unexpected checkout field|Please try checkout again/.test(error.message || "")) {
+      await sendOperationalAlert(env, {
+        type: "checkout_failure",
+        requestId,
+        failureCategory: failureCategory(error, "checkout_failed"),
+        message: safeErrorMessage(error),
+      });
+    }
     return jsonResponse({ ok: false, error: error.message }, 400, origin, requestId);
   }
 }
@@ -325,6 +507,10 @@ async function handleStripeWebhook(request, env, requestId) {
   try {
     await verifyStripeWebhookSignature(env.STRIPE_WEBHOOK_SECRET, rawBody, readStripeSignature(request));
   } catch (error) {
+    logOpsEvent("webhook_signature_rejected", {
+      requestId,
+      failureCategory: "invalid_signature",
+    });
     return Response.json(
       { ok: false, error: "Invalid Stripe signature." },
       { status: 400, headers: { ...securityHeaders(), "Cache-Control": "no-store", "X-Request-ID": requestId } }
@@ -402,6 +588,7 @@ async function handleStripeWebhook(request, env, requestId) {
     // even if fulfillment later fails and needs manual attention.
     await sendInternalSaleAlert(env, order, {
       saleStatus: "paid",
+      environment: env.ENVIRONMENT,
       artifactVersion: items.map((item) => `${item.productId}:${item.artifactVersion || "pending"}`).join(", "),
     }, requestId);
 
@@ -410,13 +597,23 @@ async function handleStripeWebhook(request, env, requestId) {
     // with the Stripe event recorded against this order ID for support/resend (#13).
     try {
       const artifacts = await Promise.all(products.map((product) => resolveArtifactForProduct(env, product)));
-      await sendFulfillment(env, order, artifacts, requestId);
+      await sendFulfillmentWithRetry(env, order, artifacts, requestId);
       await finishStripeEvent(env.ORDERS_DB, event.id, "processed", order.orderId);
     } catch (fulfillmentError) {
       await sendInternalSaleAlert(env, order, {
-        saleStatus: "delivery_failed",
+        saleStatus: failureCategory(fulfillmentError, "fulfillment_failed") === "retry_exhausted" ? "retry_exhausted" : "delivery_failed",
+        environment: env.ENVIRONMENT,
         artifactVersion: items.map((item) => `${item.productId}:${item.artifactVersion || "pending"}`).join(", "),
       }, `${requestId}:delivery-failed`);
+      await sendOperationalAlert(env, {
+        type: "webhook_failure",
+        requestId,
+        orderId: order.orderId,
+        eventId: event.id,
+        buyerEmail: redactEmail(order.buyerEmail),
+        failureCategory: failureCategory(fulfillmentError, "fulfillment_failed"),
+        message: safeErrorMessage(fulfillmentError),
+      });
       await updateOrderState(
         env.ORDERS_DB,
         order.orderId,
@@ -435,10 +632,230 @@ async function handleStripeWebhook(request, env, requestId) {
       { headers: { ...securityHeaders(), "Cache-Control": "no-store", "X-Request-ID": requestId } }
     );
   } catch (error) {
+    await sendOperationalAlert(env, {
+      type: "webhook_failure",
+      requestId,
+      eventId: event.id,
+      failureCategory: failureCategory(error, "webhook_failed"),
+      message: safeErrorMessage(error),
+    });
     await finishStripeEvent(env.ORDERS_DB, event.id, "failed", null, "fulfillment_failed");
     return Response.json(
       { ok: false, error: "Webhook processing failed." },
       { status: 500, headers: { ...securityHeaders(), "Cache-Control": "no-store", "X-Request-ID": requestId } }
+    );
+  }
+}
+
+async function handleInternalMonitor(request, env, requestId) {
+  const authorization = request.headers.get("Authorization") || "";
+  const providedToken = authorization.startsWith("Bearer ") ? authorization.slice(7) : "";
+  if (!constantTimeTokenEqual(providedToken, env.MONITOR_TOKEN || "")) {
+    return Response.json(
+      { ok: false, error: "Unauthorized." },
+      { status: 401, headers: { ...securityHeaders(), "Cache-Control": "no-store", "X-Request-ID": requestId } }
+    );
+  }
+
+  let input;
+  try {
+    input = await readBoundedJson(request);
+  } catch (error) {
+    if (error instanceof RequestError) {
+      return Response.json(
+        { ok: false, error: error.message },
+        { status: error.status, headers: { ...securityHeaders(), "Cache-Control": "no-store", "X-Request-ID": requestId } }
+      );
+    }
+    return Response.json(
+      { ok: false, error: "Invalid monitor report." },
+      { status: 400, headers: { ...securityHeaders(), "Cache-Control": "no-store", "X-Request-ID": requestId } }
+    );
+  }
+
+  const validation = validateMonitorReport(input);
+  if (!validation.ok) {
+    return Response.json(
+      { ok: false, error: validation.error },
+      { status: 400, headers: { ...securityHeaders(), "Cache-Control": "no-store", "X-Request-ID": requestId } }
+    );
+  }
+
+  const email = buildMonitorEmail(validation.report, env.ENVIRONMENT);
+  try {
+    await sendEmail(env, {
+      from: env.SUPPORT_EMAIL_FROM,
+      to: [env.SUPPORT_EMAIL_TO],
+      cc: readEmailList(env.ORDER_NOTIFICATION_CC),
+      subject: email.subject,
+      text: email.text,
+    }, `${requestId}:monitor`, env.SUPPORT_EMAIL_TO, [{ name: "category", value: "monitor_report" }]);
+
+    if (validation.report.status === "FAIL") {
+      await sendOperationalAlert(env, {
+        type: "monitor_failure",
+        requestId,
+        httpStatus: validation.report.httpCode,
+        message: `Storefront ${validation.report.siteStatus}, API ${validation.report.apiStatus}, workflow ${validation.report.runUrl}`,
+      });
+    }
+
+    return Response.json(
+      { ok: true },
+      { headers: { ...securityHeaders(), "Cache-Control": "no-store", "X-Request-ID": requestId } }
+    );
+  } catch (error) {
+    return Response.json(
+      { ok: false, error: "Monitor email failed." },
+      { status: 502, headers: { ...securityHeaders(), "Cache-Control": "no-store", "X-Request-ID": requestId } }
+    );
+  }
+}
+
+async function readRetryOrder(db, orderId) {
+  const order = await db.prepare(`
+    SELECT id, buyer_email, currency, amount_total, payment_status, fulfillment_status
+    FROM orders
+    WHERE id = ?
+  `).bind(orderId).first();
+
+  if (!order) return null;
+
+  const itemRows = await db.prepare(`
+    SELECT product_id, unit_amount, artifact_version
+    FROM order_items
+    WHERE order_id = ?
+    ORDER BY id ASC
+  `).bind(orderId).all();
+
+  return { order, items: itemRows?.results || [] };
+}
+
+async function handleManualFulfillmentRetry(request, env, requestId) {
+  const authorization = request.headers.get("Authorization") || "";
+  const providedToken = authorization.startsWith("Bearer ") ? authorization.slice(7) : "";
+  if (!constantTimeTokenEqual(providedToken, env.MONITOR_TOKEN || "")) {
+    return Response.json(
+      { ok: false, error: "Unauthorized." },
+      { status: 401, headers: { ...securityHeaders(), "Cache-Control": "no-store", "X-Request-ID": requestId } }
+    );
+  }
+
+  let input;
+  try {
+    input = await readBoundedJson(request);
+  } catch (error) {
+    if (error instanceof RequestError) {
+      return Response.json(
+        { ok: false, error: error.message },
+        { status: error.status, headers: { ...securityHeaders(), "Cache-Control": "no-store", "X-Request-ID": requestId } }
+      );
+    }
+    return Response.json(
+      { ok: false, error: "Invalid retry request." },
+      { status: 400, headers: { ...securityHeaders(), "Cache-Control": "no-store", "X-Request-ID": requestId } }
+    );
+  }
+
+  const orderId = String(input?.orderId || "").trim();
+  if (!/^RL-[A-Z0-9]+$/.test(orderId)) {
+    return Response.json(
+      { ok: false, error: "A valid ResaleLane order ID is required." },
+      { status: 400, headers: { ...securityHeaders(), "Cache-Control": "no-store", "X-Request-ID": requestId } }
+    );
+  }
+
+  const retryOrder = await readRetryOrder(env.ORDERS_DB, orderId);
+  if (!retryOrder) {
+    return Response.json(
+      { ok: false, error: "Order not found." },
+      { status: 404, headers: { ...securityHeaders(), "Cache-Control": "no-store", "X-Request-ID": requestId } }
+    );
+  }
+
+  if (retryOrder.order.payment_status !== "paid") {
+    return Response.json(
+      { ok: false, error: "Only paid orders can be retried." },
+      { status: 409, headers: { ...securityHeaders(), "Cache-Control": "no-store", "X-Request-ID": requestId } }
+    );
+  }
+
+  if (retryOrder.order.fulfillment_status !== "failed") {
+    return Response.json(
+      { ok: false, error: "Only failed fulfillment orders can be retried." },
+      { status: 409, headers: { ...securityHeaders(), "Cache-Control": "no-store", "X-Request-ID": requestId } }
+    );
+  }
+
+  const catalog = catalogProductMap();
+  const itemCatalog = retryOrder.items.map((item) => ({
+    productId: item.product_id,
+    unitAmount: item.unit_amount,
+    artifactVersion: item.artifact_version,
+    product: catalog.get(item.product_id),
+  }));
+
+  if (itemCatalog.some((item) => !item.product || !item.artifactVersion)) {
+    return Response.json(
+      { ok: false, error: "Order items are missing retry metadata." },
+      { status: 409, headers: { ...securityHeaders(), "Cache-Control": "no-store", "X-Request-ID": requestId } }
+    );
+  }
+
+  const order = {
+    orderId: retryOrder.order.id,
+    buyerEmail: retryOrder.order.buyer_email,
+    currency: String(retryOrder.order.currency || "usd").toUpperCase(),
+    totalCents: Number(retryOrder.order.amount_total || 0),
+    items: itemCatalog.map((item) => ({
+      name: item.product.name,
+      amountCents: item.unitAmount,
+    })),
+  };
+
+  try {
+    await updateOrderState(
+      env.ORDERS_DB,
+      order.orderId,
+      { payment: "paid", fulfillment: "failed" },
+      { payment: "paid", fulfillment: "processing" }
+    );
+
+    const artifacts = await Promise.all(itemCatalog.map((item) =>
+      resolveArtifactForVersion(env, item.product, item.artifactVersion)
+    ));
+    await sendFulfillmentWithRetry(env, order, artifacts, `${requestId}:manual-retry`);
+
+    await sendInternalSaleAlert(env, order, {
+      saleStatus: "manual_retry_delivered",
+      environment: env.ENVIRONMENT,
+      artifactVersion: itemCatalog.map((item) => `${item.productId}:${item.artifactVersion}`).join(", "),
+    }, `${requestId}:manual-retry`);
+
+    return Response.json(
+      { ok: true, orderId: order.orderId },
+      { headers: { ...securityHeaders(), "Cache-Control": "no-store", "X-Request-ID": requestId } }
+    );
+  } catch (error) {
+    await updateOrderState(
+      env.ORDERS_DB,
+      order.orderId,
+      { payment: "paid", fulfillment: "processing" },
+      { payment: "paid", fulfillment: "failed" }
+    ).catch(() => null);
+
+    await sendOperationalAlert(env, {
+      type: "manual_retry_failure",
+      requestId,
+      orderId: order.orderId,
+      buyerEmail: redactEmail(order.buyerEmail),
+      failureCategory: failureCategory(error, "manual_retry_failed"),
+      message: safeErrorMessage(error),
+    });
+
+    return Response.json(
+      { ok: false, error: "Manual retry failed." },
+      { status: 502, headers: { ...securityHeaders(), "Cache-Control": "no-store", "X-Request-ID": requestId } }
     );
   }
 }
@@ -559,6 +976,14 @@ const worker = {
       return handleStripeWebhook(request, env, requestId);
     }
 
+    if (url.pathname === "/internal/monitor" && request.method === "POST") {
+      return handleInternalMonitor(request, env, requestId);
+    }
+
+    if (url.pathname === "/internal/fulfillment/retry" && request.method === "POST") {
+      return handleManualFulfillmentRetry(request, env, requestId);
+    }
+
     if (url.pathname === "/reviews" && request.method === "POST") {
       const clientKey = request.headers.get("CF-Connecting-IP") || "unknown";
       const blocked = await limitRoute(
@@ -612,13 +1037,18 @@ const worker = {
 
     try {
       const providerResult = await sendWithResend(env, validation.submission, requestId);
-      console.log(JSON.stringify({
-        event: "support_email_sent",
+      logOpsEvent("support_email_sent", {
         requestId,
         providerMessageId: providerResult.id
-      }));
+      });
       return jsonResponse({ ok: true, requestId }, 200, origin, requestId);
-    } catch {
+    } catch (error) {
+      await sendOperationalAlert(env, {
+        type: "support_email_failure",
+        requestId,
+        failureCategory: failureCategory(error, "support_email_failed"),
+        message: safeErrorMessage(error),
+      });
       return jsonResponse(
         { ok: false, error: "Your message could not be sent right now. Please try again shortly." },
         502,

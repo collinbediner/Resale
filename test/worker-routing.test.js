@@ -32,6 +32,7 @@ function testEnv(environment = "staging") {
     STRIPE_WEBHOOK_SECRET: "whsec_test_example",
     TURNSTILE_SECRET_KEY: "turnstile_test_secret",
     RESEND_API_KEY: "re_test_example",
+    MONITOR_TOKEN: "monitor_test_token",
     NTFY_BASE_URL: "https://ntfy.test",
     NTFY_TOPIC: "resalelane-test-topic",
     SUPPORT_EMAIL_TO: "collin.bediner+support@gmail.com",
@@ -134,6 +135,58 @@ test("checkout endpoint creates a hosted Stripe session for approved SKUs only",
       sessionId: "cs_test_123",
       url: "https://checkout.stripe.test/session"
     });
+  } finally {
+    restoreFetch();
+  }
+});
+
+test("internal monitor endpoint requires auth and separates staging alerts from production", async () => {
+  const env = testEnv();
+  const emailCalls = [];
+  const restoreFetch = installFetchMock(async (url, init) => {
+    assert.equal(url, "https://api.resend.com/emails");
+    emailCalls.push(JSON.parse(init.body));
+    return new Response(JSON.stringify({ id: `re_monitor_${emailCalls.length}` }), {
+      status: 200,
+      headers: { "Content-Type": "application/json" }
+    });
+  });
+
+  try {
+    const unauthorized = await worker.fetch(new Request("https://api.example.test/internal/monitor", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({
+        status: "PASS",
+        siteStatus: "PASS",
+        apiStatus: "PASS",
+        httpCode: "200",
+        duration: "0.2",
+        runUrl: "https://github.com/collinbediner/Resale/actions/runs/123"
+      })
+    }), env);
+    assert.equal(unauthorized.status, 401);
+
+    const response = await worker.fetch(new Request("https://api.example.test/internal/monitor", {
+      method: "POST",
+      headers: {
+        Authorization: `Bearer ${env.MONITOR_TOKEN}`,
+        "Content-Type": "application/json"
+      },
+      body: JSON.stringify({
+        status: "PASS",
+        siteStatus: "PASS",
+        apiStatus: "PASS",
+        httpCode: "200",
+        duration: "0.2",
+        runUrl: "https://github.com/collinbediner/Resale/actions/runs/123"
+      })
+    }), env);
+
+    assert.equal(response.status, 200);
+    assert.equal(emailCalls.length, 1);
+    assert.match(emailCalls[0].subject, /STAGING daily check: PASS/);
+    assert.match(emailCalls[0].text, /Environment: STAGING/);
   } finally {
     restoreFetch();
   }
@@ -347,10 +400,121 @@ test("a paid checkout still records an order, even when artifact delivery fails"
     );
     assert.ok(failedFulfillment, "the order's fulfillment_status must move to failed, not stay stuck in processing");
 
-    assert.equal(emailCalls.length, 2, "support should get a paid alert and a delivery-failed alert");
+    assert.equal(emailCalls.length, 3, "support should get a paid alert, a delivery-failed alert, and a webhook failure ops alert");
     assert.match(emailCalls[0].subject, /New ResaleLane sale/);
     assert.match(emailCalls[0].text, /Sale status: paid/);
     assert.match(emailCalls[1].text, /Sale status: delivery_failed/);
+    assert.match(emailCalls[2].subject, /ops alert: webhook_failure/i);
+  } finally {
+    restoreFetch();
+  }
+});
+
+test("transient fulfillment failures retry with bounded backoff before succeeding", async () => {
+  const env = testEnv();
+  const emailCalls = [];
+  const calls = [];
+  let attemptNumber = 0;
+  env.ORDERS_DB = {
+    prepare(sql) {
+      return {
+        bind(...values) {
+          calls.push({ sql, values });
+          return {
+            run: async () => ({ meta: { changes: 1 } }),
+            first: async () => {
+              if (sql.includes("RETURNING attempt_number")) {
+                attemptNumber += 1;
+                return { attempt_number: attemptNumber };
+              }
+              return { attempt_number: 1 };
+            }
+          };
+        }
+      };
+    },
+    batch: async statements => ({ statements })
+  };
+  env.ARTIFACTS = {
+    get: async (key) => {
+      if (String(key).endsWith("/contacts.json")) {
+        return {
+          text: async () => JSON.stringify({
+            title: "All Vendor Bundle",
+            artifactVersion: "v1",
+            sections: [{
+              title: "All Vendor Bundle",
+              companyName: "ResaleLane Test Vendor",
+              contactName: "Test Contact",
+              phoneWhatsApp: "555-0100",
+              bestContactMethod: "Email",
+              orderingNotes: "Ask for the current catalog first.",
+              recommendedFirstMessage: "Hello, can you send the latest catalog?",
+              beforeOrdering: "Verify every detail before paying.",
+              disclaimer: "Testing artifact payload."
+            }]
+          })
+        };
+      }
+      if (String(key).endsWith("/package.pdf")) {
+        return new Blob(["fake pdf"], { type: "application/pdf" });
+      }
+      return null;
+    },
+    head: async () => null
+  };
+
+  let buyerDeliveryAttempt = 0;
+  const restoreFetch = installFetchMock(async (url, init) => {
+    if (url === "https://api.resend.com/emails") {
+      const payload = JSON.parse(init.body);
+      emailCalls.push(payload);
+      const isBuyerDelivery = Array.isArray(payload.to) && payload.to.includes("buyer@example.com");
+      if (isBuyerDelivery) {
+        buyerDeliveryAttempt += 1;
+        if (buyerDeliveryAttempt === 1) {
+          return new Response(JSON.stringify({ error: { message: "temporary outage" } }), {
+            status: 503,
+            headers: { "Content-Type": "application/json" }
+          });
+        }
+      }
+      return new Response(JSON.stringify({ id: `re_${emailCalls.length}` }), {
+        status: 200,
+        headers: { "Content-Type": "application/json" }
+      });
+    }
+    assert.equal(url, "https://ntfy.test/resalelane-test-topic");
+    return new Response("ok", { status: 200 });
+  });
+
+  const session = {
+    id: "cs_test_retry",
+    livemode: false,
+    customer_details: { email: "buyer@example.com" },
+    currency: "usd",
+    amount_total: 1200,
+    payment_intent: "pi_test_retry",
+    metadata: { product_ids: "all-vendor-bundle" }
+  };
+  const event = { id: "evt_test_retry", type: "checkout.session.completed", data: { object: session } };
+  const rawBody = JSON.stringify(event);
+
+  try {
+    const response = await worker.fetch(new Request("https://api.example.test/stripe/webhook", {
+      method: "POST",
+      headers: { "Stripe-Signature": await signedStripeBody(env.STRIPE_WEBHOOK_SECRET, rawBody) },
+      body: rawBody
+    }), env);
+
+    assert.equal(response.status, 200);
+    assert.equal(buyerDeliveryAttempt, 2, "buyer fulfillment should retry once and then succeed");
+
+    const deliveryAttemptWrites = calls.filter((call) => call.sql.includes("INSERT INTO delivery_attempts"));
+    assert.equal(deliveryAttemptWrites.length, 2, "two delivery attempts should be recorded");
+
+    const retryAlert = emailCalls.find((payload) => payload.subject?.includes("ops alert: fulfillment_retry_scheduled"));
+    assert.ok(retryAlert, "ops should receive a retry-scheduled alert");
   } finally {
     restoreFetch();
   }

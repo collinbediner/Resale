@@ -48,9 +48,11 @@ export function constantTimeTokenEqual(provided, expected) {
   return difference === 0;
 }
 
-export function buildMonitorEmail(report) {
-  const subject = `ResaleLane daily check: ${report.status}`;
+export function buildMonitorEmail(report, environment = "production") {
+  const environmentLabel = String(environment || "production").toUpperCase();
+  const subject = `ResaleLane ${environmentLabel} daily check: ${report.status}`;
   const text = [
+    `Environment: ${environmentLabel}`,
     `Production: ${report.status}`,
     `Storefront: ${report.siteStatus}`,
     `Private API: ${report.apiStatus}`,
