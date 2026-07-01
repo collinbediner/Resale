@@ -26,8 +26,11 @@ Do not trust this handoff by itself. Verify the current branch, Git status, late
 - Fulfillment: production webhook now records orders before artifact delivery so failed fulfillment does not lose the ledger row
 - Email fulfillment: production now sends a single buyer-facing fulfillment email from the Worker, with PDF attachments pulled from private R2; the redundant buyer "thank you" email has been removed from the successful checkout path
 - Internal sale alerts: production now emails support immediately when a paid order is recorded, and CCs Collin on that alert; if fulfillment later fails, support gets a separate failure-status alert
+- Internal sale-alert routing: production alert copies now go to `collin.bediner+support@gmail.com` with CCs to both `collin.bediner@gmail.com` and `rbediner@gmail.com`
 - Storefront cart: public site now serves the real live checkout JavaScript through fingerprinted Pages assets
 - Public-site proof: a live hosted checkout completed from the public storefront on 2026-06-30 and wrote order `RL-B15XWXURSO` with `payment_status = paid` and `fulfillment_status = delivered`
+- Fresh production proof on 2026-07-01: zero-dollar live order `RL-B1ADML7MIA` completed through hosted Stripe Checkout with promo code `COLLIN`; buyer received one fulfillment email with `resalelane-all-vendor-bundle.pdf` attached, and the internal sale alert reached support with both Collin and Roman copied
+- Stripe dashboard notifications: weekly scheduled reports were enabled from the Stripe Dashboard for the signed-in account user, and the `Successful payments` email notification was turned on in Stripe Communication Preferences
 - Reviews: the public storefront now includes a verified-buyer review form, and production accepted a real test submission on 2026-06-30 for delivered order `RL-B15XWXURSO` while rejecting both fake-order and duplicate-order attempts
 - Daily production monitor: live and emailing through the private Worker
 - Source of truth: tracked repo files only, not chat and not Google Doc shortcut files
@@ -37,11 +40,10 @@ Do not trust this handoff by itself. Verify the current branch, Git status, late
 
 The board was resynchronized on 2026-07-01. The real outstanding work is:
 
-- run a fresh live checkout to verify the new single-email buyer flow in a real inbox and confirm buyer-facing templates no longer expose Stripe checkout-session references
-- verify the paid-order internal sale alert reaches support and CCs Collin immediately after purchase
+- verify whether Stripe sends a separate buyer receipt for zero-dollar live orders; no Stripe receipt was visible yet in `rbediner@gmail.com` immediately after order `RL-B1ADML7MIA`
 - verify multi-item cart behavior from the public site with a clean browser state
 - finish the documented launch evidence matrix for checkout, fulfillment, alerts, receipts, and failure handling
-- configure Stripe Dashboard weekly report scheduling and any desired per-user Stripe payment notifications
+- decide whether any additional Stripe per-user notifications beyond `Successful payments` and weekly reports are worth the noise
 - finish the remaining security/operations hardening work: Turnstile decision, deeper alert/runbook coverage, and backup/recovery procedure
 
 Today's working checklist is tracked in `docs/TODAY-PLAN-2026-06-23.md`.
