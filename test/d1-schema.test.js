@@ -4,6 +4,7 @@ import test from "node:test";
 
 const schema = readFileSync(new URL("../migrations/0001_initial_schema.sql", import.meta.url), "utf8");
 const reliability = readFileSync(new URL("../migrations/0002_reliability_and_retention.sql", import.meta.url), "utf8");
+const reviews = readFileSync(new URL("../migrations/0003_verified_reviews.sql", import.meta.url), "utf8");
 const retention = readFileSync(new URL("../docs/DATA-RETENTION.md", import.meta.url), "utf8");
 
 test("D1 schema defines required commerce and support tables", () => {
@@ -35,6 +36,14 @@ test("reliability migration supports failure queues and retention review", () =>
   assert.match(reliability, /idx_delivery_attempts_status/);
   assert.match(reliability, /retention_expires_at/);
   assert.match(reliability, /anonymized_at/);
+});
+
+test("review submissions stay verified, moderated, and tied to a paid order", () => {
+  assert.match(reviews, /CREATE TABLE reviews/);
+  assert.match(reviews, /REFERENCES orders\(id\) ON DELETE CASCADE/);
+  assert.match(reviews, /rating BETWEEN 1 AND 5/);
+  assert.match(reviews, /review_status IN \('pending', 'approved', 'rejected'\)/);
+  assert.match(reviews, /UNIQUE \(order_id, buyer_email\)/);
 });
 
 test("retention policy minimizes PII and documents recovery", () => {

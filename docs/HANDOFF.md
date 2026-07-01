@@ -25,19 +25,22 @@ Do not trust this handoff by itself. Verify the current branch, Git status, late
 - Checkout backend: live in production and already proven with real hosted Stripe sessions
 - Fulfillment: production webhook now records orders before artifact delivery so failed fulfillment does not lose the ledger row
 - Email fulfillment: branded ResaleLane confirmation + fulfillment emails are deployed from the Worker, with PDF attachments pulled from private R2
-- Storefront cart: backend is live; public root still needed the real `site/app.js` checkout flow merged to `main` after a stale placeholder script was discovered on 2026-06-30
+- Storefront cart: public site now serves the real live checkout JavaScript through fingerprinted Pages assets
+- Public-site proof: a live hosted checkout completed from the public storefront on 2026-06-30 and wrote order `RL-B15XWXURSO` with `payment_status = paid` and `fulfillment_status = delivered`
 - Daily production monitor: live and emailing through the private Worker
 - Source of truth: tracked repo files only, not chat and not Google Doc shortcut files
 - Secret source of truth: provider-managed stores, not local Codex machine files
 
 ## Current Focus
 
-The current launch-critical work is no longer account setup. It is final storefront publication plus true end-to-end validation from the public site:
+The current launch-critical work is now customer-experience polish plus operational verification:
 
-- publish the live cart script to GitHub Pages
-- verify multi-item cart behavior from the public site
-- run real test checkouts against each SKU and the 5-item total coverage plan
-- confirm buyer email, attached PDF delivery, and BCC copies to Collin/support inboxes
+- deploy the latest email padding fix so Gmail and desktop mail clients stop pinning text against the dark card edge
+- deploy the latest homepage and success-page copy cleanup so checkout no longer reads as "setup pending" and the lower success CTA points to FAQ instead of duplicating support
+- deploy the internal sale-alert email that goes to support and CCs Collin without exposing customer recipients
+- apply the new `reviews` migration and deploy the verified-buyer review submission flow
+- verify multi-item cart behavior from the public site with a clean browser state
+- run the remaining real test checkouts against each SKU and the 5-item total coverage plan
 - confirm what Stripe itself sends as a separate receipt and document that behavior clearly
 
 Today's working checklist is tracked in `docs/TODAY-PLAN-2026-06-23.md`.
@@ -50,8 +53,9 @@ Today's working checklist is tracked in `docs/TODAY-PLAN-2026-06-23.md`.
 - `#19` Security controls: partially complete, still needs Turnstile and Stripe-specific hardening
 - `#3`: Stripe setup is no longer blocked; live products, prices, webhook, and promo code exist
 - `#5`, `#24`, `#26`, and `#29`: completed; v1 PDFs are in private production R2 and hash-verified
-- `#8`: Resend send path is working in production; latest work added branded customer emails and PDF attachments
-- `#4`, `#7`, `#9`, and `#12`: now mostly about storefront publish, end-to-end QA, and support/receipt polish
+- `#8`: Resend send path is working in production; latest local changes add safer email spacing plus a dedicated internal sale-alert email
+- `#4`, `#7`, `#9`, and `#12`: now mostly about end-to-end QA, post-purchase UX polish, and support/receipt verification
+- Reviews: no published review surface yet, but the current local branch now adds a verified-buyer review intake endpoint and D1 table pending deployment
 
 ## Safe Independent Work
 

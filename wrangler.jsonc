@@ -16,6 +16,7 @@
     "SUPPORT_EMAIL_TO": "collin.bediner+support@gmail.com",
     "ORDERS_EMAIL_FROM": "ResaleLane Orders <orders@shopresalelane.com>",
     "ORDER_NOTIFICATION_BCC": "collin.bediner@gmail.com,collin.bediner+support@gmail.com",
+    "ORDER_NOTIFICATION_CC": "collin.bediner@gmail.com",
     "PUBLIC_SITE_URL": "https://shopresalelane.com",
     "STRIPE_PRICE_LOOKUP": "{\"shoe-vendor\":\"price_1To6nWGVUc2BGBXRUzC4a0db\",\"clothes-vendor\":\"price_1To6nXGVUc2BGBXR3kOEt2qL\",\"airpods-headphones-vendor\":\"price_1To6nYGVUc2BGBXR4OVeRbpE\",\"cologne-vendor\":\"price_1To6nZGVUc2BGBXR6zL00R3o\",\"all-vendor-bundle\":\"price_1To6neGVUc2BGBXRFZP6kLfj\"}",
     "ACTIVE_ARTIFACT_VERSIONS": "{\"shoe-vendor\":\"v1\",\"clothes-vendor\":\"v1\",\"airpods-headphones-vendor\":\"v1\",\"cologne-vendor\":\"v1\",\"all-vendor-bundle\":\"v1\"}"
@@ -63,6 +64,7 @@
         "SUPPORT_EMAIL_TO": "collin.bediner+support@gmail.com",
         "ORDERS_EMAIL_FROM": "ResaleLane Staging <orders@shopresalelane.com>",
         "ORDER_NOTIFICATION_BCC": "collin.bediner@gmail.com,collin.bediner+support@gmail.com",
+        "ORDER_NOTIFICATION_CC": "collin.bediner@gmail.com",
         "PUBLIC_SITE_URL": "https://shopresalelane.com/staging",
         "STRIPE_PRICE_LOOKUP": "{\"shoe-vendor\":\"price_1To6nWGVUc2BGBXRUzC4a0db\",\"clothes-vendor\":\"price_1To6nXGVUc2BGBXR3kOEt2qL\",\"airpods-headphones-vendor\":\"price_1To6nYGVUc2BGBXR4OVeRbpE\",\"cologne-vendor\":\"price_1To6nZGVUc2BGBXR6zL00R3o\",\"all-vendor-bundle\":\"price_1To6neGVUc2BGBXRFZP6kLfj\"}",
         "ACTIVE_ARTIFACT_VERSIONS": "{\"shoe-vendor\":\"v1\",\"clothes-vendor\":\"v1\",\"airpods-headphones-vendor\":\"v1\",\"cologne-vendor\":\"v1\",\"all-vendor-bundle\":\"v1\"}"

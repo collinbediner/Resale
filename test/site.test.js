@@ -16,6 +16,11 @@ test("production page includes required public content and safety controls", () 
   assert.match(app, /Continue to Stripe/);
   assert.match(app, /Creating your secure Stripe checkout/);
   assert.match(html, /ResaleLane sells informational vendor resources only/);
+  assert.match(html, /Secure Stripe checkout/);
+  assert.doesNotMatch(html, /Checkout setup pending/);
+  assert.doesNotMatch(html, /after payment and fulfillment setup is complete/);
+  assert.match(html, /Leave a verified buyer review/);
+  assert.match(html, /data-review-form/);
   assert.match(html, /collin\.bediner\+support@gmail\.com/);
   assert.match(html, /Content-Security-Policy/);
   assert.match(html, /object-src 'none'/);
@@ -117,7 +122,10 @@ test("checkout result pages are safe, private, and support-focused", () => {
   assert.match(success, /server-side payment verification/);
   assert.match(success, /after 15 minutes/);
   assert.match(success, /href="\.\/index\.html#contact"/);
+  assert.match(success, /href="\.\/index\.html#faq"/);
+  assert.match(success, />Read FAQ</);
   assert.doesNotMatch(success, /Get delivery help/);
+  assert.equal((success.match(/Contact support/g) || []).length, 1);
   assert.doesNotMatch(success, /mailto:collin\.bediner\+support@gmail\.com/);
   assert.doesNotMatch(success, /supplier contact|marketplace link/i);
   assert.match(canceled, /No order was placed/);

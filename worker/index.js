@@ -20,7 +20,8 @@ import {
   updateOrderState,
 } from "./order-store.js";
 import { readBoundedJson, RequestError, securityHeaders } from "./security.js";
-import { fulfilledPackageEmail, orderConfirmationEmail } from "../server/email-templates.js";
+import { createReviewSubmission, validateReviewSubmission, verifyReviewBuyer } from "./reviews.js";
+import { fulfilledPackageEmail, internalSaleAlertEmail, orderConfirmationEmail } from "../server/email-templates.js";
 
 const ALLOWED_ORIGINS = new Set([
   "https://shopresalelane.com",
@@ -210,6 +211,29 @@ async function sendOrderConfirmationNotice(env, order, requestId) {
   }
 }
 
+// Internal sale alerts keep support and Collin informed without exposing addresses
+// on the buyer-facing emails.
+async function sendInternalSaleAlert(env, order, details, requestId) {
+  const email = internalSaleAlertEmail(order, details);
+  try {
+    await sendEmail(env, {
+      from: env.ORDERS_EMAIL_FROM || "ResaleLane Orders <orders@shopresalelane.com>",
+      to: [env.SUPPORT_EMAIL_TO],
+      cc: readEmailList(env.ORDER_NOTIFICATION_CC),
+      subject: email.subject,
+      text: email.text,
+      html: email.html,
+    }, `${requestId}:internal-sale`, env.SUPPORT_EMAIL_TO, [{ name: "category", value: "internal_sale_alert" }]);
+  } catch (error) {
+    console.error(JSON.stringify({
+      event: "internal_sale_alert_failed",
+      requestId,
+      orderId: order.orderId,
+      message: error instanceof Error ? error.message : String(error),
+    }));
+  }
+}
+
 async function handleCheckout(request, env, origin, requestId) {
   if (!ALLOWED_ORIGINS.has(origin)) {
     return jsonResponse({ ok: false, error: "This request is not allowed." }, 403, origin, requestId);
@@ -320,6 +344,10 @@ async function handleStripeWebhook(request, env, requestId) {
     try {
       const artifacts = await Promise.all(products.map((product) => resolveArtifactForProduct(env, product)));
       await sendFulfillment(env, order, artifacts, requestId);
+      await sendInternalSaleAlert(env, order, {
+        saleStatus: "delivered",
+        artifactVersion: artifacts.map((artifact) => `${artifact.productId}:${artifact.artifactVersion}`).join(", "),
+      }, requestId);
       await finishStripeEvent(env.ORDERS_DB, event.id, "processed", order.orderId);
     } catch (fulfillmentError) {
       await updateOrderState(
@@ -348,6 +376,69 @@ async function handleStripeWebhook(request, env, requestId) {
   }
 }
 
+async function handleReviews(request, env, origin, requestId) {
+  if (!ALLOWED_ORIGINS.has(origin)) {
+    return jsonResponse({ ok: false, error: "This request is not allowed." }, 403, origin, requestId);
+  }
+
+  let input;
+  try {
+    input = await readBoundedJson(request);
+  } catch (error) {
+    if (error instanceof RequestError) {
+      return jsonResponse({ ok: false, error: error.message }, error.status, origin, requestId);
+    }
+    return jsonResponse({ ok: false, error: "Please complete the review form and try again." }, 400, origin, requestId);
+  }
+
+  const validation = validateReviewSubmission(input);
+  if (!validation.ok) {
+    return jsonResponse({ ok: false, error: validation.error }, 400, origin, requestId);
+  }
+
+  const match = await verifyReviewBuyer(env.ORDERS_DB, validation.submission);
+  if (!match) {
+    return jsonResponse(
+      { ok: false, error: "We could not match that order ID and checkout email to a delivered purchase yet." },
+      404,
+      origin,
+      requestId
+    );
+  }
+
+  try {
+    await createReviewSubmission(env.ORDERS_DB, {
+      id: `REV-${crypto.randomUUID()}`,
+      ...validation.submission,
+    });
+    return jsonResponse(
+      {
+        ok: true,
+        requestId,
+        message: "Thank you. Your verified review was received and is pending approval."
+      },
+      200,
+      origin,
+      requestId
+    );
+  } catch (error) {
+    if (String(error).includes("UNIQUE")) {
+      return jsonResponse(
+        { ok: false, error: "A verified review has already been submitted for this order." },
+        409,
+        origin,
+        requestId
+      );
+    }
+    return jsonResponse(
+      { ok: false, error: "Your review could not be saved right now. Please try again shortly." },
+      502,
+      origin,
+      requestId
+    );
+  }
+}
+
 const worker = {
   async fetch(request, env) {
     const origin = request.headers.get("Origin") || "";
@@ -357,11 +448,11 @@ const worker = {
     if (url.pathname === "/health" && request.method === "GET") {
       try {
         const databaseCheck = await env.ORDERS_DB.prepare(
-          "SELECT COUNT(*) AS table_count FROM sqlite_master WHERE type = 'table' AND name IN ('orders', 'order_items', 'payment_events', 'delivery_attempts', 'support_requests')"
+          "SELECT COUNT(*) AS table_count FROM sqlite_master WHERE type = 'table' AND name IN ('orders', 'order_items', 'payment_events', 'delivery_attempts', 'support_requests', 'reviews')"
         ).first();
         const storageCheck = await env.ARTIFACTS.head("__resalelane_healthcheck__");
         return Response.json({
-          ok: databaseCheck?.table_count === 5 && storageCheck === null,
+          ok: databaseCheck?.table_count === 6 && storageCheck === null,
           apiVersion: "1",
           environment: env.ENVIRONMENT,
           services: { d1: "schema-ready", r2: "connected" }
@@ -387,6 +478,10 @@ const worker = {
 
     if (url.pathname === "/stripe/webhook" && request.method === "POST") {
       return handleStripeWebhook(request, env, requestId);
+    }
+
+    if (url.pathname === "/reviews" && request.method === "POST") {
+      return handleReviews(request, env, origin, requestId);
     }
 
     if (url.pathname !== "/support" || request.method !== "POST") {

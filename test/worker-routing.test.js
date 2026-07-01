@@ -7,7 +7,7 @@ function testEnv(environment = "staging") {
     ENVIRONMENT: environment,
     ORDERS_DB: {
       prepare() {
-        return { first: async () => ({ table_count: 5 }) };
+        return { first: async () => ({ table_count: 6 }) };
       }
     },
     ARTIFACTS: { head: async () => null },
@@ -29,7 +29,9 @@ function testEnv(environment = "staging") {
     STRIPE_SECRET_KEY: "sk_test_example",
     STRIPE_WEBHOOK_SECRET: "whsec_test_example",
     RESEND_API_KEY: "re_test_example",
+    SUPPORT_EMAIL_TO: "collin.bediner+support@gmail.com",
     ORDERS_EMAIL_FROM: "ResaleLane Orders <orders@shopresalelane.com>",
+    ORDER_NOTIFICATION_CC: "collin.bediner@gmail.com",
     PUBLIC_SITE_URL: "https://shopresalelane.com/staging"
   };
 }
@@ -115,6 +117,45 @@ test("checkout endpoint creates a hosted Stripe session for approved SKUs only",
   } finally {
     global.fetch = originalFetch;
   }
+});
+
+test("reviews endpoint only accepts verified delivered buyers", async () => {
+  const env = testEnv();
+  const calls = [];
+  env.ORDERS_DB = {
+    prepare(sql) {
+      return {
+        bind(...values) {
+          calls.push({ sql, values });
+          return {
+            first: async () => sql.includes("FROM orders") ? { id: "RL-12345" } : null,
+            run: async () => ({ meta: { changes: 1 } })
+          };
+        }
+      };
+    }
+  };
+
+  const response = await worker.fetch(new Request("https://api.example.test/reviews", {
+    method: "POST",
+    headers: { Origin: "https://shopresalelane.com", "Content-Type": "application/json" },
+    body: JSON.stringify({
+      orderId: "RL-123456",
+      email: "buyer@example.com",
+      rating: 5,
+      headline: "Worth it",
+      displayName: "Roman",
+      reviewText: "This package arrived quickly and gave me a useful starting point for sourcing research."
+    })
+  }), env);
+
+  assert.equal(response.status, 200);
+  assert.equal((await response.json()).ok, true);
+
+  const lookup = calls.find((call) => call.sql.includes("FROM orders"));
+  const insert = calls.find((call) => call.sql.includes("INSERT INTO reviews"));
+  assert.ok(lookup, "the worker must verify the buyer against a delivered order");
+  assert.ok(insert, "verified reviews should be saved in D1");
 });
 
 async function signedStripeBody(secret, rawBody) {

@@ -4,6 +4,7 @@ import {
   deliveryDelayedEmail,
   deliveryEmail,
   fulfilledPackageEmail,
+  internalSaleAlertEmail,
   orderConfirmationEmail,
   supportAcknowledgementEmail
 } from "../server/email-templates.js";
@@ -22,6 +23,7 @@ test("confirmation distinguishes Stripe receipt from ResaleLane fulfillment", ()
   assert.match(email.text, /Thank you for shopping with ResaleLane/);
   assert.match(email.text, /If Stripe sends a payment receipt/);
   assert.match(email.text, /\$12\.00/);
+  assert.doesNotMatch(email.text, /Stripe payment reference/i);
   assert.doesNotMatch(email.text, /supplier contact/i);
 });
 
@@ -46,7 +48,24 @@ test("fulfillment email is branded and points buyers to attached PDFs", () => {
   assert.match(email.text, /PDF is attached to this email/i);
   assert.match(email.html, /Attached PDFs/);
   assert.match(email.html, /Shoe Vendor/);
+  assert.match(email.html, /padding:32px 28px 34px/);
+  assert.match(email.html, /<table role="presentation" style="width:100%;margin:20px 0 0;border-collapse:separate;border-spacing:0;border:1px solid #282828;border-radius:14px;background:#151515">/);
+  assert.doesNotMatch(email.text, /Stripe reference/i);
   assert.doesNotMatch(email.html, /Phone \/ WhatsApp/);
+});
+
+test("internal sale alerts are separate from customer emails and include ops details", () => {
+  const email = internalSaleAlertEmail({
+    ...order,
+    buyerEmail: "buyer@example.com"
+  }, {
+    saleStatus: "delivered",
+    artifactVersion: "all-vendor-bundle:v1"
+  });
+  assert.match(email.subject, /New ResaleLane sale/);
+  assert.match(email.text, /buyer@example\.com/);
+  assert.match(email.text, /Stripe checkout session/);
+  assert.match(email.html, /internal order alert/i);
 });
 
 test("delayed delivery prevents duplicate purchasing", () => {

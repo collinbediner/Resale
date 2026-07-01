@@ -42,6 +42,7 @@ function init() {
   $("[data-faq-list]").innerHTML = faqs.map(([q, a]) => `<details class="faq"><summary>${q}</summary><p>${a}</p></details>`).join("");
   document.addEventListener("click", handleClick);
   $("[data-contact-form]").addEventListener("submit", sendContact);
+  $("[data-review-form]").addEventListener("submit", sendReview);
   $("[data-rich-editor]").addEventListener("click", handleEditorToolbar);
   $("[data-rich-editor]").addEventListener("mousedown", preserveEditorSelection);
   document.addEventListener("selectionchange", updateEditorToolbar);
@@ -176,6 +177,40 @@ async function sendContact(event) {
   } finally {
     button.disabled = false;
     button.textContent = "Send message";
+  }
+}
+
+async function sendReview(event) {
+  event.preventDefault();
+  const form = event.currentTarget;
+  const button = form.querySelector('button[type="submit"]');
+  const status = $("[data-review-status]");
+  const payload = Object.fromEntries(new FormData(form));
+
+  button.disabled = true;
+  button.textContent = "Submitting...";
+  status.className = "form-status";
+  status.textContent = "Verifying your order before saving the review...";
+
+  try {
+    const response = await fetch(`${apiBaseUrl()}/reviews`, {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify(payload)
+    });
+    const result = await response.json();
+    if (!response.ok || !result.ok) throw new Error(result.error || "Your review could not be submitted.");
+
+    form.reset();
+    status.className = "form-status success";
+    status.textContent = result.message || `Review received. Your reference is ${result.requestId}.`;
+    toast("Review submitted");
+  } catch (error) {
+    status.className = "form-status error";
+    status.textContent = error.message;
+  } finally {
+    button.disabled = false;
+    button.textContent = "Submit verified review";
   }
 }
 
