@@ -39,30 +39,24 @@ Do not trust this handoff by itself. Verify the current branch, Git status, late
 
 ## Current Focus
 
-The board was resynchronized on 2026-07-01. The real outstanding work is:
+The board was cleaned up on 2026-07-01 after the Turnstile rollout, Worker deploy, and GitHub Pages release went live. The real outstanding work is now:
 
-- Turnstile hardening is now implemented in code and partially live as of 2026-07-01: the Cloudflare widget was created, the production Worker secret `TURNSTILE_SECRET_KEY` was uploaded, the Worker was redeployed to production as version `af6d2858-7aeb-4928-8b12-5e97387a998c`, and the public site key was wired into `site/app.js`; the remaining live step is publishing the updated GitHub Pages storefront and then verifying support, review, and checkout end to end on the public site
-- Browser-automation note: the authenticated Cloudflare Turnstile dashboard tab is open at `/turnstile/add`, but Chrome-extension control of that tab hung repeatedly on 2026-07-01 even though the tab remained visible in the open-tab list; if continuing, first dismiss any extension overlay or modal in Chrome and then resume widget creation instead of re-debugging the local code
-- Customer and internal email polish was tightened locally on 2026-07-01: support emails now use the same branded layout system as fulfillment emails, internal sale alerts no longer print raw Stripe session ids in the email body, and the checkout modal copy now says `Continue to secure payment` instead of the rougher `Continue to Stripe`; `npm run check` passed after those changes
-- The Turnstile widget now includes `shopresalelane.com`, `www.shopresalelane.com`, and `api.shopresalelane.com`; `www.shopresalelane.com` also returns an HTTP 301 redirect to the apex domain, so the current hostname coverage is conservative for the live production flow
+- `#18` Add Worker observability, retries, and fulfillment alerts: keep this open for deeper runbooks, broader alert coverage, and clearer retry/backoff design
+- `#20` Implement backup, recovery, and vendor-data update procedure: still real backlog work
+- `#14` Build post-launch verified-buyer review moderation: backlog, not a launch blocker
+- `#16` Add post-launch privacy-safe GA4 ecommerce measurement: backlog, not a launch blocker
+- `#27` Add post-launch Search Console and SEO growth program: backlog, not a launch blocker
 - verify whether Stripe sends a separate buyer receipt for zero-dollar live orders; no Stripe receipt was visible yet in `rbediner@gmail.com` immediately after order `RL-B1ADML7MIA`
-- multi-item cart behavior was verified on the live public site on 2026-07-01: the cart reached `2`, then `4`, showed multiple removable line items, and the bundle-plus-individual conflict prompt rendered the `Keep Bundle Only` and `Keep Everything` controls
-- finish the documented launch evidence matrix for checkout, fulfillment, alerts, receipts, and failure handling
 - decide whether any additional Stripe per-user notifications beyond `Successful payments` and weekly reports are worth the noise
-- decide whether ntfy should stay limited to sale alerts or also mirror monitor failures and delivery-failed incidents as separate topics
-- finish the remaining security/operations hardening work: Turnstile decision, deeper alert/runbook coverage, and backup/recovery procedure
+- decide whether `ntfy` should stay limited to sale alerts or also mirror monitor failures and delivery-failed incidents as separate topics
 
 Today's working checklist is tracked in `docs/TODAY-PLAN-2026-06-23.md`.
 
 ## Ticket Snapshot
 
-- `#3`, `#4`, `#7`, `#8`, `#9`, `#10`, `#17`, `#25`, `#28`, `#30`: implementation is live or substantially complete and now sits in `status:uat` while inbox proof, board reconciliation, or final acceptance evidence is gathered
-- `#12`: now the main in-progress launch-evidence ticket; live functionality exists, but the evidence matrix is incomplete and the old test-only wording no longer matches reality
-- `#18`: moved to `status:in-progress`; some monitoring/alerting exists now, but broader retries, runbooks, and synthetic alert proof remain
-- `#19`: still `status:in-progress`; core validation and isolation controls are in place, but Turnstile/final security review work remains
-- `#14`: verified-buyer review intake is live, but moderation/public publishing is still backlog work
-- `#20`: backup, recovery, and vendor-data update procedure is still real backlog work
-- `#16` and `#27`: post-launch analytics/SEO backlog, not launch blockers
+- Closed on 2026-07-01 after live verification and rollout cleanup: `#3`, `#4`, `#7`, `#8`, `#9`, `#10`, `#12`, `#17`, `#19`, `#25`, `#28`, `#30`
+- `#18`: the only remaining active non-backlog ticket; monitoring and alerting exist, but deeper operational hardening is still open
+- `#14`, `#16`, `#20`, and `#27`: genuine remaining backlog or post-launch work
 - `#5`, `#24`, `#26`, and `#29`: completed; v1 PDFs are in private production R2 and hash-verified
 
 ## Safe Independent Work
