@@ -63,6 +63,23 @@ function readEmailList(value) {
     .filter(Boolean);
 }
 
+function ntfyEndpoint(env) {
+  const baseUrl = (env.NTFY_BASE_URL || "https://ntfy.sh").replace(/\/$/, "");
+  const topic = String(env.NTFY_TOPIC || "").trim();
+  if (!topic) return null;
+  return `${baseUrl}/${encodeURIComponent(topic)}`;
+}
+
+function internalSaleAlertPushText(order, details) {
+  return [
+    `Order ${order.orderId}`,
+    `Buyer ${order.buyerEmail}`,
+    `Status ${details?.saleStatus || "paid"}`,
+    `Version ${details?.artifactVersion || "pending"}`,
+    `Total ${order.totalCents / 100} ${String(order.currency || "USD").toUpperCase()}`,
+  ].join("\n");
+}
+
 async function sendEmail(env, payload, requestId, replyTo = null, tags = []) {
   const response = await fetch("https://api.resend.com/emails", {
     method: "POST",
@@ -97,6 +114,28 @@ async function sendEmail(env, payload, requestId, replyTo = null, tags = []) {
   }
 
   return response.json();
+}
+
+async function sendNtfyAlert(env, order, details, requestId) {
+  const endpoint = ntfyEndpoint(env);
+  if (!endpoint) return;
+
+  const response = await fetch(endpoint, {
+    method: "POST",
+    headers: {
+      "Content-Type": "text/plain; charset=utf-8",
+      "Title": `ResaleLane sale ${order.orderId}`,
+      "Priority": details?.saleStatus === "delivery_failed" ? "urgent" : "default",
+      "Tags": details?.saleStatus === "delivery_failed" ? "warning,rotating_light,moneybag" : "white_check_mark,moneybag",
+      "X-Request-ID": `${requestId}:ntfy`,
+    },
+    body: internalSaleAlertPushText(order, details),
+  });
+
+  if (!response.ok) {
+    const providerError = await response.text().catch(() => "");
+    throw new Error(`ntfy rejected the request (${response.status}): ${providerError || "unknown error"}`);
+  }
 }
 
 async function sendWithResend(env, submission, requestId) {
@@ -193,14 +232,19 @@ async function sendFulfillment(env, order, artifacts, requestId) {
 async function sendInternalSaleAlert(env, order, details, requestId) {
   const email = internalSaleAlertEmail(order, details);
   try {
-    await sendEmail(env, {
+    await Promise.all([
+      sendEmail(env, {
       from: env.ORDERS_EMAIL_FROM || "ResaleLane Orders <orders@shopresalelane.com>",
       to: [env.SUPPORT_EMAIL_TO],
       cc: readEmailList(env.ORDER_NOTIFICATION_CC),
       subject: email.subject,
       text: email.text,
       html: email.html,
-    }, `${requestId}:internal-sale`, env.SUPPORT_EMAIL_TO, [{ name: "category", value: "internal_sale_alert" }]);
+      }, `${requestId}:internal-sale`, env.SUPPORT_EMAIL_TO, [{ name: "category", value: "internal_sale_alert" }]),
+      // Push mirrors the internal sale email so ops gets a faster heads-up without
+      // changing the buyer-facing flow.
+      sendNtfyAlert(env, order, details, requestId),
+    ]);
   } catch (error) {
     console.error(JSON.stringify({
       event: "internal_sale_alert_failed",

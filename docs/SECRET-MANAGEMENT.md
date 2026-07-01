@@ -35,6 +35,7 @@ Record names only. Do not record values.
 | --- | --- | --- | --- | --- |
 | `RESEND_API_KEY` | Production Worker | Cloudflare Worker secret | Allows the Worker to send support, monitor, and future fulfillment email through Resend. | Active |
 | `MONITOR_TOKEN` | Production Worker | Cloudflare Worker secret | Authenticates the private daily-monitor email endpoint. | Active |
+| `NTFY_TOPIC` | Production Worker | Cloudflare Worker secret | Routes internal sale-alert push notifications to the private ResaleLane `ntfy` topic without publishing that topic in the repo. | Active |
 | `UPTIME_MONITOR_TOKEN` | GitHub Actions | GitHub Actions secret | Lets the daily GitHub workflow call the private monitor endpoint. | Active |
 | `STRIPE_SECRET_KEY` | Future production Worker | Cloudflare Worker secret | Server-side Stripe API access after checkout is enabled. | Not set yet |
 | `STRIPE_WEBHOOK_SECRET` | Future production Worker | Cloudflare Worker secret | Verifies Stripe checkout-complete webhooks. | Not set yet |

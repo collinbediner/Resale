@@ -29,6 +29,8 @@ function testEnv(environment = "staging") {
     STRIPE_SECRET_KEY: "sk_test_example",
     STRIPE_WEBHOOK_SECRET: "whsec_test_example",
     RESEND_API_KEY: "re_test_example",
+    NTFY_BASE_URL: "https://ntfy.test",
+    NTFY_TOPIC: "resalelane-test-topic",
     SUPPORT_EMAIL_TO: "collin.bediner+support@gmail.com",
     ORDERS_EMAIL_FROM: "ResaleLane Orders <orders@shopresalelane.com>",
     ORDER_NOTIFICATION_CC: "collin.bediner@gmail.com",
@@ -195,12 +197,15 @@ test("a paid checkout still records an order, even when artifact delivery fails"
   // is missing (or any other fulfillment-path failure), so resolveArtifactForProduct throws.
   env.ARTIFACTS = { get: async () => null, head: async () => null };
   global.fetch = async (url, init) => {
-    assert.equal(url, "https://api.resend.com/emails");
-    emailCalls.push(JSON.parse(init.body));
-    return new Response(JSON.stringify({ id: "re_test_confirmation" }), {
-      status: 200,
-      headers: { "Content-Type": "application/json" }
-    });
+    if (url === "https://api.resend.com/emails") {
+      emailCalls.push(JSON.parse(init.body));
+      return new Response(JSON.stringify({ id: "re_test_confirmation" }), {
+        status: 200,
+        headers: { "Content-Type": "application/json" }
+      });
+    }
+    assert.equal(url, "https://ntfy.test/resalelane-test-topic");
+    return new Response("ok", { status: 200 });
   };
 
   const session = {
@@ -292,13 +297,16 @@ test("a successful paid checkout sends one buyer fulfillment email plus one paid
   };
 
   global.fetch = async (url, init) => {
-    assert.equal(url, "https://api.resend.com/emails");
-    const payload = JSON.parse(init.body);
-    emailCalls.push(payload);
-    return new Response(JSON.stringify({ id: `re_${emailCalls.length}` }), {
-      status: 200,
-      headers: { "Content-Type": "application/json" }
-    });
+    if (url === "https://api.resend.com/emails") {
+      const payload = JSON.parse(init.body);
+      emailCalls.push(payload);
+      return new Response(JSON.stringify({ id: `re_${emailCalls.length}` }), {
+        status: 200,
+        headers: { "Content-Type": "application/json" }
+      });
+    }
+    assert.equal(url, "https://ntfy.test/resalelane-test-topic");
+    return new Response("ok", { status: 200 });
   };
 
   const session = {
