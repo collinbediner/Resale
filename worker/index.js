@@ -21,6 +21,7 @@ import {
 } from "./order-store.js";
 import { readBoundedJson, RequestError, securityHeaders } from "./security.js";
 import { createReviewSubmission, validateReviewSubmission, verifyReviewBuyer } from "./reviews.js";
+import { readTurnstileToken, verifyTurnstileToken } from "./turnstile.js";
 import { fulfilledPackageEmail, internalSaleAlertEmail } from "../server/email-templates.js";
 
 const ALLOWED_ORIGINS = new Set([
@@ -51,6 +52,13 @@ function jsonResponse(body, status, origin, requestId) {
       "X-Request-ID": requestId
     }
   });
+}
+
+async function limitRoute(rateLimiter, key, errorMessage, origin, requestId) {
+  if (!rateLimiter?.limit) return null;
+  const rateLimit = await rateLimiter.limit({ key });
+  if (rateLimit.success) return null;
+  return jsonResponse({ ok: false, error: errorMessage }, 429, origin, requestId);
 }
 
 // Internal sale-copy recipients are configured as a comma-separated env var so
@@ -147,6 +155,28 @@ async function sendWithResend(env, submission, requestId) {
     text: email.text,
     html: email.html,
   }, requestId, submission.email, [{ name: "category", value: "support_request" }]);
+}
+
+async function verifyHumanCheck(env, request, token, action, origin, requestId) {
+  if (!env.TURNSTILE_SECRET_KEY) {
+    return jsonResponse(
+      { ok: false, error: "The security check is temporarily unavailable. Please try again shortly." },
+      503,
+      origin,
+      requestId
+    );
+  }
+
+  const verification = await verifyTurnstileToken(
+    env.TURNSTILE_SECRET_KEY,
+    token,
+    {
+      ip: request.headers.get("CF-Connecting-IP") || "",
+      action,
+    }
+  );
+  if (verification.ok) return null;
+  return jsonResponse({ ok: false, error: verification.error }, 400, origin, requestId);
 }
 
 function readStripeSignature(request) {
@@ -271,6 +301,16 @@ async function handleCheckout(request, env, origin, requestId) {
   }
 
   try {
+    if (!input || typeof input !== "object" || Array.isArray(input)) {
+      throw new Error("Please try checkout again.");
+    }
+    if (Object.keys(input).some((key) => !["productIds", "turnstileToken"].includes(key))) {
+      throw new Error("Unexpected checkout field. Please refresh and try again.");
+    }
+
+    const turnstileFailure = await verifyHumanCheck(env, request, readTurnstileToken(input), "checkout", origin, requestId);
+    if (turnstileFailure) return turnstileFailure;
+
     const products = validateRequestedProducts(input.productIds);
     const session = await createCheckoutSession(env, products);
     return jsonResponse({ ok: true, sessionId: session.id, url: session.url }, 200, origin, requestId);
@@ -423,6 +463,9 @@ async function handleReviews(request, env, origin, requestId) {
     return jsonResponse({ ok: false, error: validation.error }, 400, origin, requestId);
   }
 
+  const turnstileFailure = await verifyHumanCheck(env, request, validation.submission.turnstileToken, "review", origin, requestId);
+  if (turnstileFailure) return turnstileFailure;
+
   const match = await verifyReviewBuyer(env.ORDERS_DB, validation.submission);
   if (!match) {
     return jsonResponse(
@@ -500,6 +543,15 @@ const worker = {
     }
 
     if (url.pathname === "/checkout" && request.method === "POST") {
+      const clientKey = request.headers.get("CF-Connecting-IP") || "unknown";
+      const blocked = await limitRoute(
+        env.CHECKOUT_RATE_LIMITER,
+        `checkout:${clientKey}`,
+        "Too many checkout attempts were started. Please wait a minute and try again.",
+        origin,
+        requestId
+      );
+      if (blocked) return blocked;
       return handleCheckout(request, env, origin, requestId);
     }
 
@@ -508,6 +560,15 @@ const worker = {
     }
 
     if (url.pathname === "/reviews" && request.method === "POST") {
+      const clientKey = request.headers.get("CF-Connecting-IP") || "unknown";
+      const blocked = await limitRoute(
+        env.REVIEW_RATE_LIMITER,
+        `review:${clientKey}`,
+        "Too many review attempts were sent. Please wait a minute and try again.",
+        origin,
+        requestId
+      );
+      if (blocked) return blocked;
       return handleReviews(request, env, origin, requestId);
     }
 
@@ -520,15 +581,14 @@ const worker = {
     }
 
     const clientKey = request.headers.get("CF-Connecting-IP") || "unknown";
-    const rateLimit = await env.CONTACT_RATE_LIMITER.limit({ key: `support:${clientKey}` });
-    if (!rateLimit.success) {
-      return jsonResponse(
-        { ok: false, error: "Too many messages were sent. Please wait a minute and try again." },
-        429,
-        origin,
-        requestId
-      );
-    }
+    const supportBlocked = await limitRoute(
+      env.CONTACT_RATE_LIMITER,
+      `support:${clientKey}`,
+      "Too many messages were sent. Please wait a minute and try again.",
+      origin,
+      requestId
+    );
+    if (supportBlocked) return supportBlocked;
 
     let input;
     try {
@@ -546,6 +606,9 @@ const worker = {
       if (validation.silent) return jsonResponse({ ok: true, requestId }, 200, origin, requestId);
       return jsonResponse({ ok: false, error: validation.error }, 400, origin, requestId);
     }
+
+    const turnstileFailure = await verifyHumanCheck(env, request, validation.submission.turnstileToken, "support", origin, requestId);
+    if (turnstileFailure) return turnstileFailure;
 
     try {
       const providerResult = await sendWithResend(env, validation.submission, requestId);

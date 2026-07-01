@@ -46,7 +46,7 @@ The automated suite currently checks:
 - Product and bundle prices
 - Duplicate cart prevention
 - Bundle/individual conflict rules
-- Disabled Stripe checkout
+- Live Stripe checkout handoff copy and routing
 - Required legal/support content
 - Missing local assets
 
@@ -189,7 +189,7 @@ Do not merge visual or copy changes to `main` until the preview URL has been rev
 
 ## Payment State
 
-Stripe is not set up yet. Checkout buttons must stay disabled or point to a placeholder state until Stripe products, checkout sessions, webhook secrets, and delivery email flows are configured.
+Stripe live checkout is active. The storefront must send only product IDs and the Turnstile token to the Worker, and the Worker must remain the only place that knows Stripe Price IDs, Stripe secrets, webhook verification, and delivery routing.
 
 ## Deployment Safety
 
@@ -217,8 +217,9 @@ Use these locations as the source of truth:
 | `RESEND_API_KEY` | Cloudflare Dashboard -> Workers & Pages -> `resalelane-api` -> Settings -> Variables and Secrets | Production Worker secret installed |
 | `MONITOR_TOKEN` | Cloudflare Dashboard -> Workers & Pages -> `resalelane-api` -> Settings -> Variables and Secrets | Production Worker secret installed |
 | `UPTIME_MONITOR_TOKEN` | GitHub repo -> Settings -> Secrets and variables -> Actions | GitHub Actions secret installed |
-| Future `STRIPE_SECRET_KEY` | Cloudflare Dashboard -> Workers & Pages -> `resalelane-api` -> Settings -> Variables and Secrets | Not set until Stripe checkout work begins |
-| Future `STRIPE_WEBHOOK_SECRET` | Cloudflare Dashboard -> Workers & Pages -> `resalelane-api` -> Settings -> Variables and Secrets | Not set until Stripe webhook work begins |
+| `STRIPE_SECRET_KEY` | Cloudflare Dashboard -> Workers & Pages -> `resalelane-api` -> Settings -> Variables and Secrets | Production Worker secret installed |
+| `STRIPE_WEBHOOK_SECRET` | Cloudflare Dashboard -> Workers & Pages -> `resalelane-api` -> Settings -> Variables and Secrets | Production Worker secret installed |
+| `TURNSTILE_SECRET_KEY` | Cloudflare Dashboard -> Workers & Pages -> `resalelane-api` -> Settings -> Variables and Secrets | Pending final Turnstile production rollout |
 | Private delivery PDFs | Cloudflare Dashboard -> R2 Object Storage -> `resalelane-artifacts-production` | Production R2 bucket |
 
 For command-line verification, run these from the repository root in PowerShell:

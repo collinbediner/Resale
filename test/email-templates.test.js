@@ -69,8 +69,11 @@ test("internal sale alerts are separate from customer emails and include ops det
   });
   assert.match(email.subject, /New ResaleLane sale/);
   assert.match(email.text, /buyer@example\.com/);
-  assert.match(email.text, /Stripe checkout session/);
+  assert.match(email.text, /Next step:/);
+  assert.match(email.html, /Needs reply|delivered/i);
   assert.match(email.html, /internal order alert/i);
+  assert.doesNotMatch(email.text, /Stripe checkout session/i);
+  assert.doesNotMatch(email.html, /Stripe checkout session/i);
 });
 
 test("delayed delivery prevents duplicate purchasing", () => {
@@ -88,6 +91,21 @@ test("support acknowledgement escapes untrusted content", () => {
   assert.doesNotMatch(email.html, /<script>/);
   assert.match(email.html, /&lt;script&gt;/);
   assert.match(email.text, /Never send card numbers/);
+});
+
+test("internal sale alerts stay branded without exposing raw Stripe ids in the email body", () => {
+  const email = internalSaleAlertEmail({
+    ...order,
+    buyerEmail: "buyer@example.com"
+  }, {
+    saleStatus: "delivery_failed",
+    artifactVersion: "all-vendor-bundle:v1"
+  });
+  assert.match(email.html, /Next Step/);
+  assert.match(email.html, /Review the order record and delivery logs/i);
+  assert.match(email.html, /font-family:'Aptos', 'Segoe UI', Arial, sans-serif/);
+  assert.doesNotMatch(email.html, /cs_test_123/);
+  assert.doesNotMatch(email.text, /cs_test_123/);
 });
 
 test("templates reject incomplete transactional data", () => {

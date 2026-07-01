@@ -13,8 +13,8 @@ const bundleId = "all-vendor-bundle";
 
 test("production page includes required public content and safety controls", () => {
   assert.match(html, /Premium Vendors for Resellers/);
-  assert.match(app, /Continue to Stripe/);
-  assert.match(app, /Creating your secure Stripe checkout/);
+  assert.match(app, /Continue to secure payment/);
+  assert.match(app, /Preparing your secure payment page/);
   assert.match(html, /ResaleLane sells informational vendor resources only/);
   assert.match(html, /Secure Stripe checkout/);
   assert.doesNotMatch(html, /Checkout setup pending/);
@@ -24,6 +24,7 @@ test("production page includes required public content and safety controls", () 
   assert.match(html, /collin\.bediner\+support@gmail\.com/);
   assert.match(html, /Content-Security-Policy/);
   assert.match(html, /object-src 'none'/);
+  assert.match(html, /challenges\.cloudflare\.com\/turnstile/);
   assert.match(html, /name="referrer" content="strict-origin-when-cross-origin"/);
 });
 
@@ -39,6 +40,8 @@ test("contact form sends through the private API and keeps a direct email fallba
   assert.match(html, /data-format="underline"/);
   assert.match(html, /data-format="insertUnorderedList"/);
   assert.match(html, /data-contact-status/);
+  assert.match(html, /data-turnstile-slot="support"/);
+  assert.match(html, /name="turnstileToken"/);
   assert.match(app, /collin\.bediner\+support@gmail\.com/);
 });
 
@@ -82,10 +85,12 @@ test("catalog keeps launch prices and bundle price authoritative in code", () =>
   assert.match(app, /id: "all-vendor-bundle"[\s\S]*?price: 12/);
 });
 
-test("checkout posts only product ids to the API before redirecting to Stripe", () => {
-  assert.match(app, /JSON\.stringify\(\{ productIds: cart \}\)/);
+test("checkout posts product ids plus a human-verification token before redirecting to Stripe", () => {
+  assert.match(app, /JSON\.stringify\(\{ productIds: cart, turnstileToken: turnstileToken\("checkout"\) \}\)/);
   assert.match(app, /window\.location\.href = result\.url/);
   assert.doesNotMatch(app, /price_id/i);
+  assert.match(app, /data-turnstile-slot="checkout"/);
+  assert.match(app, /Please complete the security check before continuing to secure payment\./);
 });
 
 test("adding a normal product adds exactly that product", () => {
@@ -131,4 +136,10 @@ test("checkout result pages are safe, private, and support-focused", () => {
   assert.match(canceled, /No order was placed/);
   assert.match(canceled, /generally final after successful delivery/);
   assert.match(success + canceled, /noindex/);
+});
+
+test("review intake requires a verified-buyer form plus human verification", () => {
+  assert.match(html, /data-review-form/);
+  assert.match(html, /data-turnstile-slot="review"/);
+  assert.match(app, /Please complete the security check before submitting your review\./);
 });

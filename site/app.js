@@ -18,8 +18,12 @@ const faqs = [
   ["Are you affiliated with brands or suppliers?", "No. ResaleLane is not affiliated with or endorsed by any third-party brand, marketplace, manufacturer, or supplier."]
 ];
 const bundleId = "all-vendor-bundle";
+// Public Turnstile site keys are safe to ship in the browser; the matching secret
+// stays server-side in the Cloudflare Worker.
+const TURNSTILE_SITE_KEY = "0x4AAAAAADuE-EfXSagK_MvZ";
 let cart = JSON.parse(localStorage.getItem("resalelane-cart") || "[]").filter(id => products.some(p => p.id === id));
 let conflict = null;
+const turnstileWidgets = new Map();
 const $ = selector => document.querySelector(selector);
 const $$ = selector => [...document.querySelectorAll(selector)];
 const product = id => products.find(item => item.id === id);
@@ -47,7 +51,47 @@ function init() {
   $("[data-rich-editor]").addEventListener("mousedown", preserveEditorSelection);
   document.addEventListener("selectionchange", updateEditorToolbar);
   updateCart();
+  if (window.turnstile && TURNSTILE_SITE_KEY) window.initResaleLaneTurnstile();
 }
+
+function turnstileSlot(name) { return document.querySelector(`[data-turnstile-slot="${name}"]`); }
+function turnstileInput(name) { return document.querySelector(`[data-turnstile-input="${name}"]`); }
+function setTurnstileToken(name, token = "") { const input = turnstileInput(name); if (input) input.value = token; }
+function turnstileToken(name) { return turnstileInput(name)?.value?.trim() || ""; }
+
+function renderTurnstile(name, action) {
+  const slot = turnstileSlot(name);
+  if (!slot || !window.turnstile || !TURNSTILE_SITE_KEY) return;
+  if (turnstileWidgets.has(name)) return;
+  const widgetId = window.turnstile.render(slot, {
+    sitekey: TURNSTILE_SITE_KEY,
+    action,
+    theme: "dark",
+    callback: token => setTurnstileToken(name, token),
+    "expired-callback": () => setTurnstileToken(name, ""),
+    "error-callback": () => setTurnstileToken(name, ""),
+  });
+  turnstileWidgets.set(name, widgetId);
+}
+
+function rerenderCheckoutTurnstile() {
+  setTurnstileToken("checkout", "");
+  turnstileWidgets.delete("checkout");
+  renderTurnstile("checkout", "checkout");
+}
+
+function resetTurnstile(name) {
+  setTurnstileToken(name, "");
+  if (window.turnstile && turnstileWidgets.has(name)) {
+    window.turnstile.reset(turnstileWidgets.get(name));
+  }
+}
+
+window.initResaleLaneTurnstile = () => {
+  renderTurnstile("support", "support");
+  renderTurnstile("review", "review");
+  renderTurnstile("checkout", "checkout");
+};
 
 function preserveEditorSelection(event) {
   if (event.target.closest("[data-format]")) event.preventDefault();
@@ -129,11 +173,12 @@ function openDetail(id) {
 function openCheckout() {
   const items = cart.map(product), subtotal = items.reduce((sum, p) => sum + p.price, 0);
   closeCart();
-  $("[data-modal]").innerHTML = `<div class="modal-heading"><h2>Checkout</h2><button class="icon-button" data-close-modal aria-label="Close">×</button></div><p class="modal-label">ORDER SUMMARY</p><div class="checkout-summary">${items.map(p => `<div class="checkout-line"><span>${p.name}</span><strong>${money(p.price)}</strong></div>`).join("")}<div class="checkout-total"><span>Subtotal</span><strong>${money(subtotal)}</strong></div></div><button class="button primary" data-start-checkout>Continue to Stripe</button><p class="form-status" data-checkout-status role="status" aria-live="polite"></p><p class="legal">You are buying digital sourcing information, not a physical product. Stripe collects the checkout email and payment details. All sales are final after delivery except reviewed duplicate-charge, wrong-delivery, or unresolved non-delivery cases.</p>`;
+  $("[data-modal]").innerHTML = `<div class="modal-heading"><h2>Checkout</h2><button class="icon-button" data-close-modal aria-label="Close">×</button></div><p class="modal-label">ORDER SUMMARY</p><div class="checkout-summary">${items.map(p => `<div class="checkout-line"><span>${p.name}</span><strong>${money(p.price)}</strong></div>`).join("")}<div class="checkout-total"><span>Subtotal</span><strong>${money(subtotal)}</strong></div></div><div class="turnstile-wrap"><div class="turnstile-slot" data-turnstile-slot="checkout"></div><input type="hidden" data-turnstile-input="checkout" /></div><button class="button primary" data-start-checkout>Continue to secure payment</button><p class="form-status" data-checkout-status role="status" aria-live="polite"></p><p class="legal">You are buying digital sourcing information, not a physical product. Secure payment is handled by Stripe after this step. All sales are final after delivery except reviewed duplicate-charge, wrong-delivery, or unresolved non-delivery cases.</p>`;
   openModal();
+  if (window.turnstile && TURNSTILE_SITE_KEY) requestAnimationFrame(rerenderCheckoutTurnstile);
 }
 function openModal() { $("[data-modal-overlay]").hidden = false; document.body.classList.add("locked"); }
-function closeModal() { $("[data-modal-overlay]").hidden = true; document.body.classList.remove("locked"); }
+function closeModal() { $("[data-modal-overlay]").hidden = true; resetTurnstile("checkout"); document.body.classList.remove("locked"); }
 function toast(message) { const el = $("[data-toast]"); el.textContent = message; el.hidden = false; clearTimeout(window.toastTimer); window.toastTimer = setTimeout(() => el.hidden = true, 1800); }
 async function sendContact(event) {
   event.preventDefault();
@@ -157,6 +202,14 @@ async function sendContact(event) {
   status.className = "form-status";
   status.textContent = "Sending your message securely...";
 
+  if (!turnstileToken("support")) {
+    button.disabled = false;
+    button.textContent = "Send message";
+    status.className = "form-status error";
+    status.textContent = "Please complete the security check before sending.";
+    return;
+  }
+
   try {
     const response = await fetch(`${apiBaseUrl()}/support`, {
       method: "POST",
@@ -168,6 +221,7 @@ async function sendContact(event) {
 
     form.reset();
     editor.innerHTML = "";
+    resetTurnstile("support");
     status.className = "form-status success";
     status.textContent = `Message sent. Your support reference is ${result.requestId}.`;
     toast("Message sent");
@@ -192,6 +246,14 @@ async function sendReview(event) {
   status.className = "form-status";
   status.textContent = "Verifying your order before saving the review...";
 
+  if (!turnstileToken("review")) {
+    button.disabled = false;
+    button.textContent = "Submit verified review";
+    status.className = "form-status error";
+    status.textContent = "Please complete the security check before submitting your review.";
+    return;
+  }
+
   try {
     const response = await fetch(`${apiBaseUrl()}/reviews`, {
       method: "POST",
@@ -202,6 +264,7 @@ async function sendReview(event) {
     if (!response.ok || !result.ok) throw new Error(result.error || "Your review could not be submitted.");
 
     form.reset();
+    resetTurnstile("review");
     status.className = "form-status success";
     status.textContent = result.message || `Review received. Your reference is ${result.requestId}.`;
     toast("Review submitted");
@@ -223,15 +286,23 @@ async function startCheckout() {
   if (!button || !status) return;
 
   button.disabled = true;
-  button.textContent = "Redirecting...";
+  button.textContent = "Opening secure payment...";
   status.className = "form-status";
-  status.textContent = "Creating your secure Stripe checkout...";
+  status.textContent = "Preparing your secure payment page...";
+
+  if (!turnstileToken("checkout")) {
+    button.disabled = false;
+    button.textContent = "Continue to secure payment";
+    status.className = "form-status error";
+    status.textContent = "Please complete the security check before continuing to secure payment.";
+    return;
+  }
 
   try {
     const response = await fetch(`${apiBaseUrl()}/checkout`, {
       method: "POST",
       headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ productIds: cart })
+      body: JSON.stringify({ productIds: cart, turnstileToken: turnstileToken("checkout") })
     });
     const result = await response.json();
     if (!response.ok || !result.ok || !result.url) {
@@ -240,7 +311,7 @@ async function startCheckout() {
     window.location.href = result.url;
   } catch (error) {
     button.disabled = false;
-    button.textContent = "Continue to Stripe";
+    button.textContent = "Continue to secure payment";
     status.className = "form-status error";
     status.textContent = `${error.message} If this keeps happening, contact support before trying again.`;
   }

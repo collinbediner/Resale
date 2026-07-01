@@ -14,7 +14,7 @@ ResaleLane is currently a static storefront built with HTML, CSS, and browser Ja
 | Stable staging | `staging` branch at `/staging/` |
 | Production | GitHub Pages through the `gh-pages` deploy branch |
 | Domain/DNS | Cloudflare |
-| Payments | Disabled placeholder until Stripe is configured |
+| Payments | Live Stripe Checkout hosted by Stripe |
 
 ## Vendor And Integration Map
 
@@ -24,11 +24,11 @@ ResaleLane is currently a static storefront built with HTML, CSS, and browser Ja
 | GitHub Actions | CI/CD workflows | `.github/workflows/` runs tests, preview deploys, staging deploys, production deploys, and uptime checks | Prevents manual deploy drift and catches regressions early |
 | GitHub Pages | Public website hosting | Built static files are deployed to `gh-pages` and served on the public domain | Good fit for a mostly static storefront |
 | Cloudflare | DNS and private backend platform | Cloudflare fronts the custom domain and runs the Worker, D1, and R2 services | Keeps domain control and private backend logic together |
-| Cloudflare Worker | Private API | `worker/index.js` handles support, health, and monitor endpoints today | Lets the site keep secrets server-side and add logic without a traditional server |
+| Cloudflare Worker | Private API | `worker/index.js` handles support, checkout, Stripe webhooks, fulfillment, health, reviews, and monitor endpoints | Lets the site keep secrets server-side and add logic without a traditional server |
 | Cloudflare D1 | Private relational data | Worker bindings connect to separate staging and production D1 databases | Stores order, event, retry, and support metadata safely |
 | Cloudflare R2 | Private object storage | Worker bindings connect to separate staging and production buckets | Holds delivery artifacts outside the public repo |
 | Resend | Transactional email delivery | The Worker calls the Resend API with a Cloudflare secret | Sends support, monitoring, and future fulfillment email |
-| Stripe | Planned checkout and payment receipts | The future Worker checkout flow will create Checkout Sessions and verify Stripe webhooks | Keeps card handling and payment receipts out of the custom codebase |
+| Stripe | Hosted checkout and payment receipts | The Worker creates Checkout Sessions and verifies signed Stripe webhooks | Keeps card handling and payment receipts out of the custom codebase |
 
 ## Architecture In Plain English
 
@@ -40,8 +40,8 @@ Anything private or security-sensitive moves to the Cloudflare Worker side:
 - order records
 - retry and audit state
 - private package files
-- future checkout creation
-- future Stripe webhook verification
+- checkout creation
+- Stripe webhook verification
 
 That split is the main safety rule of the whole project: public site files stay public-safe, private operations stay server-side.
 
@@ -67,11 +67,11 @@ flowchart LR
 - `site/assets/`: public brand assets only.
 - `Design System/design_handoff_resalelane/`: original public-safe design handoff, tokens, catalog model, prototypes, and brand exports.
 - `scripts/build.mjs`: creates the fingerprinted release in ignored `dist/`.
-- `worker/index.js`: main Worker router for health, monitoring, and support endpoints.
+- `worker/index.js`: main Worker router for checkout, Stripe webhooks, fulfillment, support, reviews, health, and monitoring.
 - `worker/contact.js`: support-form validation and support-email rendering helpers.
 - `worker/security.js`: shared request-size, JSON, and response-header protections.
 - `worker/order-store.js`: D1 order-state helpers for idempotency, retries, and transitions.
-- `server/email-templates.js`: provider-independent transactional email templates for the future Worker.
+- `server/email-templates.js`: provider-independent transactional email templates for buyer fulfillment and internal sale alerts.
 - `migrations/`: versioned D1 schema for orders, payment events, delivery attempts, and support request metadata.
 - `docs/ARTIFACT-SECURITY.md`: private-artifact storage and secure-delivery design.
 - `docs/DATA-RETENTION.md`: buyer-data minimization, anonymization, and recovery rules.
@@ -104,7 +104,7 @@ The repository is the collaboration source of truth. Google Drive may hold draft
 
 ## Approved Backend Target
 
-The Cloudflare Worker is active for support email and monitoring. Separate staging and production D1 databases and private R2 buckets are connected through environment-specific bindings. Checkout remains disabled until Stripe and the remaining order and fulfillment flows are configured and tested.
+The Cloudflare Worker is active for support email, live checkout creation, Stripe webhook processing, buyer fulfillment, internal sale alerts, review intake, and monitoring. Separate staging and production D1 databases and private R2 buckets are connected through environment-specific bindings.
 
 The Worker exposes a public-safe `/health` response containing API version, environment name, and connection status only. It never returns database identifiers, bucket names, secrets, customer records, or provider errors.
 
@@ -176,7 +176,7 @@ sequenceDiagram
   W->>D: Record email attempt and provider result
 ```
 
-Stripe remains the payment receipt authority. ResaleLane sends a separate order confirmation and fulfillment email containing the order ID, purchased items, support details, policy summary, contact details, and any optional PDF or secure link.
+Stripe remains the payment receipt authority. ResaleLane sends the separate fulfillment email containing the order ID, purchased items, support details, policy summary, and attached PDFs.
 
 ## Transaction Safety Rules
 

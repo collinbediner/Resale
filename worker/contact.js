@@ -1,3 +1,6 @@
+import { readTurnstileToken, turnstileFieldSet, validateTurnstileTokenShape } from "./turnstile.js";
+import { escapeHtml, infoCard, layout, statusBadge } from "../server/email-templates.js";
+
 const SUPPORT_REASONS = new Set([
   "Order delivery",
   "Wrong package",
@@ -8,7 +11,7 @@ const SUPPORT_REASONS = new Set([
 ]);
 
 const EMAIL_PATTERN = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
-const CONTACT_FIELDS = new Set(["name", "email", "order", "reason", "message", "messageHtml", "company"]);
+const CONTACT_FIELDS = turnstileFieldSet(["name", "email", "order", "reason", "message", "messageHtml", "company"]);
 
 function clean(value, maximumLength) {
   return typeof value === "string" ? value.trim().slice(0, maximumLength) : "";
@@ -39,7 +42,8 @@ export function validateContactSubmission(input) {
     reason: clean(input.reason, 50),
     message: clean(input.message, 4000),
     messageHtml: cleanMessageHtml(input.messageHtml),
-    company: clean(input.company, 200)
+    company: clean(input.company, 200),
+    turnstileToken: readTurnstileToken(input),
   };
 
   // Real visitors never see this field. Bots commonly fill every available input.
@@ -48,18 +52,10 @@ export function validateContactSubmission(input) {
   if (!EMAIL_PATTERN.test(submission.email)) return { ok: false, error: "Please enter a valid email address." };
   if (!SUPPORT_REASONS.has(submission.reason)) return { ok: false, error: "Please choose a valid reason." };
   if (submission.message.length < 10) return { ok: false, error: "Please include a little more detail in your message." };
+  const turnstile = validateTurnstileTokenShape(submission.turnstileToken);
+  if (!turnstile.ok) return turnstile;
 
   return { ok: true, submission };
-}
-
-function escapeHtml(value) {
-  return value.replace(/[&<>"']/g, character => ({
-    "&": "&amp;",
-    "<": "&lt;",
-    ">": "&gt;",
-    '"': "&quot;",
-    "'": "&#039;"
-  })[character]);
 }
 
 export function buildSupportEmail(submission, requestId) {
@@ -76,18 +72,29 @@ export function buildSupportEmail(submission, requestId) {
     submission.message
   ].join("\n");
 
-  const html = `
-    <h2>New ResaleLane support message</h2>
-    <p><strong>Reference:</strong> ${escapeHtml(requestId)}</p>
-    <p>
-      <strong>Name:</strong> ${escapeHtml(submission.name)}<br>
-      <strong>Email:</strong> ${escapeHtml(submission.email)}<br>
-      <strong>Order ID:</strong> ${escapeHtml(order)}<br>
-      <strong>Reason:</strong> ${escapeHtml(submission.reason)}
-    </p>
-    <hr>
-    <div>${submission.messageHtml || `<p style="white-space:pre-wrap">${escapeHtml(submission.message)}</p>`}</div>
-  `.trim();
+  const messageMarkup = submission.messageHtml
+    ? `<div style="color:#d4d4d4;line-height:1.75;word-break:break-word">${submission.messageHtml}</div>`
+    : `<p style="margin:0;color:#d4d4d4;line-height:1.75;white-space:pre-wrap;word-break:break-word">${escapeHtml(submission.message)}</p>`;
+
+  const html = layout({
+    preheader: `New support message from ${submission.name}.`,
+    heading: "New support message received.",
+    intro: "A customer submitted the contact form from the live ResaleLane support flow.",
+    body: `
+      <p style="margin:0 0 20px">${statusBadge("Needs reply", "warning")}</p>
+      ${infoCard("Support Details", `
+        <table role="presentation" style="width:100%;border-collapse:collapse">
+          <tr><td style="padding:8px 0;color:#8f8f8f">Reference</td><td style="padding:8px 0;text-align:right;font-weight:700;color:#ffffff">${escapeHtml(requestId)}</td></tr>
+          <tr><td style="padding:8px 0;color:#8f8f8f">Name</td><td style="padding:8px 0;text-align:right;font-weight:700;color:#ffffff">${escapeHtml(submission.name)}</td></tr>
+          <tr><td style="padding:8px 0;color:#8f8f8f">Email</td><td style="padding:8px 0;text-align:right;font-weight:700;color:#ffffff">${escapeHtml(submission.email)}</td></tr>
+          <tr><td style="padding:8px 0;color:#8f8f8f">Order ID</td><td style="padding:8px 0;text-align:right;font-weight:700;color:#ffffff">${escapeHtml(order)}</td></tr>
+          <tr><td style="padding:8px 0;color:#8f8f8f">Reason</td><td style="padding:8px 0;text-align:right;font-weight:700;color:#ffffff">${escapeHtml(submission.reason)}</td></tr>
+        </table>
+      `)}
+      ${infoCard("Customer Message", messageMarkup)}
+      ${infoCard("Reply Guidance", `<p style="margin:0;color:#d4d4d4;line-height:1.7">Reply directly to this email so the response goes back to the customer address on file. Do not ask the customer to share card numbers, passwords, API keys, or supplier credentials.</p>`)}
+    `
+  });
 
   return { subject, text, html };
 }

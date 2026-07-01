@@ -83,6 +83,16 @@ function infoCard(title, innerHtml) {
   </table>`;
 }
 
+function statusBadge(label, tone = "neutral") {
+  const palette = tone === "success"
+    ? { border: "#1f6f43", background: "#0f2418", text: "#9ff0bf" }
+    : tone === "warning"
+      ? { border: "#7a5a16", background: "#261d0d", text: "#f7d98a" }
+      : { border: "#3a3a3a", background: "#191919", text: "#d4d4d4" };
+
+  return `<span style="display:inline-block;padding:7px 12px;border:1px solid ${palette.border};border-radius:999px;background:${palette.background};color:${palette.text};font-size:12px;font-weight:700;letter-spacing:.08em;text-transform:uppercase">${escapeHtml(label)}</span>`;
+}
+
 function fulfillmentSectionHtml(section) {
   return `<table role="presentation" style="width:100%;margin:20px 0 0;border-collapse:separate;border-spacing:0;border:1px solid #282828;border-radius:14px;background:#151515">
     <tr><td style="padding:18px">
@@ -238,6 +248,10 @@ export function internalSaleAlertEmail(order, details) {
   const artifactVersion = details?.artifactVersion || "pending";
   const itemList = order.items.map((item) => `- ${item.name}: ${formatMoney(item.amountCents, order.currency)}`).join("\n");
   const itemListHtml = order.items.map((item) => `<li style="margin:0 0 8px;color:#d4d4d4">${escapeHtml(item.name)} <span style="float:right;font-weight:700">${escapeHtml(formatMoney(item.amountCents, order.currency))}</span></li>`).join("");
+  const statusTone = saleStatus === "delivered" ? "success" : saleStatus.includes("failed") ? "warning" : "neutral";
+  const nextStepText = saleStatus.includes("failed")
+    ? "Review the order record and delivery logs before contacting the buyer."
+    : "Watch for any follow-up support reply from the buyer inbox and confirm the delivery attachment was sent.";
 
   return {
     subject: `New ResaleLane sale - ${order.orderId}`,
@@ -247,25 +261,27 @@ Order: ${order.orderId}
 Buyer email: ${order.buyerEmail}
 Sale status: ${saleStatus}
 Artifact version: ${artifactVersion}
-Stripe checkout session: ${order.stripeReference}
 Total: ${formatMoney(order.totalCents, order.currency)}
 
 Items:
-${itemList}`,
+${itemList}
+
+Next step: ${nextStepText}`,
     html: layout({
       preheader: `New ResaleLane sale ${order.orderId}.`,
       heading: "A ResaleLane sale was completed.",
       intro: "This is an internal order alert for support and operations.",
       body: `
+        <p style="margin:0 0 20px">${statusBadge(saleStatus, statusTone)}</p>
         <table role="presentation" style="width:100%;border-collapse:collapse;margin:20px 0">
           <tr><td style="padding:8px 0;color:#8f8f8f">Order</td><td style="padding:8px 0;text-align:right;font-weight:700">${escapeHtml(order.orderId)}</td></tr>
           <tr><td style="padding:8px 0;color:#8f8f8f">Buyer email</td><td style="padding:8px 0;text-align:right;font-weight:700">${escapeHtml(order.buyerEmail)}</td></tr>
           <tr><td style="padding:8px 0;color:#8f8f8f">Sale status</td><td style="padding:8px 0;text-align:right;font-weight:700">${escapeHtml(saleStatus)}</td></tr>
           <tr><td style="padding:8px 0;color:#8f8f8f">Artifact version</td><td style="padding:8px 0;text-align:right;font-weight:700">${escapeHtml(artifactVersion)}</td></tr>
-          <tr><td style="padding:8px 0;color:#8f8f8f">Stripe checkout session</td><td style="padding:8px 0;text-align:right;font-weight:700">${escapeHtml(order.stripeReference)}</td></tr>
           <tr><td style="padding:8px 0;color:#8f8f8f">Total</td><td style="padding:8px 0;text-align:right;font-weight:700">${escapeHtml(formatMoney(order.totalCents, order.currency))}</td></tr>
         </table>
-        ${infoCard("Items", `<ul style="margin:0;padding-left:20px">${itemListHtml}</ul>`)}`
+        ${infoCard("Items", `<ul style="margin:0;padding-left:20px">${itemListHtml}</ul>`)}
+        ${infoCard("Next Step", `<p style="margin:0;color:#d4d4d4;line-height:1.7">${escapeHtml(nextStepText)}</p>`)}`
     })
   };
 }
@@ -315,4 +331,4 @@ Support: ${SUPPORT_EMAIL}`,
   };
 }
 
-export { DISCLAIMER, SUPPORT_EMAIL };
+export { DISCLAIMER, EMAIL_FONT_STACK, SUPPORT_EMAIL, escapeHtml, infoCard, layout, statusBadge };

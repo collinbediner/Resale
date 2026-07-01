@@ -27,11 +27,11 @@ ResaleLane uses a small set of services, each for one clear job:
 | GitHub Actions | Runs tests, previews, and deploy workflows | It checks changes automatically before publishing them. |
 | GitHub Pages | Hosts the public storefront | It is a simple fit for a mostly static site. |
 | Cloudflare DNS/proxy | Routes the custom domain | It keeps `shopresalelane.com` pointed at the right public site and private API. |
-| Cloudflare Worker | Runs the private API | It handles support email now and is the planned home for checkout and webhooks later. |
+| Cloudflare Worker | Runs the private API | It handles support, checkout, Stripe webhooks, fulfillment, and operational alerts without exposing secrets in the storefront. |
 | Cloudflare D1 | Stores order and support state | It gives the Worker a small SQL database for order, retry, and audit records. |
 | Cloudflare R2 | Stores private delivery artifacts | It keeps private package files out of the public repo and browser. |
 | Resend | Sends transactional email | It powers support and monitoring emails without exposing mail credentials in frontend code. |
-| Stripe | Planned checkout provider | It will own card handling and payment receipts once checkout is enabled. |
+| Stripe | Hosted checkout and payment receipts | It owns card handling, hosted Checkout, and official payment receipts. |
 
 ## How It Is Built
 
@@ -53,13 +53,13 @@ The public storefront is intentionally static and public-safe. Private supplier 
 
 ## Approved Target Architecture
 
-GitHub Pages remains the public storefront host. Checkout and fulfillment are designed to run through a private Cloudflare Worker backend:
+GitHub Pages remains the public storefront host. Checkout and fulfillment now run through a private Cloudflare Worker backend:
 
 1. The browser sends selected product IDs, not prices, to the Worker.
 2. The Worker validates those IDs and maps them to authoritative Stripe Price IDs.
 3. Stripe hosts Checkout and sends its signed completion webhook to the Worker.
 4. The Worker verifies the webhook, records the order in D1, and resolves purchased contact data from private R2 or server-side configuration.
-5. Resend sends the fulfillment email from `orders@shopresalelane.com` with the contact details and, when useful, a PDF or secure link.
+5. Resend sends the fulfillment email from `orders@shopresalelane.com` with the purchased PDF attachments.
 6. The Worker records each email-delivery attempt in D1.
 
 The storefront, Git repository, and GitHub Pages deployment must never contain Stripe secrets, buyer records, or private package contact data. See [docs/ARCHITECTURE.md](docs/ARCHITECTURE.md) for the complete request sequence and environment boundaries.
@@ -75,16 +75,9 @@ Today:
 3. GitHub Actions runs the same checks on pull requests.
 4. If checks pass, GitHub Pages publishes the built static site.
 5. Cloudflare keeps the custom domain pointed at the published site.
-6. The private Cloudflare Worker powers the support form and daily monitor email.
-
-Later, when checkout is enabled:
-
-1. The storefront will send product IDs to the Worker.
-2. The Worker will create a Stripe Checkout Session.
-3. Stripe will process payment and send a webhook back to the Worker.
-4. The Worker will store safe order state in D1.
-5. The Worker will read private delivery data from R2.
-6. Resend will send the fulfillment email.
+6. The private Cloudflare Worker powers the support form, checkout creation, Stripe webhook processing, fulfillment email, internal sale alerts, and daily monitor email.
+7. Stripe hosts checkout, confirms payment, and sends the signed webhook back to the Worker.
+8. The Worker stores safe order state in D1, reads private delivery PDFs from R2, and sends the fulfillment email.
 
 ## Technical Implementation Steps
 
@@ -130,7 +123,7 @@ Run this in PowerShell from the project folder:
 npm run check
 ```
 
-This checks JavaScript syntax, docs consistency, prices, cart rules, safety copy, disabled checkout behavior, Worker routes, and public asset references.
+This checks JavaScript syntax, docs consistency, prices, cart rules, safety copy, live checkout behavior, Worker routes, and public asset references.
 
 The build creates `dist/` with release-specific asset filenames. `dist/` is generated and is not committed.
 

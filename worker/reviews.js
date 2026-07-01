@@ -1,3 +1,5 @@
+import { readTurnstileToken, validateTurnstileTokenShape } from "./turnstile.js";
+
 function normalizeEmail(value) {
   return String(value || "").trim().toLowerCase();
 }
@@ -46,6 +48,10 @@ export function validateReviewSubmission(input) {
     return { ok: false, error: "Write at least 20 characters about your experience." };
   }
 
+  const turnstileToken = readTurnstileToken(input);
+  const turnstile = validateTurnstileTokenShape(turnstileToken);
+  if (!turnstile.ok) return turnstile;
+
   return {
     ok: true,
     submission: {
@@ -54,7 +60,8 @@ export function validateReviewSubmission(input) {
       rating,
       headline,
       displayName,
-      reviewText
+      reviewText,
+      turnstileToken
     }
   };
 }

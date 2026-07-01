@@ -12,6 +12,8 @@ function testEnv(environment = "staging") {
     },
     ARTIFACTS: { head: async () => null },
     CONTACT_RATE_LIMITER: { limit: async () => ({ success: true }) },
+    CHECKOUT_RATE_LIMITER: { limit: async () => ({ success: true }) },
+    REVIEW_RATE_LIMITER: { limit: async () => ({ success: true }) },
     STRIPE_PRICE_LOOKUP: JSON.stringify({
       "shoe-vendor": "price_test_shoe",
       "clothes-vendor": "price_test_clothes",
@@ -28,6 +30,7 @@ function testEnv(environment = "staging") {
     }),
     STRIPE_SECRET_KEY: "sk_test_example",
     STRIPE_WEBHOOK_SECRET: "whsec_test_example",
+    TURNSTILE_SECRET_KEY: "turnstile_test_secret",
     RESEND_API_KEY: "re_test_example",
     NTFY_BASE_URL: "https://ntfy.test",
     NTFY_TOPIC: "resalelane-test-topic",
@@ -35,6 +38,14 @@ function testEnv(environment = "staging") {
     ORDERS_EMAIL_FROM: "ResaleLane Orders <orders@shopresalelane.com>",
     ORDER_NOTIFICATION_CC: "collin.bediner@gmail.com",
     PUBLIC_SITE_URL: "https://shopresalelane.com/staging"
+  };
+}
+
+function installFetchMock(handler) {
+  const originalFetch = global.fetch;
+  global.fetch = handler;
+  return () => {
+    global.fetch = originalFetch;
   };
 }
 
@@ -93,22 +104,29 @@ test("support endpoint requires JSON and bounds bodies without trusting Content-
 
 test("checkout endpoint creates a hosted Stripe session for approved SKUs only", async () => {
   const env = testEnv();
-  const originalFetch = global.fetch;
-
-  global.fetch = async (url, init) => {
+  const restoreFetch = installFetchMock(async (url, init) => {
+    if (url === "https://challenges.cloudflare.com/turnstile/v0/siteverify") {
+      return new Response(JSON.stringify({ success: true, action: "checkout" }), {
+        status: 200,
+        headers: { "Content-Type": "application/json" }
+      });
+    }
     assert.equal(url, "https://api.stripe.com/v1/checkout/sessions");
     assert.match(String(init.body), /line_items%5B0%5D%5Bprice%5D=price_test_shoe/);
     return new Response(JSON.stringify({ id: "cs_test_123", url: "https://checkout.stripe.test/session" }), {
       status: 200,
       headers: { "Content-Type": "application/json" }
     });
-  };
+  });
 
   try {
     const response = await worker.fetch(new Request("https://api.example.test/checkout", {
       method: "POST",
       headers: { Origin: "https://shopresalelane.com", "Content-Type": "application/json" },
-      body: JSON.stringify({ productIds: ["shoe-vendor"] })
+      body: JSON.stringify({
+        productIds: ["shoe-vendor"],
+        turnstileToken: "turnstile_test_token_1234567890"
+      })
     }), env);
     assert.equal(response.status, 200);
     assert.deepEqual(await response.json(), {
@@ -117,7 +135,7 @@ test("checkout endpoint creates a hosted Stripe session for approved SKUs only",
       url: "https://checkout.stripe.test/session"
     });
   } finally {
-    global.fetch = originalFetch;
+    restoreFetch();
   }
 });
 
@@ -138,26 +156,115 @@ test("reviews endpoint only accepts verified delivered buyers", async () => {
     }
   };
 
-  const response = await worker.fetch(new Request("https://api.example.test/reviews", {
+  const restoreFetch = installFetchMock(async (url) => {
+    assert.equal(url, "https://challenges.cloudflare.com/turnstile/v0/siteverify");
+    return new Response(JSON.stringify({ success: true, action: "review" }), {
+      status: 200,
+      headers: { "Content-Type": "application/json" }
+    });
+  });
+
+  try {
+    const response = await worker.fetch(new Request("https://api.example.test/reviews", {
+      method: "POST",
+      headers: { Origin: "https://shopresalelane.com", "Content-Type": "application/json" },
+      body: JSON.stringify({
+        orderId: "RL-123456",
+        email: "buyer@example.com",
+        rating: 5,
+        headline: "Worth it",
+        displayName: "Roman",
+        reviewText: "This package arrived quickly and gave me a useful starting point for sourcing research.",
+        turnstileToken: "turnstile_test_token_1234567890"
+      })
+    }), env);
+
+    assert.equal(response.status, 200);
+    assert.equal((await response.json()).ok, true);
+
+    const lookup = calls.find((call) => call.sql.includes("FROM orders"));
+    const insert = calls.find((call) => call.sql.includes("INSERT INTO reviews"));
+    assert.ok(lookup, "the worker must verify the buyer against a delivered order");
+    assert.ok(insert, "verified reviews should be saved in D1");
+  } finally {
+    restoreFetch();
+  }
+});
+
+test("support endpoint rejects a missing or invalid Turnstile token before emailing support", async () => {
+  const env = testEnv();
+  const missingToken = await worker.fetch(new Request("https://api.example.test/support", {
     method: "POST",
     headers: { Origin: "https://shopresalelane.com", "Content-Type": "application/json" },
     body: JSON.stringify({
-      orderId: "RL-123456",
-      email: "buyer@example.com",
-      rating: 5,
-      headline: "Worth it",
-      displayName: "Roman",
-      reviewText: "This package arrived quickly and gave me a useful starting point for sourcing research."
+      name: "Roman",
+      email: "roman@example.com",
+      reason: "Product question",
+      message: "Can you explain the difference between the bundle and single SKU?"
+    })
+  }), env);
+  assert.equal(missingToken.status, 400);
+  assert.match((await missingToken.json()).error, /security check/i);
+
+  const restoreFetch = installFetchMock(async () => new Response(JSON.stringify({ success: false }), {
+    status: 200,
+    headers: { "Content-Type": "application/json" }
+  }));
+
+  try {
+    const invalidToken = await worker.fetch(new Request("https://api.example.test/support", {
+      method: "POST",
+      headers: { Origin: "https://shopresalelane.com", "Content-Type": "application/json" },
+      body: JSON.stringify({
+        name: "Roman",
+        email: "roman@example.com",
+        reason: "Product question",
+        message: "Can you explain the difference between the bundle and single SKU?",
+        turnstileToken: "turnstile_test_token_1234567890"
+      })
+    }), env);
+    assert.equal(invalidToken.status, 400);
+    assert.match((await invalidToken.json()).error, /security check/i);
+  } finally {
+    restoreFetch();
+  }
+});
+
+test("security-protected routes fail safely when the Turnstile secret is missing", async () => {
+  const env = testEnv();
+  delete env.TURNSTILE_SECRET_KEY;
+
+  const response = await worker.fetch(new Request("https://api.example.test/checkout", {
+    method: "POST",
+    headers: { Origin: "https://shopresalelane.com", "Content-Type": "application/json" },
+    body: JSON.stringify({
+      productIds: ["shoe-vendor"],
+      turnstileToken: "turnstile_test_token_1234567890"
     })
   }), env);
 
-  assert.equal(response.status, 200);
-  assert.equal((await response.json()).ok, true);
+  assert.equal(response.status, 503);
+  const body = await response.json();
+  assert.equal(body.ok, false);
+  assert.match(body.error, /temporarily unavailable/i);
+  assert.doesNotMatch(body.error, /TURNSTILE_SECRET_KEY/i);
+});
 
-  const lookup = calls.find((call) => call.sql.includes("FROM orders"));
-  const insert = calls.find((call) => call.sql.includes("INSERT INTO reviews"));
-  assert.ok(lookup, "the worker must verify the buyer against a delivered order");
-  assert.ok(insert, "verified reviews should be saved in D1");
+test("checkout endpoint rate-limits abusive retries with a safe message", async () => {
+  const env = testEnv();
+  env.CHECKOUT_RATE_LIMITER = { limit: async () => ({ success: false }) };
+
+  const response = await worker.fetch(new Request("https://api.example.test/checkout", {
+    method: "POST",
+    headers: { Origin: "https://shopresalelane.com", "Content-Type": "application/json" },
+    body: JSON.stringify({
+      productIds: ["shoe-vendor"],
+      turnstileToken: "turnstile_test_token_1234567890"
+    })
+  }), env);
+
+  assert.equal(response.status, 429);
+  assert.match((await response.json()).error, /Too many checkout attempts/i);
 });
 
 async function signedStripeBody(secret, rawBody) {
@@ -177,7 +284,6 @@ async function signedStripeBody(secret, rawBody) {
 test("a paid checkout still records an order, even when artifact delivery fails", async () => {
   const env = testEnv();
   const calls = [];
-  const originalFetch = global.fetch;
   const emailCalls = [];
   env.ORDERS_DB = {
     prepare(sql) {
@@ -196,7 +302,7 @@ test("a paid checkout still records an order, even when artifact delivery fails"
   // Simulates the production incident this test guards against: the R2 artifact object
   // is missing (or any other fulfillment-path failure), so resolveArtifactForProduct throws.
   env.ARTIFACTS = { get: async () => null, head: async () => null };
-  global.fetch = async (url, init) => {
+  const restoreFetch = installFetchMock(async (url, init) => {
     if (url === "https://api.resend.com/emails") {
       emailCalls.push(JSON.parse(init.body));
       return new Response(JSON.stringify({ id: "re_test_confirmation" }), {
@@ -206,7 +312,7 @@ test("a paid checkout still records an order, even when artifact delivery fails"
     }
     assert.equal(url, "https://ntfy.test/resalelane-test-topic");
     return new Response("ok", { status: 200 });
-  };
+  });
 
   const session = {
     id: "cs_test_456",
@@ -246,13 +352,12 @@ test("a paid checkout still records an order, even when artifact delivery fails"
     assert.match(emailCalls[0].text, /Sale status: paid/);
     assert.match(emailCalls[1].text, /Sale status: delivery_failed/);
   } finally {
-    global.fetch = originalFetch;
+    restoreFetch();
   }
 });
 
 test("a successful paid checkout sends one buyer fulfillment email plus one paid-sale alert", async () => {
   const env = testEnv();
-  const originalFetch = global.fetch;
   const emailCalls = [];
   env.ORDERS_DB = {
     prepare() {
@@ -296,7 +401,7 @@ test("a successful paid checkout sends one buyer fulfillment email plus one paid
     head: async () => null
   };
 
-  global.fetch = async (url, init) => {
+  const restoreFetch = installFetchMock(async (url, init) => {
     if (url === "https://api.resend.com/emails") {
       const payload = JSON.parse(init.body);
       emailCalls.push(payload);
@@ -307,7 +412,7 @@ test("a successful paid checkout sends one buyer fulfillment email plus one paid
     }
     assert.equal(url, "https://ntfy.test/resalelane-test-topic");
     return new Response("ok", { status: 200 });
-  };
+  });
 
   const session = {
     id: "cs_test_success",
@@ -342,6 +447,6 @@ test("a successful paid checkout sends one buyer fulfillment email plus one paid
     assert.equal(buyerEmail.tags.some((tag) => tag.value === "order_confirmation"), false);
     assert.match(internalAlert.text, /Sale status: paid/);
   } finally {
-    global.fetch = originalFetch;
+    restoreFetch();
   }
 });

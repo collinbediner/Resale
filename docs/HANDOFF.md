@@ -41,8 +41,12 @@ Do not trust this handoff by itself. Verify the current branch, Git status, late
 
 The board was resynchronized on 2026-07-01. The real outstanding work is:
 
+- Turnstile hardening is now implemented in code and partially live as of 2026-07-01: the Cloudflare widget was created, the production Worker secret `TURNSTILE_SECRET_KEY` was uploaded, the Worker was redeployed to production as version `af6d2858-7aeb-4928-8b12-5e97387a998c`, and the public site key was wired into `site/app.js`; the remaining live step is publishing the updated GitHub Pages storefront and then verifying support, review, and checkout end to end on the public site
+- Browser-automation note: the authenticated Cloudflare Turnstile dashboard tab is open at `/turnstile/add`, but Chrome-extension control of that tab hung repeatedly on 2026-07-01 even though the tab remained visible in the open-tab list; if continuing, first dismiss any extension overlay or modal in Chrome and then resume widget creation instead of re-debugging the local code
+- Customer and internal email polish was tightened locally on 2026-07-01: support emails now use the same branded layout system as fulfillment emails, internal sale alerts no longer print raw Stripe session ids in the email body, and the checkout modal copy now says `Continue to secure payment` instead of the rougher `Continue to Stripe`; `npm run check` passed after those changes
+- The Turnstile widget now includes `shopresalelane.com`, `www.shopresalelane.com`, and `api.shopresalelane.com`; `www.shopresalelane.com` also returns an HTTP 301 redirect to the apex domain, so the current hostname coverage is conservative for the live production flow
 - verify whether Stripe sends a separate buyer receipt for zero-dollar live orders; no Stripe receipt was visible yet in `rbediner@gmail.com` immediately after order `RL-B1ADML7MIA`
-- verify multi-item cart behavior from the public site with a clean browser state
+- multi-item cart behavior was verified on the live public site on 2026-07-01: the cart reached `2`, then `4`, showed multiple removable line items, and the bundle-plus-individual conflict prompt rendered the `Keep Bundle Only` and `Keep Everything` controls
 - finish the documented launch evidence matrix for checkout, fulfillment, alerts, receipts, and failure handling
 - decide whether any additional Stripe per-user notifications beyond `Successful payments` and weekly reports are worth the noise
 - decide whether ntfy should stay limited to sale alerts or also mirror monitor failures and delivery-failed incidents as separate topics

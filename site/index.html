@@ -4,7 +4,7 @@
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <meta name="referrer" content="strict-origin-when-cross-origin" />
-    <meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self'; style-src 'self' https://fonts.googleapis.com; font-src https://fonts.gstatic.com; img-src 'self' data:; connect-src 'self' https://api.shopresalelane.com https://api-staging.shopresalelane.com; object-src 'none'; base-uri 'self'; form-action 'self'; upgrade-insecure-requests" />
+    <meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self' https://challenges.cloudflare.com; style-src 'self' https://fonts.googleapis.com; font-src https://fonts.gstatic.com; img-src 'self' data:; frame-src https://challenges.cloudflare.com; connect-src 'self' https://api.shopresalelane.com https://api-staging.shopresalelane.com https://challenges.cloudflare.com; object-src 'none'; base-uri 'self'; form-action 'self'; upgrade-insecure-requests" />
     <meta name="description" content="Shop digital sourcing resources with supplier information and marketplace links to research and verify yourself." />
     <meta property="og:title" content="ResaleLane - Digital Sourcing Resources for Resellers" />
     <meta property="og:description" content="Digital sourcing information for resellers, delivered by email after secure checkout." />
@@ -18,6 +18,7 @@
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
     <link href="https://fonts.googleapis.com/css2?family=Geist:wght@400;500;600;700;800&display=swap" rel="stylesheet" />
     <link rel="stylesheet" href="./styles.css" />
+    <script src="https://challenges.cloudflare.com/turnstile/v0/api.js?render=explicit&onload=initResaleLaneTurnstile" defer></script>
     <script src="./app.js" type="module"></script>
   </head>
   <body>
@@ -124,6 +125,7 @@
             <div class="form-grid"><label>Rating<select name="rating" required><option value="" selected disabled>Choose a rating</option><option value="5">5 stars</option><option value="4">4 stars</option><option value="3">3 stars</option><option value="2">2 stars</option><option value="1">1 star</option></select></label><label>Display Name <small>(optional)</small><input name="displayName" placeholder="First name or nickname" /></label></div>
             <label>Headline <small>(optional)</small><input name="headline" maxlength="80" placeholder="Short summary of your experience" /></label>
             <label>Your Review<textarea name="reviewText" rows="6" minlength="20" maxlength="1200" placeholder="What was useful, what you liked, and what future buyers should know?" required></textarea></label>
+            <div class="turnstile-wrap"><div class="turnstile-slot" data-turnstile-slot="review"></div><input type="hidden" name="turnstileToken" data-turnstile-input="review" /></div>
             <button class="button primary" type="submit">Submit verified review</button>
             <p class="form-status" data-review-status role="status" aria-live="polite"></p>
           </form>
@@ -164,6 +166,7 @@
               <input type="hidden" name="messageHtml" data-message-html-input />
             </div>
             <label class="form-trap" aria-hidden="true">Company<input name="company" tabindex="-1" autocomplete="off" /></label>
+            <div class="turnstile-wrap"><div class="turnstile-slot" data-turnstile-slot="support"></div><input type="hidden" name="turnstileToken" data-turnstile-input="support" /></div>
             <button class="button primary" type="submit">Send message</button>
             <p class="form-status" data-contact-status role="status" aria-live="polite"></p>
           </form>
