@@ -25,6 +25,7 @@ Do not trust this handoff by itself. Verify the current branch, Git status, late
 - Checkout backend: live in production and already proven with real hosted Stripe sessions
 - Fulfillment: production webhook now records orders before artifact delivery so failed fulfillment does not lose the ledger row
 - Email fulfillment: production now sends a single buyer-facing fulfillment email from the Worker, with PDF attachments pulled from private R2; the redundant buyer "thank you" email has been removed from the successful checkout path
+- Internal sale alerts: production now emails support immediately when a paid order is recorded, and CCs Collin on that alert; if fulfillment later fails, support gets a separate failure-status alert
 - Storefront cart: public site now serves the real live checkout JavaScript through fingerprinted Pages assets
 - Public-site proof: a live hosted checkout completed from the public storefront on 2026-06-30 and wrote order `RL-B15XWXURSO` with `payment_status = paid` and `fulfillment_status = delivered`
 - Reviews: the public storefront now includes a verified-buyer review form, and production accepted a real test submission on 2026-06-30 for delivered order `RL-B15XWXURSO` while rejecting both fake-order and duplicate-order attempts
@@ -40,6 +41,7 @@ The current launch-critical work is now customer-experience polish plus operatio
 - confirm buyer-facing templates no longer expose Stripe checkout-session references
 - confirm the latest homepage and success-page copy cleanup is acceptable after public deployment
 - verify the internal sale-alert email reaches support and CCs Collin after a fresh live sale
+- configure Stripe Dashboard report scheduling if weekly summary emails are desired from Stripe itself; this is a Stripe Dashboard/reporting setting, not a Worker-code feature
 - verify multi-item cart behavior from the public site with a clean browser state
 - run the remaining real test checkouts against each SKU and the 5-item total coverage plan
 - confirm what Stripe itself sends as a separate receipt and document that behavior clearly
@@ -54,7 +56,7 @@ Today's working checklist is tracked in `docs/TODAY-PLAN-2026-06-23.md`.
 - `#19` Security controls: partially complete, still needs Turnstile and Stripe-specific hardening
 - `#3`: Stripe setup is no longer blocked; live products, prices, webhook, and promo code exist
 - `#5`, `#24`, `#26`, and `#29`: completed; v1 PDFs are in private production R2 and hash-verified
-- `#8`: Resend send path is working in production; the 2026-07-01 production deploy removes the redundant buyer confirmation email, keeps the internal sale-alert email, and standardizes buyer-template spacing and typography
+- `#8`: Resend send path is working in production; the 2026-07-01 production deploy removes the redundant buyer confirmation email, standardizes buyer-template spacing and typography, and moves the internal sale-alert trigger to the paid-order event so Collin/support get immediate notice
 - `#4`, `#7`, `#9`, and `#12`: now mostly about end-to-end QA, post-purchase UX polish, and support/receipt verification
 - Reviews: verified-buyer intake is live in production; moderation and any future public display of approved reviews are the remaining pieces
 

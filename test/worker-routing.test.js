@@ -176,6 +176,7 @@ test("a paid checkout still records an order, even when artifact delivery fails"
   const env = testEnv();
   const calls = [];
   const originalFetch = global.fetch;
+  const emailCalls = [];
   env.ORDERS_DB = {
     prepare(sql) {
       return {
@@ -193,8 +194,9 @@ test("a paid checkout still records an order, even when artifact delivery fails"
   // Simulates the production incident this test guards against: the R2 artifact object
   // is missing (or any other fulfillment-path failure), so resolveArtifactForProduct throws.
   env.ARTIFACTS = { get: async () => null, head: async () => null };
-  global.fetch = async (url) => {
+  global.fetch = async (url, init) => {
     assert.equal(url, "https://api.resend.com/emails");
+    emailCalls.push(JSON.parse(init.body));
     return new Response(JSON.stringify({ id: "re_test_confirmation" }), {
       status: 200,
       headers: { "Content-Type": "application/json" }
@@ -233,12 +235,17 @@ test("a paid checkout still records an order, even when artifact delivery fails"
       call.sql.includes("UPDATE orders") && call.values.includes("failed")
     );
     assert.ok(failedFulfillment, "the order's fulfillment_status must move to failed, not stay stuck in processing");
+
+    assert.equal(emailCalls.length, 2, "support should get a paid alert and a delivery-failed alert");
+    assert.match(emailCalls[0].subject, /New ResaleLane sale/);
+    assert.match(emailCalls[0].text, /Sale status: paid/);
+    assert.match(emailCalls[1].text, /Sale status: delivery_failed/);
   } finally {
     global.fetch = originalFetch;
   }
 });
 
-test("a successful paid checkout sends one buyer fulfillment email plus one internal alert", async () => {
+test("a successful paid checkout sends one buyer fulfillment email plus one paid-sale alert", async () => {
   const env = testEnv();
   const originalFetch = global.fetch;
   const emailCalls = [];
@@ -325,6 +332,7 @@ test("a successful paid checkout sends one buyer fulfillment email plus one inte
     assert.match(buyerEmail.subject, /Your ResaleLane package is ready/);
     assert.doesNotMatch(buyerEmail.html, /Stripe reference:/i);
     assert.equal(buyerEmail.tags.some((tag) => tag.value === "order_confirmation"), false);
+    assert.match(internalAlert.text, /Sale status: paid/);
   } finally {
     global.fetch = originalFetch;
   }

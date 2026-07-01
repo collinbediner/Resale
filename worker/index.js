@@ -314,18 +314,25 @@ async function handleStripeWebhook(request, env, requestId) {
       { payment: "paid", fulfillment: "processing" }
     );
 
+    // Alert support as soon as the paid order is durable in D1 so Collin gets a heads-up
+    // even if fulfillment later fails and needs manual attention.
+    await sendInternalSaleAlert(env, order, {
+      saleStatus: "paid",
+      artifactVersion: items.map((item) => `${item.productId}:${item.artifactVersion || "pending"}`).join(", "),
+    }, requestId);
+
     // The order row above is now durable. Artifact content fetch and email send can still
     // fail here, but a paid order is never lost: it lands in fulfillment_status "failed"
     // with the Stripe event recorded against this order ID for support/resend (#13).
     try {
       const artifacts = await Promise.all(products.map((product) => resolveArtifactForProduct(env, product)));
       await sendFulfillment(env, order, artifacts, requestId);
-      await sendInternalSaleAlert(env, order, {
-        saleStatus: "delivered",
-        artifactVersion: artifacts.map((artifact) => `${artifact.productId}:${artifact.artifactVersion}`).join(", "),
-      }, requestId);
       await finishStripeEvent(env.ORDERS_DB, event.id, "processed", order.orderId);
     } catch (fulfillmentError) {
+      await sendInternalSaleAlert(env, order, {
+        saleStatus: "delivery_failed",
+        artifactVersion: items.map((item) => `${item.productId}:${item.artifactVersion || "pending"}`).join(", "),
+      }, `${requestId}:delivery-failed`);
       await updateOrderState(
         env.ORDERS_DB,
         order.orderId,
