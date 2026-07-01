@@ -21,7 +21,7 @@ import {
 } from "./order-store.js";
 import { readBoundedJson, RequestError, securityHeaders } from "./security.js";
 import { createReviewSubmission, validateReviewSubmission, verifyReviewBuyer } from "./reviews.js";
-import { fulfilledPackageEmail, internalSaleAlertEmail, orderConfirmationEmail } from "../server/email-templates.js";
+import { fulfilledPackageEmail, internalSaleAlertEmail } from "../server/email-templates.js";
 
 const ALLOWED_ORIGINS = new Set([
   "https://shopresalelane.com",
@@ -188,29 +188,6 @@ async function sendFulfillment(env, order, artifacts, requestId) {
   }
 }
 
-// The buyer should always get a clear ResaleLane confirmation, even if Stripe's own
-// receipt settings or zero-dollar promo behavior differ between checkout types.
-async function sendOrderConfirmationNotice(env, order, requestId) {
-  const email = orderConfirmationEmail(order);
-  try {
-    await sendEmail(env, {
-      from: env.ORDERS_EMAIL_FROM || "ResaleLane Orders <orders@shopresalelane.com>",
-      to: [order.buyerEmail],
-      bcc: readEmailList(env.ORDER_NOTIFICATION_BCC),
-      subject: email.subject,
-      text: email.text,
-      html: email.html,
-    }, `${requestId}:confirmation`, env.SUPPORT_EMAIL_TO, [{ name: "category", value: "order_confirmation" }]);
-  } catch (error) {
-    console.error(JSON.stringify({
-      event: "order_confirmation_send_failed",
-      requestId,
-      orderId: order.orderId,
-      message: error instanceof Error ? error.message : String(error),
-    }));
-  }
-}
-
 // Internal sale alerts keep support and Collin informed without exposing addresses
 // on the buyer-facing emails.
 async function sendInternalSaleAlert(env, order, details, requestId) {
@@ -336,7 +313,6 @@ async function handleStripeWebhook(request, env, requestId) {
       { payment: "paid", fulfillment: "pending" },
       { payment: "paid", fulfillment: "processing" }
     );
-    await sendOrderConfirmationNotice(env, order, requestId);
 
     // The order row above is now durable. Artifact content fetch and email send can still
     // fail here, but a paid order is never lost: it lands in fulfillment_status "failed"

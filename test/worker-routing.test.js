@@ -237,3 +237,95 @@ test("a paid checkout still records an order, even when artifact delivery fails"
     global.fetch = originalFetch;
   }
 });
+
+test("a successful paid checkout sends one buyer fulfillment email plus one internal alert", async () => {
+  const env = testEnv();
+  const originalFetch = global.fetch;
+  const emailCalls = [];
+  env.ORDERS_DB = {
+    prepare() {
+      return {
+        bind() {
+          return {
+            run: async () => ({ meta: { changes: 1 } }),
+            first: async () => ({ attempt_number: 1 })
+          };
+        }
+      };
+    },
+    batch: async statements => ({ statements })
+  };
+  env.ARTIFACTS = {
+    get: async (key) => {
+      if (String(key).endsWith("/contacts.json")) {
+        return {
+          text: async () => JSON.stringify({
+            title: "All Vendor Bundle",
+            artifactVersion: "v1",
+            sections: [{
+              title: "All Vendor Bundle",
+              companyName: "ResaleLane Test Vendor",
+              contactName: "Test Contact",
+              phoneWhatsApp: "555-0100",
+              bestContactMethod: "Email",
+              orderingNotes: "Ask for the current catalog first.",
+              recommendedFirstMessage: "Hello, can you send the latest catalog?",
+              beforeOrdering: "Verify every detail before paying.",
+              disclaimer: "Testing artifact payload."
+            }]
+          })
+        };
+      }
+      if (String(key).endsWith("/package.pdf")) {
+        return new Blob(["fake pdf"], { type: "application/pdf" });
+      }
+      return null;
+    },
+    head: async () => null
+  };
+
+  global.fetch = async (url, init) => {
+    assert.equal(url, "https://api.resend.com/emails");
+    const payload = JSON.parse(init.body);
+    emailCalls.push(payload);
+    return new Response(JSON.stringify({ id: `re_${emailCalls.length}` }), {
+      status: 200,
+      headers: { "Content-Type": "application/json" }
+    });
+  };
+
+  const session = {
+    id: "cs_test_success",
+    livemode: false,
+    customer_details: { email: "buyer@example.com" },
+    currency: "usd",
+    amount_total: 1200,
+    payment_intent: "pi_test_success",
+    metadata: { product_ids: "all-vendor-bundle" }
+  };
+  const event = { id: "evt_test_success", type: "checkout.session.completed", data: { object: session } };
+  const rawBody = JSON.stringify(event);
+
+  try {
+    const response = await worker.fetch(new Request("https://api.example.test/stripe/webhook", {
+      method: "POST",
+      headers: { "Stripe-Signature": await signedStripeBody(env.STRIPE_WEBHOOK_SECRET, rawBody) },
+      body: rawBody
+    }), env);
+
+    assert.equal(response.status, 200);
+    assert.equal(emailCalls.length, 2, "only the buyer fulfillment email and the internal sale alert should send");
+
+    const buyerEmail = emailCalls.find((payload) => Array.isArray(payload.to) && payload.to.includes("buyer@example.com"));
+    const internalAlert = emailCalls.find((payload) => Array.isArray(payload.to) && payload.to.includes(env.SUPPORT_EMAIL_TO));
+
+    assert.ok(buyerEmail, "buyer fulfillment email should be sent");
+    assert.ok(internalAlert, "internal sale alert should be sent");
+    assert.equal(buyerEmail.subject.startsWith("Thank you for shopping with ResaleLane"), false);
+    assert.match(buyerEmail.subject, /Your ResaleLane package is ready/);
+    assert.doesNotMatch(buyerEmail.html, /Stripe reference:/i);
+    assert.equal(buyerEmail.tags.some((tag) => tag.value === "order_confirmation"), false);
+  } finally {
+    global.fetch = originalFetch;
+  }
+});

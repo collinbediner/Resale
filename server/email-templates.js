@@ -1,5 +1,6 @@
 const SUPPORT_EMAIL = "collin.bediner+support@gmail.com";
 const DISCLAIMER = "ResaleLane provides informational sourcing resources only. ResaleLane does not own or control third-party suppliers and does not guarantee pricing, inventory, shipping times, product quality, authenticity, or results.";
+const EMAIL_FONT_STACK = "'Aptos', 'Segoe UI', Arial, sans-serif";
 
 function escapeHtml(value) {
   return String(value)
@@ -17,35 +18,36 @@ function formatMoney(cents, currency = "USD") {
   }).format(cents / 100);
 }
 
-function layout({ preheader, heading, body, action }) {
+function layout({ preheader, heading, intro = "", body, action }) {
   const button = action
-    ? `<p style="margin:28px 0"><a href="${escapeHtml(action.url)}" style="display:inline-block;padding:13px 20px;border-radius:10px;background:#ffffff;color:#080808;text-decoration:none;font-weight:700">${escapeHtml(action.label)}</a></p>`
+    ? `<table role="presentation" style="border-collapse:collapse;margin:28px 0 0"><tr><td style="border-radius:12px;background:#ffffff;padding:0"><a href="${escapeHtml(action.url)}" style="display:inline-block;padding:14px 20px;border-radius:12px;background:#ffffff;color:#080808;text-decoration:none;font-size:15px;font-weight:700;line-height:1.2">${escapeHtml(action.label)}</a></td></tr></table>`
     : "";
 
   return `<!doctype html>
 <html lang="en">
 <head><meta charset="utf-8"><meta name="viewport" content="width=device-width"></head>
-<body style="margin:0;background:#080808;color:#ffffff;font-family:Arial,sans-serif">
+<body style="margin:0;background:#080808;color:#ffffff;font-family:${EMAIL_FONT_STACK}">
   <div style="display:none;max-height:0;overflow:hidden">${escapeHtml(preheader)}</div>
-  <table role="presentation" style="width:100%;border-collapse:collapse;background:#080808">
+  <table role="presentation" style="width:100%;border-collapse:collapse;background:#080808;mso-table-lspace:0;mso-table-rspace:0">
     <tr>
-      <td align="center" style="padding:36px 22px">
-        <table role="presentation" style="width:100%;max-width:620px;border-collapse:collapse">
+      <td align="center" style="padding:36px 16px">
+        <table role="presentation" style="width:100%;max-width:640px;border-collapse:collapse;mso-table-lspace:0;mso-table-rspace:0">
           <tr>
-            <td style="padding:0 0 42px;font-size:20px;font-weight:700;color:#ffffff">ResaleLane</td>
+            <td style="padding:0 0 24px 8px;font-size:20px;font-weight:700;line-height:1.2;color:#ffffff">ResaleLane</td>
           </tr>
           <tr>
-            <td style="border:1px solid #2a2a2a;border-radius:16px;background:#111111;padding:32px 28px 34px">
-              <h1 style="margin:0 0 18px;font-size:28px;line-height:1.2;color:#ffffff">${escapeHtml(heading)}</h1>
+            <td style="border:1px solid #2a2a2a;border-radius:18px;background:#111111;padding:40px 32px">
+              <h1 style="margin:0 0 16px;font-size:36px;line-height:1.15;font-weight:800;letter-spacing:-0.03em;color:#ffffff">${escapeHtml(heading)}</h1>
+              ${intro ? `<p style="margin:0 0 24px;font-size:18px;line-height:1.7;color:#d4d4d4">${intro}</p>` : ""}
               ${body}
               ${button}
             </td>
           </tr>
           <tr>
-            <td style="padding:24px 0 0;color:#777777;font-size:12px;line-height:1.6">${escapeHtml(DISCLAIMER)}</td>
+            <td style="padding:20px 8px 0;color:#777777;font-size:12px;line-height:1.7">${escapeHtml(DISCLAIMER)}</td>
           </tr>
           <tr>
-            <td style="padding:10px 0 0;color:#777777;font-size:12px">Support: <a href="mailto:${SUPPORT_EMAIL}" style="color:#bdbdbd">${SUPPORT_EMAIL}</a></td>
+            <td style="padding:10px 8px 0;color:#777777;font-size:12px;line-height:1.7">Support: <a href="mailto:${SUPPORT_EMAIL}" style="color:#bdbdbd">${SUPPORT_EMAIL}</a></td>
           </tr>
         </table>
       </td>
@@ -63,11 +65,22 @@ function orderRows(items) {
 }
 
 function orderSummary(order) {
-  return `<table role="presentation" style="width:100%;border-collapse:collapse;margin:20px 0">
+  return `<table role="presentation" style="width:100%;border-collapse:collapse;margin:28px 0 0">
     ${orderRows(order.items)}
-    <tr><td style="padding-top:14px;font-weight:700">Total</td><td style="padding-top:14px;text-align:right;font-weight:800">${escapeHtml(formatMoney(order.totalCents, order.currency))}</td></tr>
+    <tr><td style="padding-top:16px;font-weight:700;line-height:1.5">Total</td><td style="padding-top:16px;text-align:right;font-weight:800;line-height:1.5">${escapeHtml(formatMoney(order.totalCents, order.currency))}</td></tr>
   </table>
-  <p style="color:#a3a3a3;font-size:13px;line-height:1.6">ResaleLane order: ${escapeHtml(order.orderId)}</p>`;
+  <p style="margin:18px 0 0;color:#a3a3a3;font-size:13px;line-height:1.7">ResaleLane order: ${escapeHtml(order.orderId)}</p>`;
+}
+
+function infoCard(title, innerHtml) {
+  return `<table role="presentation" style="width:100%;margin:24px 0 0;border-collapse:separate;border-spacing:0;border:1px solid #282828;border-radius:14px;background:#151515">
+    <tr>
+      <td style="padding:20px 20px 18px">
+        <p style="margin:0 0 10px;color:#8f8f8f;font-size:12px;letter-spacing:.08em;text-transform:uppercase">${escapeHtml(title)}</p>
+        ${innerHtml}
+      </td>
+    </tr>
+  </table>`;
 }
 
 function fulfillmentSectionHtml(section) {
@@ -105,11 +118,18 @@ function fulfillmentSectionText(section) {
 }
 
 function validateOrder(order) {
-  if (!order?.orderId || !order?.stripeReference || !order?.items?.length) {
-    throw new Error("Order ID, Stripe reference, and at least one item are required.");
+  if (!order?.orderId || !order?.items?.length) {
+    throw new Error("Order ID and at least one item are required.");
   }
   if (!Number.isInteger(order.totalCents) || order.totalCents < 0) {
     throw new Error("Order total must be a non-negative integer in cents.");
+  }
+}
+
+function validateInternalOrder(order) {
+  validateOrder(order);
+  if (!order?.stripeReference) {
+    throw new Error("Stripe reference is required for internal sale alerts.");
   }
 }
 
@@ -134,8 +154,8 @@ ${DISCLAIMER}`;
     html: layout({
       preheader: `Thank you for shopping with ResaleLane.`,
       heading: "Thank you for shopping with ResaleLane.",
-      body: `<p style="color:#d4d4d4;line-height:1.65">We received your order and are preparing your delivery now. We appreciate you trusting ResaleLane with your sourcing research.</p>
-        <p style="color:#d4d4d4;line-height:1.65">If Stripe sends a payment receipt for this checkout, it will arrive separately from Stripe. Your ResaleLane delivery email will follow after server-side verification.</p>
+      intro: "We received your order and are preparing your delivery now.",
+      body: `<p style="margin:0 0 18px;color:#d4d4d4;line-height:1.7">If Stripe sends a payment receipt for this checkout, it will arrive separately from Stripe. Your ResaleLane delivery email will follow after server-side verification.</p>
         ${orderSummary(order)}`
     })
   };
@@ -164,8 +184,9 @@ ${DISCLAIMER}`;
     html: layout({
       preheader: `Your order ${order.orderId} is ready for secure download.`,
       heading: "Your package is ready.",
-      body: `<p style="color:#d4d4d4;line-height:1.65">Use the secure, order-specific link below. Do not forward it. The link expires on <strong>${escapeHtml(delivery.expiresAt)}</strong>.</p>
-        <p style="color:#737373;font-size:12px">Order ${escapeHtml(order.orderId)} · Artifact version ${escapeHtml(delivery.artifactVersion)}</p>`,
+      intro: "Use the secure, order-specific link below. Do not forward it.",
+      body: `<p style="margin:0;color:#d4d4d4;line-height:1.7">This link expires on <strong>${escapeHtml(delivery.expiresAt)}</strong>.</p>
+        <p style="margin:18px 0 0;color:#737373;font-size:12px;line-height:1.7">Order ${escapeHtml(order.orderId)} · Artifact version ${escapeHtml(delivery.artifactVersion)}</p>`,
       action: { label: "Download your package", url: delivery.url }
     })
   };
@@ -185,9 +206,7 @@ export function fulfilledPackageEmail(order, fulfillment) {
 
   return {
     subject: `Your ResaleLane package is ready - ${order.orderId}`,
-    text: `Thank you for shopping with ResaleLane.
-
-Your purchased sourcing package is ready.
+    text: `Your purchased sourcing package is ready.
 
 Artifact version: ${fulfillment.artifactVersion}
 ${attachmentLine}
@@ -203,28 +222,18 @@ ${DISCLAIMER}`,
     html: layout({
       preheader: `Your order ${order.orderId} is ready.`,
       heading: "Your package is ready.",
-      body: `<p style="color:#d4d4d4;line-height:1.65">Thank you for shopping with ResaleLane. Your sourcing package is ready, and the PDF delivery file${fulfillment.attachmentCount === 1 ? "" : "s"} ${fulfillment.attachmentCount === 1 ? "is" : "are"} attached to this email.</p>
-        <p style="color:#d4d4d4;line-height:1.65">This email is your ResaleLane delivery confirmation. If Stripe sends a payment receipt for this order, it will arrive separately from Stripe.</p>
+      intro: `Your sourcing package is ready, and the PDF delivery file${fulfillment.attachmentCount === 1 ? "" : "s"} ${fulfillment.attachmentCount === 1 ? "is" : "are"} attached to this email.`,
+      body: `<p style="margin:0 0 18px;color:#d4d4d4;line-height:1.7">This is your full ResaleLane delivery email. If Stripe sends a payment receipt for this order, it will arrive separately from Stripe.</p>
         ${orderSummary(order)}
-        <p style="color:#737373;font-size:12px;line-height:1.6">Artifact version ${escapeHtml(fulfillment.artifactVersion)} · Do not forward this email.</p>
-        <table role="presentation" style="width:100%;margin:20px 0 0;border-collapse:separate;border-spacing:0;border:1px solid #282828;border-radius:14px;background:#151515">
-          <tr><td style="padding:18px">
-          <p style="margin:0 0 10px;color:#8f8f8f;font-size:12px;letter-spacing:.08em;text-transform:uppercase">Attached PDFs</p>
-          <ul style="margin:0;padding-left:20px">${resourceListHtml}</ul>
-          </td></tr>
-        </table>
-        <table role="presentation" style="width:100%;margin:20px 0 0;border-collapse:separate;border-spacing:0;border:1px solid #282828;border-radius:14px;background:#151515">
-          <tr><td style="padding:18px">
-          <p style="margin:0 0 10px;color:#8f8f8f;font-size:12px;letter-spacing:.08em;text-transform:uppercase">Before you buy from any vendor</p>
-          <p style="margin:0;color:#d4d4d4;line-height:1.65">Please verify supplier identity, pricing, minimum order requirements, payment method, shipping details, and product authenticity directly with the vendor before sending money.</p>
-          </td></tr>
-        </table>`
+        <p style="margin:18px 0 0;color:#737373;font-size:12px;line-height:1.7">Artifact version ${escapeHtml(fulfillment.artifactVersion)} · Do not forward this email.</p>
+        ${infoCard("Attached PDFs", `<ul style="margin:0;padding-left:20px">${resourceListHtml}</ul>`)}
+        ${infoCard("Before you buy from any vendor", `<p style="margin:0;color:#d4d4d4;line-height:1.7">Please verify supplier identity, pricing, minimum order requirements, payment method, shipping details, and product authenticity directly with the vendor before sending money.</p>`)}`
     })
   };
 }
 
 export function internalSaleAlertEmail(order, details) {
-  validateOrder(order);
+  validateInternalOrder(order);
   const saleStatus = details?.saleStatus || "paid";
   const artifactVersion = details?.artifactVersion || "pending";
   const itemList = order.items.map((item) => `- ${item.name}: ${formatMoney(item.amountCents, order.currency)}`).join("\n");
@@ -246,7 +255,8 @@ ${itemList}`,
     html: layout({
       preheader: `New ResaleLane sale ${order.orderId}.`,
       heading: "A ResaleLane sale was completed.",
-      body: `<p style="color:#d4d4d4;line-height:1.65">This is an internal order alert for support and operations.</p>
+      intro: "This is an internal order alert for support and operations.",
+      body: `
         <table role="presentation" style="width:100%;border-collapse:collapse;margin:20px 0">
           <tr><td style="padding:8px 0;color:#8f8f8f">Order</td><td style="padding:8px 0;text-align:right;font-weight:700">${escapeHtml(order.orderId)}</td></tr>
           <tr><td style="padding:8px 0;color:#8f8f8f">Buyer email</td><td style="padding:8px 0;text-align:right;font-weight:700">${escapeHtml(order.buyerEmail)}</td></tr>
@@ -255,12 +265,7 @@ ${itemList}`,
           <tr><td style="padding:8px 0;color:#8f8f8f">Stripe checkout session</td><td style="padding:8px 0;text-align:right;font-weight:700">${escapeHtml(order.stripeReference)}</td></tr>
           <tr><td style="padding:8px 0;color:#8f8f8f">Total</td><td style="padding:8px 0;text-align:right;font-weight:700">${escapeHtml(formatMoney(order.totalCents, order.currency))}</td></tr>
         </table>
-        <table role="presentation" style="width:100%;margin:20px 0 0;border-collapse:separate;border-spacing:0;border:1px solid #282828;border-radius:14px;background:#151515">
-          <tr><td style="padding:18px">
-            <p style="margin:0 0 10px;color:#8f8f8f;font-size:12px;letter-spacing:.08em;text-transform:uppercase">Items</p>
-            <ul style="margin:0;padding-left:20px">${itemListHtml}</ul>
-          </td></tr>
-        </table>`
+        ${infoCard("Items", `<ul style="margin:0;padding-left:20px">${itemListHtml}</ul>`)}`
     })
   };
 }
@@ -277,8 +282,9 @@ ${DISCLAIMER}`,
     html: layout({
       preheader: `Delivery for order ${order.orderId} is delayed.`,
       heading: "Your delivery is taking longer than expected.",
-      body: `<p style="color:#d4d4d4;line-height:1.65">Your payment was received. You do not need to purchase again. Our system will retry automatically.</p>
-        <p style="color:#a3a3a3;line-height:1.65">If the package has not arrived within 30 minutes, contact support from the checkout email and include order <strong>${escapeHtml(order.orderId)}</strong>.</p>`
+      intro: "Your payment was received. You do not need to purchase again.",
+      body: `<p style="margin:0;color:#d4d4d4;line-height:1.7">Our system will retry automatically.</p>
+        <p style="margin:18px 0 0;color:#a3a3a3;line-height:1.7">If the package has not arrived within 30 minutes, contact support from the checkout email and include order <strong>${escapeHtml(order.orderId)}</strong>.</p>`
     })
   };
 }
@@ -301,10 +307,10 @@ Support: ${SUPPORT_EMAIL}`,
     html: layout({
       preheader: `Support request ${request.requestId} was received.`,
       heading: "We received your message.",
-      body: `<p style="color:#d4d4d4;line-height:1.65">Reference: <strong>${escapeHtml(request.requestId)}</strong></p>
-        ${request.orderId ? `<p style="color:#a3a3a3">Order: ${escapeHtml(request.orderId)}</p>` : ""}
-        <p style="color:#a3a3a3">Reason: ${escapeHtml(request.reason)}</p>
-        <p style="color:#737373;font-size:12px;line-height:1.6">Reply if you need to add information. Never send card numbers, passwords, API keys, or supplier credentials.</p>`
+      intro: `Reference: ${escapeHtml(request.requestId)}`,
+      body: `${request.orderId ? `<p style="margin:0 0 12px;color:#a3a3a3;line-height:1.7">Order: ${escapeHtml(request.orderId)}</p>` : ""}
+        <p style="margin:0 0 18px;color:#a3a3a3;line-height:1.7">Reason: ${escapeHtml(request.reason)}</p>
+        <p style="margin:0;color:#737373;font-size:12px;line-height:1.7">Reply if you need to add information. Never send card numbers, passwords, API keys, or supplier credentials.</p>`
     })
   };
 }

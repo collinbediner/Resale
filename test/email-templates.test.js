@@ -24,6 +24,8 @@ test("confirmation distinguishes Stripe receipt from ResaleLane fulfillment", ()
   assert.match(email.text, /If Stripe sends a payment receipt/);
   assert.match(email.text, /\$12\.00/);
   assert.doesNotMatch(email.text, /Stripe payment reference/i);
+  assert.doesNotMatch(email.text, /Stripe reference:/i);
+  assert.doesNotMatch(email.html, /Stripe reference:/i);
   assert.doesNotMatch(email.text, /supplier contact/i);
 });
 
@@ -44,13 +46,16 @@ test("fulfillment email is branded and points buyers to attached PDFs", () => {
     attachmentCount: 1,
     resourceTitles: ["Shoe Vendor"],
   });
-  assert.match(email.text, /Thank you for shopping with ResaleLane/);
+  assert.match(email.text, /Your purchased sourcing package is ready/);
   assert.match(email.text, /PDF is attached to this email/i);
   assert.match(email.html, /Attached PDFs/);
   assert.match(email.html, /Shoe Vendor/);
-  assert.match(email.html, /padding:32px 28px 34px/);
-  assert.match(email.html, /<table role="presentation" style="width:100%;margin:20px 0 0;border-collapse:separate;border-spacing:0;border:1px solid #282828;border-radius:14px;background:#151515">/);
+  assert.match(email.html, /font-family:'Aptos', 'Segoe UI', Arial, sans-serif/);
+  assert.match(email.html, /padding:40px 32px/);
+  assert.match(email.html, /This is your full ResaleLane delivery email/);
   assert.doesNotMatch(email.text, /Stripe reference/i);
+  assert.doesNotMatch(email.text, /Thank you for shopping with ResaleLane/i);
+  assert.doesNotMatch(email.html, /Stripe reference:/i);
   assert.doesNotMatch(email.html, /Phone \/ WhatsApp/);
 });
 

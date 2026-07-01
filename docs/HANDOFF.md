@@ -24,7 +24,7 @@ Do not trust this handoff by itself. Verify the current branch, Git status, late
 - Promo code: permanent `COLLIN` 100% off test code is live
 - Checkout backend: live in production and already proven with real hosted Stripe sessions
 - Fulfillment: production webhook now records orders before artifact delivery so failed fulfillment does not lose the ledger row
-- Email fulfillment: branded ResaleLane confirmation + fulfillment emails are deployed from the Worker, with PDF attachments pulled from private R2
+- Email fulfillment: production now sends a single buyer-facing fulfillment email from the Worker, with PDF attachments pulled from private R2; the redundant buyer "thank you" email has been removed from the successful checkout path
 - Storefront cart: public site now serves the real live checkout JavaScript through fingerprinted Pages assets
 - Public-site proof: a live hosted checkout completed from the public storefront on 2026-06-30 and wrote order `RL-B15XWXURSO` with `payment_status = paid` and `fulfillment_status = delivered`
 - Reviews: the public storefront now includes a verified-buyer review form, and production accepted a real test submission on 2026-06-30 for delivered order `RL-B15XWXURSO` while rejecting both fake-order and duplicate-order attempts
@@ -36,7 +36,8 @@ Do not trust this handoff by itself. Verify the current branch, Git status, late
 
 The current launch-critical work is now customer-experience polish plus operational verification:
 
-- verify the latest email padding fix in a real inbox so Gmail and desktop mail clients no longer pin text against the dark card edge
+- verify the newly deployed single-email buyer flow in a real inbox so Gmail and desktop mail clients show the revised spacing and there is no extra buyer "thank you" email
+- confirm buyer-facing templates no longer expose Stripe checkout-session references
 - confirm the latest homepage and success-page copy cleanup is acceptable after public deployment
 - verify the internal sale-alert email reaches support and CCs Collin after a fresh live sale
 - verify multi-item cart behavior from the public site with a clean browser state
@@ -53,7 +54,7 @@ Today's working checklist is tracked in `docs/TODAY-PLAN-2026-06-23.md`.
 - `#19` Security controls: partially complete, still needs Turnstile and Stripe-specific hardening
 - `#3`: Stripe setup is no longer blocked; live products, prices, webhook, and promo code exist
 - `#5`, `#24`, `#26`, and `#29`: completed; v1 PDFs are in private production R2 and hash-verified
-- `#8`: Resend send path is working in production; latest local changes add safer email spacing plus a dedicated internal sale-alert email
+- `#8`: Resend send path is working in production; the 2026-07-01 production deploy removes the redundant buyer confirmation email, keeps the internal sale-alert email, and standardizes buyer-template spacing and typography
 - `#4`, `#7`, `#9`, and `#12`: now mostly about end-to-end QA, post-purchase UX polish, and support/receipt verification
 - Reviews: verified-buyer intake is live in production; moderation and any future public display of approved reviews are the remaining pieces
 
@@ -69,6 +70,7 @@ Good independent tasks:
 - refine backup/recovery now that production v1 artifacts exist in R2
 - verify secret names and provider locations without exposing values
 - verify inbox outcomes for buyer, support, and Collin copies after each live test order
+- if inbox screenshots disagree with current code, verify the deploy timestamp and Worker version before assuming the repo is wrong
 
 Stop and ask before:
 
