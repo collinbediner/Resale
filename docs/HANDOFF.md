@@ -48,7 +48,7 @@ The board was cleaned up on 2026-07-01 after the Turnstile rollout, Worker deplo
 - decide whether any additional Stripe per-user notifications beyond `Successful payments` and weekly reports are worth the noise
 - decide whether the shared internal operations token should later be split into separate monitor and manual-retry credentials
 
-Today's working checklist is tracked in `docs/TODAY-PLAN-2026-06-23.md`.
+The working checklist lives in the planning ticket and project status, not in a dated plan file.
 
 ## Ticket Snapshot
 
