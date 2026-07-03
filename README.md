@@ -19,6 +19,21 @@ GitHub source of truth for the ResaleLane storefront, public-safe product docume
 - Collaborator setup: [.github/CONTRIBUTING.md](.github/CONTRIBUTING.md)
 - Brand/design source files: [Design System/design_handoff_resalelane/README.md](Design%20System/design_handoff_resalelane/README.md)
 
+## Architecture
+
+ShopResaleLane (`shopresalelane.com`) is an e-commerce storefront that sells digital vendor "package" PDFs. It is split into a public static site and a private serverless API so that no secrets, prices, or buyer records ever ship to the browser.
+
+- Tech stack: dependency-free static HTML/CSS/vanilla JavaScript for the storefront; a Cloudflare Worker (ES modules, `nodejs_compat`) for the API; Cloudflare D1 (SQLite) for order/event state; Cloudflare R2 for private delivery PDFs; Stripe for hosted Checkout and payments; Resend for transactional email; Cloudflare Turnstile for anti-abuse. Tests use the built-in Node.js test runner; no runtime framework or bundler is used.
+- Directory layout:
+  - `site/` — public storefront: `index.html`, `styles.css`, `app.js` (cart/menus/checkout preview/contact), `cart-logic.js` (browser-independent cart rules), `success.html`/`canceled.html`, `assets/`, `CNAME`.
+  - `worker/` — private API: `index.js` (router) plus `commerce.js`, `order-store.js`, `contact.js`, `reviews.js`, `monitor.js`, `turnstile.js`, `security.js`.
+  - `server/` — backend-only modules never shipped to the browser (e.g. `email-templates.js`).
+  - `migrations/` — D1 SQL migrations; `scripts/` — `build.mjs` (fingerprinted `dist/`), `scan-secrets.mjs`, `clean-drive-drift.sh`.
+  - `docs/` — architecture, PRD, SOP, runbooks; `Design System/` — brand assets and tokens; `.github/workflows/` — CI/CD; `test/` — Node tests.
+- Build & run: `npm install`, then `npm run check` (secret scan, `node --check` on JS, `node --test`, and `build`). `npm run build` emits a fingerprinted `dist/` (generated, not committed). Worker config is validated with `npx wrangler deploy --env="" --dry-run` (and `--env staging`).
+- Deploy: GitHub Actions in `.github/workflows/` runs tests/previews and deploys the static site to GitHub Pages via the `gh-pages` branch (feature branch → PR preview → `staging` at `/staging/` → `main` in production). The Worker deploys to Cloudflare (`api.shopresalelane.com` prod, `api-staging.shopresalelane.com` staging), configured in `wrangler.jsonc` with separate D1 databases, R2 buckets, and rate limiters per environment.
+- Request flow: the browser sends product IDs (never prices) to the Worker, which maps them to Stripe Price IDs and creates a Checkout Session. Stripe hosts checkout and posts a signed webhook back; the Worker verifies it, records the order in D1, reads the purchased PDF from R2, and sends the fulfillment email via Resend. See [docs/ARCHITECTURE.md](docs/ARCHITECTURE.md) for the full sequence.
+
 ## What This Project Uses
 
 ResaleLane uses a small set of services, each for one clear job:
@@ -181,3 +196,11 @@ This preserves the full history and limits the rollback to the environment the u
 GitHub is the source of truth for all public-safe project material collaborators need. Google Drive may be used for drafting or private operations, but decisions and usable files must be copied into this repository before they are treated as current.
 
 Private supplier delivery data, credentials, local caches, generated builds, and Google Drive shortcut files are intentionally not committed.
+
+## Google Drive drift
+
+This repository is checked out inside Google Drive and synced across machines. Google Drive creates conflict-copies (filenames ending in ` 2`, ` 3`, or ` (1)`) — including inside `.git` — which corrupt the repo. A guardrail auto-removes them:
+
+- `scripts/clean-drive-drift.sh --fix` — remove conflict-copies then verify with `git fsck` (`--check` to only report).
+- Runs automatically via git hooks (`pre-commit`, `post-merge`, `post-checkout`) and, for Claude, on session start via `.claude/settings.json`.
+- Never commit a file whose name ends in ` 2`/` 3` — it is Google Drive junk, not a real file.
