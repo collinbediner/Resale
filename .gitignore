@@ -16,3 +16,14 @@ Thumbs.db
 *.gsheet
 *.gslides
 .secrets/
+
+# Editor and OS scratch files
+*.swp
+*.swo
+*~
+.idea/
+.vscode/
+
+# npm debug output
+npm-debug.log*
+yarn-error.log*

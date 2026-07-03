@@ -1,3 +1,12 @@
+// Verified-buyer review pipeline.
+//
+// A review is only accepted when the submitter proves they placed a real,
+// paid, and delivered order: validateReviewSubmission first sanitises and
+// shape-checks the input (including the Turnstile token), verifyReviewBuyer
+// then confirms the order/email pair against the orders table, and
+// createReviewSubmission finally persists the review in the "pending" state
+// so it can be moderated before it is shown publicly.
+
 import { readTurnstileToken, validateTurnstileTokenShape } from "./turnstile.js";
 
 function normalizeEmail(value) {
@@ -66,6 +75,8 @@ export function validateReviewSubmission(input) {
   };
 }
 
+// Confirms the order ID + buyer email belong to a paid, delivered order.
+// Returns the order row when the buyer is eligible, or undefined otherwise.
 export async function verifyReviewBuyer(db, submission) {
   return db.prepare(`
     SELECT id

@@ -1,3 +1,12 @@
+// Internal uptime-monitor endpoint helpers.
+//
+// The daily GitHub Actions uptime check POSTs a small status report to the
+// private Worker. These helpers validate that report against a strict field
+// allow-list and value patterns (validateMonitorReport), compare the shared
+// bearer token in constant time to avoid leaking it via timing
+// (constantTimeTokenEqual), and format the notification email that is sent to
+// the operator (buildMonitorEmail).
+
 const MONITOR_FIELDS = new Set(["status", "siteStatus", "apiStatus", "httpCode", "duration", "runUrl"]);
 
 function clean(value, maximumLength) {
