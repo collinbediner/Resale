@@ -27,3 +27,9 @@ Thumbs.db
 # npm debug output
 npm-debug.log*
 yarn-error.log*
+
+# .claude/ holds machine-local Claude Code config. settings.local.json carries
+# personal permission overrides and must stay untracked, but settings.json
+# (the Drive-drift SessionStart hook) has no secrets and must be shared.
+.claude/*
+!.claude/settings.json

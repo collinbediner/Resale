@@ -1,4 +1,5 @@
 # resale-website
+
 ## Google Drive drift (ALL agents & tools — read this)
 
 This repo is checked out inside **Google Drive** and synced across multiple machines. Google Drive creates conflict-copies of files (names ending in ` 2`, ` 3`, …) — **including inside `.git/objects` and `.git/refs`** — which corrupt the repository. This has caused real breakage.
